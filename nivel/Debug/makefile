@@ -23,22 +23,22 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: personaje
+all: nivel
 
 dependents:
 	-cd /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug && $(MAKE) all
 
 # Tool invocations
-personaje: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug/libcommons.so
+nivel: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug/libcommons.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"/home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug" -o "personaje" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug" -o "nivel" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) personaje
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) nivel
 	-@echo ' '
 
 .PHONY: all clean dependents
