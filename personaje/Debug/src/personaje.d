@@ -1,4 +1,4 @@
-src/orquestador.d: ../src/orquestador.c \
+src/personaje.d: ../src/personaje.c \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/log.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/config.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/collections/dictionary.h \
