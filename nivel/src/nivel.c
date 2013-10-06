@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////INCLUDES////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/temporal.h>
-#include <commons/collections/list.h>
-#include <commons/config.h>
+#include <temporal.h>
+#include <collections/list.h>
+#include <config.h>
 #include <pthread.h>
 //#include <tad_items.h>
 //#include <nivel.h>
@@ -17,11 +17,13 @@
 
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
+
 #define DIRECCION INADDR_ANY   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
 #define PUERTO 5000
 #define BUFF_SIZE 1024
 
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES////////////////////////////////////////////////////
+
 char *ruta = "./configNivel.cfg";
 t_config *config;
 int quantum;
@@ -42,7 +44,7 @@ long int retardo;
 		retardo_aux = config_get_int_value(config, "retardo");
 
 
-/*
+
 enemigo(){
 	crearseASiMismo(); //random, verifica que no se cree en el (0,0)
 
@@ -169,6 +171,5 @@ int pruebaSockets() {
 
 	return EXIT_SUCCESS;
 }
-
 
 
