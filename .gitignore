@@ -1,4 +1,38 @@
 # Object files
+personaje/Debug/src/personaje.o
+personaje/Debug/personaje
+commons/Debug/bitarray.d
+commons/Debug/collections/dictionary.d
+commons/Debug/collections/list.d
+commons/Debug/collections/queue.d
+commons/Debug/collections/subdir.mk
+commons/Debug/config.d
+commons/Debug/makefile
+commons/Debug/sources.mk
+commons/Debug/error.d
+commons/Debug/log.d
+commons/Debug/process.d
+commons/Debug/string.d
+commons/Debug/subdir.mk
+commons/Debug/temporal.d
+commons/Debug/txt.d
+nivel/Debug/makefile
+nivel/Debug/nivel
+nivel/Debug/sources.mk
+nivel/Debug/src/subdir.mk
+personaje/Debug/makefile
+personaje/Debug/sources.mk
+personaje/Debug/src/subdir.mk
+plataforma/Debug/makefile
+plataforma/Debug/objects.mk
+plataforma/Debug/plataforma
+plataforma/Debug/sources.mk
+plataforma/Debug/makefile
+plataforma/Debug/src/orquestador.d
+plataforma/Debug/src/subdir.mk
+
+
+
 *.o
 
 # Libraries
