@@ -25,6 +25,7 @@ nivel/Debug/nivel
 nivel/Debug/sources.mk
 nivel/Debug/objects.mk
 nivel/Debug/src/subdir.mk
+nivel/Debug/src/nivel.d
 personaje/Debug/makefile
 personaje/Debug/sources.mk
 personaje/Debug/objects.mk
