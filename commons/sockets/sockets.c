@@ -32,9 +32,6 @@ int32_t crearSocketDeConexion(int32_t DIRECCION, int32_t PUERTO) {
 		return EXIT_FAILURE;
 	}
 
-	//marco al socket como no bloqueante
-	fcntl(socketEscucha, F_SETFL, O_NONBLOCK);
-
 	// Hacer que el SO libere el puerto inmediatamente luego de cerrar el socket.
 	setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &optval,
 			sizeof(optval));
@@ -58,7 +55,6 @@ int32_t crearSocketDeConexion(int32_t DIRECCION, int32_t PUERTO) {
 
 	return socketEscucha;
 }
-
 
 int32_t cliente_crearSocketDeConexion(char *DIRECCION, int32_t PUERTO) {
 
@@ -90,8 +86,8 @@ int32_t cliente_crearSocketDeConexion(char *DIRECCION, int32_t PUERTO) {
 	return unSocket;
 }
 
-
-int32_t enviarMensaje (int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje) {
+int32_t enviarMensaje(int32_t socket, enum tipo_paquete tipoMensaje,
+		char* mensaje) {
 
 	//Esto es lo que usaba Pablo A en el TP suyo para crear a variable que se enviaba y como iba concatenando
 	//char buffer[BUFF_SIZE];
@@ -100,16 +96,16 @@ int32_t enviarMensaje (int32_t socket, enum tipo_paquete tipoMensaje, char* mens
 
 	uint32_t longitud = strlen(mensaje);
 	char mensajeReal[BUFF_SIZE];
-	strcpy(&mensajeReal[0],mensaje);
+	strcpy(&mensajeReal[0], mensaje);
 
 	struct t_cabecera miCabecera;
 	miCabecera.tipoP = tipoMensaje;
 	miCabecera.length = longitud;
 
-	if (send(socket, (void *)&miCabecera, sizeof(struct t_cabecera), 0) < 0) {
+	if (send(socket, (void *) &miCabecera, sizeof(struct t_cabecera), 0) < 0) {
 		perror("enviarMensaje: Error al Enviar Header\n");
 		return EXIT_FAILURE;
-	}else{
+	} else {
 
 		if (send(socket, mensaje, longitud + 1, 0) < 0) {
 			perror("enviarMensaje: Error al Enviar Mensaje\n");
@@ -119,21 +115,35 @@ int32_t enviarMensaje (int32_t socket, enum tipo_paquete tipoMensaje, char* mens
 	return EXIT_SUCCESS;
 }
 
-int32_t recibirMensaje(int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje){
+int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
+		char* mensaje) {
 	int nbytes;
 	char MensajeEnvio[BUFF_SIZE];
 	struct t_cabecera miCabecera;
-	if ((nbytes = recv(socket, &miCabecera, sizeof(struct t_cabecera), 0)) < 0){
-		perror("recibeMensaje: Error al Recibir Cabecera\n");
+	if ((nbytes = recv(socket, &miCabecera, sizeof(struct t_cabecera), 0))
+			<= 0) {
+
+		if (nbytes == 0) {
+			// conexión cerrada
+			printf("El cliente del socket %d se desconecto\n", socket);
+		} else {
+			perror("recibeMensaje: Error al Recibir Cabecera\n");
+		}
 		return EXIT_FAILURE;
-	}else{
-		if ((nbytes = recv(socket, MensajeEnvio, miCabecera.length, 0)) < 0){
-			perror("recibeMensaje: Error al Recibir Mensaje\n");
-			return EXIT_FAILURE;
-		}else{
-			tipoMensaje = miCabecera.tipoP;
-			strcpy(&MensajeEnvio[1],mensaje);
-			return EXIT_SUCCESS;
+	} else {
+		if ((nbytes = recv(socket, MensajeEnvio, miCabecera.length, 0)) <= 0) {
+			if (nbytes == 0) {
+				// conexión cerrada
+				printf("El cliente del socket %d se desconecto\n", socket);
+			} else {
+				perror("recibeMensaje: Error al Recibir Cabecera\n");
+			}
+			return EXIT_FAILURE; //Devuelve distinto de 0
+		} else {
+			(*tipoMensaje) = miCabecera.tipoP;
+			mensaje = malloc(sizeof(char) * miCabecera.length + 1);
+			strcpy(&MensajeEnvio[1], mensaje);
+			return EXIT_SUCCESS; //Devuelve 0
 		}
 	}
 }
