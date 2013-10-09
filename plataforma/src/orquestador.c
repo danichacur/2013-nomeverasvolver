@@ -1,87 +1,65 @@
 /*
  * orquestador.c
  *
- *  Created on: 28/09/2013
- *      Author: utnso
+ * Created on: 28/09/2013
+ * Author: utnso
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h> // aca esta memset
+#include "orquestador.h"
 
-/* Librerias de Commons */
-#include <log.h>
-#include <config.h>
-
-/* Esto es para el select() */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-/* Esto es para las conexiones */
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-
-#define DIRECCION INADDR_ANY   //INADDR_ANY representa la direccion de cualquier
+#define DIRECCION INADDR_ANY //INADDR_ANY representa la direccion de cualquier
 //interfaz conectada con la computadora
 
 #define IP "127.0.0.1"
 #define PUERTO 4000
-#define BUFF_SIZE 1024
+#define PATH_CONFIG_ORQ "../orq.conf"
+
+t_dictionary *listos;
+t_dictionary *bloqueados;
+t_dictionary *anormales;
+t_dictionary *monitoreo;
+
+t_config *config;
+t_log* logger;
+t_list *personajes_del_sistema;
+t_list *niveles_del_sistema;
+int32_t comienzo = 0;
+
+t_pers_sistema *per_koopa_crear(char personaje, int32_t socket) {
+	t_pers_sistema *nuevo = malloc(sizeof(t_pers_sistema));
+	nuevo->personaje = personaje;
+	nuevo->fd = socket;
+	nuevo->termino_plan = false;
+	return nuevo;
+}
+
+void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje);
 
 int main() {
 
+	//inicialización
+	config = config_create(PATH_CONFIG_ORQ);
+	char *PATH_LOG = config_get_string_value(config, "PATH_LOG_ORQ");
+	logger = log_create(PATH_LOG, "ORQUESTADOR", true, LOG_LEVEL_INFO);
+	personajes_del_sistema = list_create();
+	niveles_del_sistema = list_create();
+	listos = dictionary_create();
+	bloqueados = dictionary_create();
+	anormales = dictionary_create();
+	//inicialización
+
 	fd_set master; // conjunto maestro de descriptores de fichero
 	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
-	struct sockaddr_in myaddr; // dirección del servidor
 	struct sockaddr_in remoteaddr; // dirección del cliente
 	int fdmax; // número máximo de descriptores de fichero
-	int socketEscucha; // descriptor de socket a la escucha
+	int32_t socketEscucha; // descriptor de socket a la escucha
 	int newfd; // descriptor de socket de nueva conexión aceptada
-	char buf[BUFF_SIZE]; // buffer para datos del cliente
-	int nbytes;
-	int yes = 1; // para setsockopt() SO_REUSEADDR
 	socklen_t addrlen;
-	int i, j;
+	int i;
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 
-
-// Crear un socket:
-// AF_INET: Socket de internet IPv4
-// SOCK_STREAM: Orientado a la conexion, TCP
-// 0: Usar protocolo por defecto para AF_INET-SOCK_STREAM: Protocolo TCP/IPv4
-	if ((socketEscucha = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("socket");
-		exit(1);
-	}
-
-	// Hacer que el SO libere el puerto inmediatamente luego de cerrar el socket.
-	// obviar el mensaje "address already in use" (la dirección ya se está 	usando)
-	if (setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes))
-			== -1) {
-		perror("setsockopt");
-		exit(1);
-	}
-
-	// enlazar
-	myaddr.sin_family = AF_INET;
-	myaddr.sin_addr.s_addr = DIRECCION;
-	myaddr.sin_port = htons(PUERTO);
-	memset(&(myaddr.sin_zero), '\0', 8);
-	if (bind(socketEscucha, (struct sockaddr *) &myaddr, sizeof(myaddr))
-			== -1) {
-		perror("bind");
-		exit(1);
-	}
-
-	// escuchar
-	if (listen(socketEscucha, 10) == -1) {
-		perror("listen");
-		exit(1);
-	}
+	socketEscucha = crearSocketDeConexion(DIRECCION, PUERTO);
 
 	// añadir socketEscucha al conjunto maestro
 	FD_SET(socketEscucha, &master);
@@ -91,6 +69,7 @@ int main() {
 
 	// bucle principal
 	for (;;) {
+		printf("entre al for!!");
 		read_fds = master;
 		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL ) == -1) {
 			perror("select");
@@ -113,34 +92,46 @@ int main() {
 						printf("selectserver: new connection from %s on "
 								"socket %d\n", inet_ntoa(remoteaddr.sin_addr),
 								newfd);
+
 					}
 				} else {
+
+					enum tipo_paquete tipoMensaje;
+					char* mensaje = NULL;
+
 					// gestionar datos del cliente del socket i!
-					if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) {
-						// error o conexión cerrada por el cliente
-						if (nbytes == 0) {
-							// conexión cerrada
-							printf("selectserver: socket %d hung up\n", i);
-						} else {
-							perror("recv");
+					if (!recibirMensaje(i, &tipoMensaje, mensaje)) {
+
+						//eliminarlo de las estructuras
+						int32_t _esta_personaje(t_pers_sistema *koopa) {
+							return koopa->fd == i;
 						}
+						list_remove_by_condition(personajes_del_sistema,
+								(void*) _esta_personaje);
+						//todo: borrarlo de bloqueados , listos, etc
+
+						//eliminarlo de las estructuras
+
 						close(i); // ¡Hasta luego!
 						FD_CLR(i, &master); // eliminar del conjunto maestro
 					} else {
 						// tenemos datos del cliente del socket i!
+						printf("Llego el tipo de paquete: %s ./n",
+								nombre_del_enum_paquete(tipoMensaje));
+						printf("Llego este mensaje: %s ./n", mensaje);
 
-						printf("Llegaron estos datos: %s ./n", buf);
-						/*for (j = 0; j <= fdmax; j++) {
-							// ¡enviar a todoo el mundo!
-							if (FD_ISSET(j, &master)) {
-								// excepto al socketEscucha y a nosotros mismos
-								if (j != socketEscucha && j != i) {
-									if (send(j, buf, nbytes, 0) == -1) {
-										perror("send");
-									}
-								}
-							}
-						} */ // fin FOr de enviar a todoo el mundo
+						if (tipoMensaje == PER_conexionNivel_ORQ) {
+							int32_t nivel = atoi(mensaje);
+							//todo delegar la conexión al hilo del nivel correspondiente
+
+							printf("nivel: %d \n", nivel);
+							//insertar_monitoreo(mensaje, i, );
+
+							FD_CLR(i, &master); // eliminar del conjunto maestro
+
+						} else
+							orquestador_analizar_mensaje(i, tipoMensaje, mensaje);
+
 					} // fin seccion recibir OK los datos
 				} // fin gestionar datos que llegaron
 			} // fin de tenemos datos
@@ -148,4 +139,99 @@ int main() {
 	} // fin bucle for principal
 
 	return EXIT_SUCCESS;
+}
+
+void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
+		char* mensaje) {
+	switch (tipoMensaje) {
+
+	case NIV_handshake_ORQ: {
+
+		int32_t nivel = atoi(mensaje);
+
+		t_list *p_listos = list_create();
+		t_list *p_bloqueados = list_create();
+		t_list *p_muertos = list_create();
+		t_list *p_monitor = list_create();
+
+		dictionary_put(listos, mensaje, p_listos);
+		dictionary_put(bloqueados, mensaje, p_bloqueados);
+		dictionary_put(anormales, mensaje, p_muertos);
+		dictionary_put(monitoreo, mensaje, p_monitor);
+
+		char *valor = string_from_format("%d", nivel);
+
+		printf( "Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d \n",
+				nivel, socket);
+		//pthread_t pla;
+		//pthread_create(&pla, NULL, (void *) hilo_planificador, &nivel);
+
+		enviarMensaje(socket, ORQ_handshake_NIV, "0");
+
+		free(valor);
+
+		break;
+	}
+	case PER_handshake_ORQ: {
+
+		char personaje = mensaje[0];
+
+		//estructura: personajes en el sistema
+		t_pers_sistema * item = per_koopa_crear(personaje, socket);
+
+		int32_t _esta_personaje(t_pers_sistema *koopa) {
+			return koopa->personaje == personaje;
+		}
+		if (list_find(personajes_del_sistema, (void*) _esta_personaje) == NULL )
+			list_add(personajes_del_sistema, item);
+		//estructura: personajes en el sistema
+
+		enviarMensaje(socket, ORQ_handshake_PER, "0");
+
+		break;
+	}
+		/*case PER_conexionNivel_ORQ: {
+
+		 int32_t nivel = atoi(mensaje);
+		 //delegar la conexión al hilo del nivel correspondiente
+
+
+		 break;
+		 }*/
+	case PER_finPlanDeNiveles_ORQ: {
+
+		char personaje = mensaje[0];
+		//estructura: personajes en el sistema
+		int32_t _esta_personaje(t_pers_sistema *koopa) {
+			return koopa->personaje == personaje;
+		}
+		t_pers_sistema *aux = list_find(personajes_del_sistema,
+				(void*) _esta_personaje);
+		if (aux != NULL )
+			aux->termino_plan = true;
+		else
+			printf("error al buscar el personaje");
+		//todo: hacer tratamiento de errores
+		//estructura: personajes en el sistema
+
+		//pregunto si ya terminaron todos
+		int32_t _esta_pendiente(t_pers_sistema *koopa) {
+			return !(koopa->termino_plan);
+		}
+		t_list* pendientes = list_filter(personajes_del_sistema,
+				(void*) _esta_pendiente);
+		if (list_is_empty(pendientes))
+			printf("lanzar_koopa();");
+		list_destroy(pendientes);
+		//pregunto si ya terminaron todos
+		break;
+	}
+	default:
+		printf("mensaje erroneo");
+		break;
+
+	}
+
+	free(mensaje);
+
 }
