@@ -21,7 +21,7 @@
 
 #include "config.h"
 #include "string.h"
-#include "collections/dictionary.h"
+#include "../collections/dictionary.h"
 
 /*
  * @NAME: config_create
