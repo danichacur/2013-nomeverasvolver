@@ -1,9 +1,9 @@
 /*
- * planificador.c
- *
- *  Created on: 28/09/2013
- *      Author: utnso
- */
+* planificador.c
+*
+* Created on: 28/09/2013
+* Author: utnso
+*/
 
 #include "orquestador.h"
 
@@ -12,6 +12,7 @@
 extern t_dictionary *bloqueados;
 extern t_dictionary *listos;
 extern t_dictionary *anormales;
+extern t_dictionary *monitoreo;
 */
 t_config *config;
 t_log* logger;
@@ -21,34 +22,34 @@ t_log* logger;
 
 void *hilo_planificador(int32_t *nivel) {
 
-//	int32_t miNivel = (int32_t) nivel;
+	// int32_t miNivel = (int32_t) nivel;
 
-//inicialización
+	//inicialización
 	config = config_create(PATH_CONFIG_PLA);
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG_PLA");
 	logger = log_create(PATH_LOG, "PLANIFICADOR", true, LOG_LEVEL_INFO);
-//inicialización
+	//inicialización
 
 	fd_set master; // conjunto maestro de descriptores de fichero
 	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
-//	struct sockaddr_in remoteaddr; // dirección del cliente
+	// struct sockaddr_in remoteaddr; // dirección del cliente
 	int fdmax = 0; // número máximo de descriptores de fichero
-//	socklen_t addrlen;
+	// socklen_t addrlen;
 	int i;
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 
-//todo ver dsp como ir metiendo aca los personajes para monitorear
-/*	t_list *p_listos = dictionary_get(listos, miNivel);
+	//todo ver dsp como ir metiendo aca los personajes para monitorear
+	/* t_list *p_listos = dictionary_get(listos, miNivel);
 	while (p_listos == NULL ) {
-		;
+	;
 	}
-*/
+	*/
 	//FD_SET(p_listos->personaje, &master);
 	//fdmax = p_listos->personaje;
-//todo ver dsp como ir metiendo aca los personajes para monitorear
+	//todo ver dsp como ir metiendo aca los personajes para monitorear
 
-// bucle principal
+	// bucle principal
 	for (;;) {
 		read_fds = master;
 		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL ) == -1) {
@@ -56,12 +57,12 @@ void *hilo_planificador(int32_t *nivel) {
 			exit(1);
 		}
 
-//todo ver dsp como ir metiendo aca los personajes para monitorear
+		//todo ver dsp como ir metiendo aca los personajes para monitorear
 		//FD_SET(newfd, &master); // añadir al conjunto maestro
 		//if (newfd > fdmax) { // actualizar el máximo
-		//	fdmax = newfd;
+		// fdmax = newfd;
 		//}
-//todo ver dsp como ir metiendo aca los personajes para monitorear
+		//todo ver dsp como ir metiendo aca los personajes para monitorear
 
 		// explorar conexiones existentes en busca de datos que leer
 		for (i = 0; i <= fdmax; i++) {
@@ -81,10 +82,10 @@ void *hilo_planificador(int32_t *nivel) {
 				} else {
 					// tenemos datos del cliente del socket i!
 					printf("Llego el tipo de paquete: %s ./n",
-							nombre_del_enum_paquete(tipoMensaje));
+					nombre_del_enum_paquete(tipoMensaje));
 					printf("Llego este mensaje: %s ./n", mensaje);
 
-				//	planificador_analizar_mensaje(i, tipoMensaje, mensaje);
+					// planificador_analizar_mensaje(i, tipoMensaje, mensaje);
 
 				} // fin seccion recibir OK los datos
 			} // fin de tenemos datos

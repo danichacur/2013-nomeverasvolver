@@ -1,9 +1,9 @@
 /*
- * orquestador.h
- *
- *  Created on: 08/10/2013
- *      Author: utnso
- */
+* orquestador.h
+*
+* Created on: 08/10/2013
+* Author: utnso
+*/
 
 #ifndef ORQUESTADOR_H_
 #define ORQUESTADOR_H_
@@ -17,9 +17,9 @@
 #include "planificador.h"
 
 /* Librerias de Commons */
-#include <log.h>
-#include <config.h>
-#include <string.h>
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/string.h>
 #include <collections/list.h>
 
 #include <sockets/sockets.h>
@@ -37,22 +37,28 @@
 
 
 typedef struct{
-	char personaje;
-	int32_t fd;
-	bool termino_plan;
-} t_pers_sistema;
+char personaje;
+bool termino_plan;
+} t_pers_koopa;
 
 typedef struct{
-	char personaje;
-	int32_t fd;
-	int32_t ingreso_al_sistema;
-	char recurso_bloqueo;
-	bool estoy_bloqueado;
+int32_t nivel;
+int32_t fd;
+} t_niveles_sistema;
+
+typedef struct{
+char personaje;
+int32_t fd;
+int32_t ingreso_al_sistema;
+char recurso_bloqueo;
+bool estoy_bloqueado;
 } t_pers_por_nivel;
 
 typedef struct{
-	int32_t nivel;
-	int32_t fd;
-} t_niveles_sistema;
+bool es_personaje;
+char simbolo;
+int32_t fd;
+} t_monitoreo;
+
 
 #endif /* ORQUESTADOR_H_ */
