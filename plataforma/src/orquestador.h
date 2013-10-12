@@ -57,6 +57,7 @@ bool estoy_bloqueado;
 typedef struct{
 bool es_personaje;
 char simbolo;
+int32_t nivel;
 int32_t fd;
 } t_monitoreo;
 

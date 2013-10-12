@@ -23,7 +23,7 @@ t_config *config;
 t_log* logger;
 t_list *personajes_para_koopa; // es para lanzar koopa
 t_list *personajes_del_sistema; // es para identificar los simbolos de los personajes
-//t_list *niveles_del_sistema;
+t_list *niveles_del_sistema;
 int32_t comienzo = 0;
 
 t_pers_koopa *per_koopa_crear(char personaje) {
@@ -43,44 +43,63 @@ t_pers_por_nivel *crear_personaje (char personaje, int32_t fd ){
 	return nuevo;
 }
 
-t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t socket) {
+t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel, int32_t socket) {
 	t_monitoreo *nuevo = malloc(sizeof(t_monitoreo));
 	nuevo->simbolo = personaje;
 	nuevo->fd = socket;
+	nuevo->nivel = nivel;
 	nuevo->es_personaje = es_personaje;
 	return nuevo;
 }
 
 void supr_pers_de_estructuras (int32_t socket){
-	//todo: borrarlo de bloqueados , listos, etc y QUE LIBERE LOS RECURSOS QUE TENIA
+	//si se desconecta un nivel, automaticamente se caen los personajes que estaban conectados
+	//si se cae un personaje, el mensaje le llega al planificador directamente
 
 	int32_t _esta_enSistema(t_monitoreo *valor) {
 		return valor->fd == socket;
 	}
-	int32_t _esta_enKoopa(t_pers_koopa *valor) {
-		return valor->personaje == socket;//corregir esto!
+	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema, (void*) _esta_enSistema);
+	char *str_nivel;
+
+	if (aux == NULL){
+		//se cayo un nivel
+		int32_t _esta_enNiveles(t_niveles_sistema *valor) {
+			return valor->fd == socket;
+		}
+		t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema, (void*) _esta_enNiveles);
+
+		str_nivel = string_from_format("%d", aux3->nivel);
+
+		t_list *l_listos = dictionary_remove(listos, str_nivel);
+		t_list *l_bloqueados = dictionary_remove(bloqueados, str_nivel);
+		t_list *l_anormales = dictionary_remove(anormales, str_nivel);
+		t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
+
+		list_destroy(l_listos);
+		list_destroy(l_bloqueados);
+		list_destroy(l_anormales);
+		list_destroy(l_monitoreo);
+
+		free(aux3);
+	}else{
+		//era un personaje lo que se desconecto
+		int32_t _esta_enKoopa(t_pers_koopa *valor) {
+			return valor->personaje == aux->simbolo;
+		}
+		t_monitoreo *aux1 = list_remove_by_condition(personajes_para_koopa, (void*) _esta_enKoopa);
+
+		str_nivel = string_from_format("%d", aux->nivel);
+		t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
+		//todo - poner un semaforo aca!
+		t_monitoreo *aux2 = list_remove_by_condition(p_monitoreo, (void*) _esta_enSistema);
+		//todo - poner un semaforo aca!
+
+		free(aux);
+		free(aux1);
+		free(aux2);
+
 	}
-	int32_t _esta_enMonitoreo(t_monitoreo *valor) {
-		return valor->fd == socket;
-	}
-
-
-
-	//Y QUE LE AVISE AL NIVEL ASI ACTUALIZA SUS COSAS TAMBIEN
-//	t_list *p_listos = dictionary_get(listos, miNivel);
-/*t_dictionary *listos;
-t_dictionary *bloqueados;
-t_dictionary *anormales;
-t_dictionary *monitoreo;
-t_list *personajes_para_koopa; // es para lanzar koopa
-t_list *personajes_del_sistema; // es para identificar los simbolos de los personajes
-
-
-	list_remove_by_condition(personajes_del_sistema, (void*) _esta_enMonitoreo);
-*/
-
-
-
 }
 
 void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje);
@@ -92,7 +111,7 @@ int main() {
 	//char *PATH_LOG = config_get_string_value(config, "PATH_LOG_ORQ");
 	//logger = log_create(PATH_LOG, "ORQUESTADOR", true, LOG_LEVEL_INFO);
 	personajes_del_sistema = list_create();
-	//niveles_del_sistema = list_create();
+	niveles_del_sistema = list_create();
 	listos = dictionary_create();
 	bloqueados = dictionary_create();
 	anormales = dictionary_create();
@@ -119,8 +138,9 @@ int main() {
 	fdmax = socketEscucha; // por ahora es éste porque es el primero y unico
 
 	// bucle principal
+	printf("entrando al for!! \n");
 	for (;;) {
-		printf("entre al for!! \n");
+
 		read_fds = master;
 		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL ) == -1) {
 			perror("select");
@@ -196,7 +216,10 @@ char* mensaje) {
 			dictionary_put(anormales, mensaje, p_muertos);
 			dictionary_put(monitoreo, mensaje, p_monitor);
 
-			char *valor = string_from_format("%d", nivel);
+			t_niveles_sistema *nuevo = malloc(sizeof(t_niveles_sistema));
+			nuevo->nivel = nivel;
+			nuevo->fd = socket;
+			list_add(niveles_del_sistema, nuevo);
 
 			printf( "Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d \n",
 			nivel, socket);
@@ -206,32 +229,43 @@ char* mensaje) {
 			//DELEGAR TMB EL SOCKET AL PLANIFICADOR:
 			// delegar la conexión al hilo del nivel correspondiente
 			t_list *pe_monitor = dictionary_get(monitoreo, mensaje);
-			t_monitoreo *item = per_monitor_crear(false,'M',socket);
+			t_monitoreo *item = per_monitor_crear(false,'M',atoi(mensaje), socket);
+			//todo - poner un semaforo aca!
 			list_add(pe_monitor, item);
+			//todo - poner un semaforo aca!
 			// delegar la conexión al hilo del nivel correspondiente
 
-
 			enviarMensaje(socket, ORQ_handshake_NIV, "0");
-
-			free(valor);
 
 			break;
 		}
 		case PER_conexionNivel_ORQ:{
 			int32_t nivel = atoi(mensaje);
 
+			int32_t _esta_personaje(t_monitoreo *nuevo) {
+				return nuevo->fd == socket;
+			}
+
 			// delegar la conexión al hilo del nivel correspondiente
 			printf("nivel solicitado: %d \n", nivel);
-			t_list *p_monitor = dictionary_get(monitoreo, mensaje);
-			t_monitoreo *item = per_monitor_crear(true,'M',socket);
-			int32_t _esta_personaje(t_monitoreo *nuevo) {
-					return nuevo->fd == socket;
-				}
 			t_monitoreo *aux = list_find(personajes_del_sistema,
 			(void*) _esta_personaje);
-			item = aux;
+			aux->nivel = nivel; //actualiza el nivel a donde se conecta el personaje
+			t_list *p_monitor = dictionary_get(monitoreo, mensaje);
+			t_monitoreo *item = per_monitor_crear(true,'M',nivel, socket);
+			memcpy(item, aux, sizeof(t_monitoreo));//fixme ver bien esto
+			//todo - poner un semaforo aca!
 			list_add(p_monitor, item);
+			//todo - poner un semaforo aca!
 			// delegar la conexión al hilo del nivel correspondiente
+
+			//agregar a la lista de listos del nivel
+			t_list *p_listos = dictionary_get(listos, mensaje);
+			t_pers_por_nivel *item2 = crear_personaje(aux->simbolo, aux->fd);
+			//todo - poner un semaforo aca!
+			list_add(p_listos, item2);
+			//todo - poner un semaforo aca!
+			//agregar a la lista de listos del nivel
 
 			break;
 		}
@@ -251,8 +285,10 @@ char* mensaje) {
 			//estructura: personajes_para_koopa
 
 			//estructura: personajes_del_sistema
-			t_monitoreo *item = per_monitor_crear(true,personaje,socket);
+			t_monitoreo *item = per_monitor_crear(true,personaje,0,socket);
+			//todo - poner un semaforo aca!
 			list_add(personajes_del_sistema, item);
+			//todo - poner un semaforo aca!
 			//estructura: personajes_del_sistema
 
 			enviarMensaje(socket, ORQ_handshake_PER, "0");
@@ -273,17 +309,18 @@ char* mensaje) {
 			else
 			printf("error al buscar el personaje");
 			//todo: hacer tratamiento de errores
-			//estructura: personajes en el sistema
 
-			//pregunto si ya terminaron todos
-			int32_t _esta_pendiente(t_pers_koopa *koopa) {
-				return !(koopa->termino_plan);
+			//pregunto si _ya_terminaron terminaron todos
+			int32_t _ya_terminaron(t_pers_koopa *koopa) {
+				return (koopa->termino_plan);
 			}
-			t_list* pendientes = list_filter(personajes_del_sistema,
+			/*t_list* pendientes = list_filter(personajes_del_sistema,
 			(void*) _esta_pendiente);
-			if (list_is_empty(pendientes))
+			if (list_is_empty(pendientes))*/
+			//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
+			if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron))
 			printf("lanzar_koopa();");
-			list_destroy(pendientes);
+			//list_destroy(pendientes);
 			//pregunto si ya terminaron todos
 			break;
 		}
