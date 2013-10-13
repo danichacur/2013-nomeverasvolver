@@ -10,7 +10,7 @@
 #define DIRECCION INADDR_ANY //INADDR_ANY representa la direccion de cualquier
 //interfaz conectada con la computadora
 
-#define IP "127.0.0.1"
+#define IP "192.168.0.47"
 #define PUERTO 4000
 #define PATH_CONFIG_ORQ "../orq.conf"
 
@@ -170,7 +170,7 @@ int main() {
 					char* mensaje = NULL;
 
 					// gestionar datos del cliente del socket i!
-					if (!recibirMensaje(i, &tipoMensaje, mensaje)) {
+					if (recibirMensaje(i, &tipoMensaje, &mensaje)!= EXIT_SUCCESS) {
 
 						//eliminarlo de las estructuras
 						supr_pers_de_estructuras(i);

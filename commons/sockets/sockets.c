@@ -116,7 +116,7 @@ int32_t enviarMensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 }
 
 int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
-		char* mensaje) {
+		char **mensaje) {
 	int nbytes;
 	char MensajeEnvio[BUFF_SIZE];
 	struct t_cabecera miCabecera;
@@ -141,8 +141,9 @@ int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
 			return EXIT_FAILURE; //Devuelve distinto de 0
 		} else {
 			(*tipoMensaje) = miCabecera.tipoP;
-			mensaje = malloc(sizeof(char) * miCabecera.length + 1);
-			strncpy(mensaje, &MensajeEnvio[1], miCabecera.length + 1);
+			 *mensaje = (char *)malloc(sizeof(char) * miCabecera.length + 1);
+			strncpy(*mensaje, &MensajeEnvio[0], miCabecera.length + 1);
+
 			return EXIT_SUCCESS; //Devuelve 0
 		}
 	}

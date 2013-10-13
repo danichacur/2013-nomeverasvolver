@@ -25,9 +25,9 @@ void *hilo_planificador(int32_t *nivel) {
 	int32_t miNivel = (int32_t) nivel;
 
 	//inicialización
-	config = config_create(PATH_CONFIG_PLA);
-	char *PATH_LOG = config_get_string_value(config, "PATH_LOG_PLA");
-	logger = log_create(PATH_LOG, "PLANIFICADOR", true, LOG_LEVEL_INFO);
+	//config = config_create(PATH_CONFIG_PLA);
+	//char *PATH_LOG = config_get_string_value(config, "PATH_LOG_PLA");
+	//logger = log_create(PATH_LOG, "PLANIFICADOR", true, LOG_LEVEL_INFO);
 	//inicialización
 
 	fd_set master; // conjunto maestro de descriptores de fichero
