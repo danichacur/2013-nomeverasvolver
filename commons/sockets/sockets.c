@@ -142,7 +142,7 @@ int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
 		} else {
 			(*tipoMensaje) = miCabecera.tipoP;
 			mensaje = malloc(sizeof(char) * miCabecera.length + 1);
-			strcpy(&MensajeEnvio[1], mensaje);
+			strcpy(mensaje, &MensajeEnvio[1], miCabecera.length + 1);
 			return EXIT_SUCCESS; //Devuelve 0
 		}
 	}
