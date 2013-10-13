@@ -2,17 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
 ////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
-//#include <sockets/sockets.h>
-//#include <sockets/mensajes.h>
-//#include <sockets/estructuras.h>
+#include <sockets/sockets.h>
+#include <sockets/mensajes.h>
+#include <sockets/estructuras.h>
 #include <temporal.h>
 #include <collections/list.h>
 #include <config.h>
@@ -23,10 +18,10 @@
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 
-#define DIRECCION INADDR_ANY   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
-#define PUERTO 5000
+#define DIRECCION "192.168.0.60"   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
 #define BUFF_SIZE 1024
 
+#define PUERTO 4000
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES////////////////////////////////////////////////////
 
 char *ruta = "./configNivel.cfg";
@@ -42,7 +37,8 @@ char **caja;
 char litCaja[6] = "Caja1\0";
 char * direccionIPyPuerto;
 ////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
-/* int leerArchivoConfiguracion();
+/*
+int leerArchivoConfiguracion();
 	longint retardo_aux;
 	config = config_create(ruta);
 	quantum = config_get_int_value(config, "quantum");
@@ -69,6 +65,7 @@ char * direccionIPyPuerto;
 		};
 
 void crearCaja(t_listaItems *lista ,char ** elemento1,char ** elemento2,char ** elemento3,char ** elemento4,char ** elemento5){
+
 
 }
 
@@ -290,21 +287,32 @@ int conectarmeConPlataforma() {
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
 
-	printf("hola mundo!!");
-	/*
-	cargarArchivoDeConfiguracion();
+	printf("hola mundo!!\n");
+	char *tiempo=temporal_get_string_time();
+	puts(tiempo);
+	int32_t unSocket= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+	int32_t ok= enviarMensaje(unSocket, NIV_handshake_ORQ,"holaa");
+	printf("%d",ok);
+	enum tipo_paquete unMensaje;
+	char* elMensaje=NULL;
+	int32_t respuesta= recibirMensaje(unSocket, &unMensaje,&elMensaje);
+	printf("%d\n",respuesta);
+	printf("%s\n",elMensaje);
+	printf("%s",nombre_del_enum_paquete(unMensaje));
+
+
+
+	/* cargarArchivoDeConfiguracion();
 	crearCajasRecursos();
 	conectarmeConPlataforma(); // implica handShake - envia algoritmo
 	crearHilosEnemigos();
 	crearHiloInterbloqueo();
 	crearHiloInotify();
-	selectConPlataforma();
-	while(1){
-		dibujarNivel();
-		}
-	 */
-	return 0;
+*/
+	return EXIT_SUCCESS;
 }
+
+
 
 
 
