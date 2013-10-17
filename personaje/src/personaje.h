@@ -40,11 +40,11 @@ typedef struct {
 
 void levantarArchivoConfiguracion();
 static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas,t_list * nivelesOrdenados,
-										char * ipOrquestador,int16_t puertoOrquestador);
+										t_list * recursosPorNivel, char * ipOrquestador,int16_t puertoOrquestador);
 /*static void personaje_destroy(t_personaje *self);*/
-void* conectarAlNivel(int* nivel);
+void* conectarAlNivel(void* nivel);
 void conectarAlOrquestador();
-int todosNivelesFinalizados();
+//int todosNivelesFinalizados();
 void avisarPlanNivelesConcluido();
 void terminarProceso();
 void personaje_destroy(t_personaje *self);

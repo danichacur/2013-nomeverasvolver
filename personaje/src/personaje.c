@@ -6,6 +6,11 @@
  */
 
 #include "personaje.h"
+
+#define FIRST_PART_PATH "./"
+#define PATH_CONFIG "personaje.conf"
+#define MAX_THREADS 10
+
 //Variables de clase
 t_config *config;
 t_log* logger;
@@ -15,9 +20,11 @@ int cantidadIntentosFallidos;
 t_list *listaDeNivelesFinalizados;
 int32_t fdOrquestador;
 int cantVidasDelArchivoDeConfiguracion;
+// tabla con los identificadores de los threads
+pthread_t tabla_thr[MAX_THREADS];
 
-#define FIRST_PART_PATH "../"
-#define PATH_CONFIG "./personaje.conf"
+
+int p = 5;
 
 //PROCESO PERSONAJE
 int main(){
@@ -27,28 +34,43 @@ int main(){
 	levantarArchivoConfiguracion();
 
 	int nivel;
-	for (nivel = 0 ; nivel <= list_size(personaje->niveles) ; nivel++){
-		list_get(personaje->niveles, nivel);
-		//pthread_t pla;
-		//pthread_create(&pla, NULL, (void*) conectarAlNivel, &nivel); TODO
+
+	for (nivel = 0 ; nivel < list_size(personaje->niveles) ; nivel++){
+
+		pthread_create(&tabla_thr[nivel], NULL, (void*)&conectarAlNivel, (void*)nivel);
 	}
 
-	while(1){
-		if(todosNivelesFinalizados()){
-			conectarAlOrquestador();
-			avisarPlanNivelesConcluido();
-		}
-		sleep(1000);
+	for (nivel = list_size(personaje->niveles)-1 ; nivel != 0  ; nivel--){
+		pthread_join(tabla_thr[nivel],NULL);
 	}
+
+
+	conectarAlOrquestador();
+	avisarPlanNivelesConcluido();
 
 
 	terminarProceso();
 	//personaje_destroy(personaje);
-
+	return 1;
 }
 
-void* conectarAlNivel(int* nivel){
-	conectarAlOrquestador();
+void* conectarAlNivel(void* nroNivel){
+
+	int i ;
+	int nivel;
+	nivel = (int ) nroNivel;
+
+	char * nomNivel = string_new();
+	string_append(&nomNivel,list_get(personaje->niveles, nivel));
+
+	for (i = 0; i<10; i++) {
+		p = p + 1;
+		printf("%s: %d\n",nomNivel, p);
+		sleep(1);
+	}
+	free(nomNivel);
+
+	/*conectarAlOrquestador();
 	enviarMensaje(fdOrquestador, OK,"hola Dani");
 
 	while(1){
@@ -74,9 +96,10 @@ void* conectarAlNivel(int* nivel){
 	avisarNivelConcluido(nivel);
 
 	desconectarPlataforma();
-
+*/
 	//liberarMemoria!!!
 	pthread_exit(NULL);
+	//return ptr;
 }
 
 void tratamientoDeMuerte(int * motivoMuerte,int* nivel){ //motivos: 1 enemigo. 2 interbloqueo
@@ -114,14 +137,14 @@ void tratamientoDeMuerte(int * motivoMuerte,int* nivel){ //motivos: 1 enemigo. 2
 	}
 }
 
-int todosNivelesFinalizados(){
+/*int todosNivelesFinalizados(){
 	if(list_size(personaje->niveles) ==
 			list_size(listaDeNivelesFinalizados)){
 		return EXIT_SUCCESS;
 	}else{
 		return EXIT_FAILURE;
 	}
-}
+}*/
 
 void conectarAlOrquestador(){
 	int32_t fd = cliente_crearSocketDeConexion(personaje->ipOrquestador, personaje->puertoOrquestador);
@@ -198,7 +221,7 @@ void levantarArchivoConfiguracion(){
 		puertoOrquestador = atoi(infoOrquestador[1]);
 
 		//creo el Personaje con todos sus parametros
-		personaje = personaje_create(nombre,simbolo,cantVidas,nombresNiveles,ipOrquestador,puertoOrquestador); //niveles,
+		personaje = personaje_create(nombre,simbolo,cantVidas,nombresNiveles, listaRecursosPorNivel, ipOrquestador,puertoOrquestador);
 
 
 		config_destroy(config);
@@ -210,7 +233,7 @@ static t_personaje *personaje_create(char *nombre,
 										char *simbolo,
 										int8_t cantVidas,
 										t_list * niveles,
-										//t_nivel *niveles,
+										t_list * recursosPorNivel,
 										char * ipOrquestador,
 										int16_t puertoOrquestador
 									 ){
@@ -219,6 +242,8 @@ static t_personaje *personaje_create(char *nombre,
 	new->simbolo = simbolo;
 	new->cantVidas = cantVidas;
 	new->niveles = niveles;
+	new->recursosNecesariosPorNivel = recursosPorNivel;
+	new->recursosActualesPorNivel = list_create();
 	new->ipOrquestador = ipOrquestador;
 	new->puertoOrquestador = puertoOrquestador;
 	return new;
