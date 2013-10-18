@@ -32,6 +32,7 @@ typedef struct {
 	char * ipOrquestador;
 	int16_t puertoOrquestador;
 	t_list *recursosNecesariosPorNivel;
+	char * remain;
 	t_list *recursosActualesPorNivel;
 
 
@@ -40,7 +41,7 @@ typedef struct {
 
 void levantarArchivoConfiguracion();
 static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas,t_list * nivelesOrdenados,
-										t_list * recursosPorNivel, char * ipOrquestador,int16_t puertoOrquestador);
+										t_list * recursosPorNivel, char * ipOrquestador,int16_t puertoOrquestador, char* remain);
 /*static void personaje_destroy(t_personaje *self);*/
 void* conectarAlNivel(void* nivel);
 void conectarAlOrquestador();
@@ -48,15 +49,15 @@ void conectarAlOrquestador();
 void avisarPlanNivelesConcluido();
 void terminarProceso();
 void personaje_destroy(t_personaje *self);
-int tengoTodosLosRecursos(int * nivel);
+int tengoTodosLosRecursos(int nivel);
 void recibirTurno();
-int tengoPosicionProximaCaja(int * nivel);
-void solicitarPosicionProximoRecurso(int * nivel);
-void realizarMovimientoHaciaCajaRecursos(int * nivel);
-void enviarNuevaPosicion(int * nivel);
-int estoyEnCajaRecursos(int * nivel);
-void solicitarRecurso(int * nivel);
-void avisarNivelConcluido(int * nivel);
+int tengoPosicionProximaCaja(int nivel);
+void solicitarPosicionProximoRecurso(int nivel);
+void realizarMovimientoHaciaCajaRecursos(int nivel);
+void enviarNuevaPosicion(int nivel);
+int estoyEnCajaRecursos(int nivel);
+void solicitarRecurso(int nivel);
+void avisarNivelConcluido(int nivel);
 void desconectarPlataforma();
 void tratamientoDeMuerte(int * motivoMuerte,int* nivel);
 int meQuedanVidas();
