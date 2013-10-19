@@ -48,7 +48,7 @@ struct t_cabecera {
 } __attribute__ ((__packed__));
 
 
-char *nombre_del_enum_paquete(enum tipo_paquete tipo);
+char *obtenerNombreEnum(enum tipo_paquete tipo);
 
 
 #endif /* MENSAJES_H_ */

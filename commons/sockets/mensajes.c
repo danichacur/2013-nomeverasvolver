@@ -43,7 +43,7 @@ static char *enum_packets_names[cant_paquetes] = {
 
 
 
-char *nombre_del_enum_paquete(enum tipo_paquete tipo) {
+char *obtenerNombreEnum(enum tipo_paquete tipo) {
     if(tipo>cant_paquetes) {
         return "TIPO_INVALIDO";
     }
