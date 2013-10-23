@@ -42,11 +42,6 @@ bool termino_plan;
 } t_pers_koopa;
 
 typedef struct{
-int32_t nivel;
-int32_t fd;
-} t_niveles_sistema;
-
-typedef struct{
 char personaje;
 int32_t fd;
 int32_t ingreso_al_sistema;

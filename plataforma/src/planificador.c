@@ -5,25 +5,26 @@
 * Author: utnso
 */
 
-#include "orquestador.h"
+#include "planificador.h"
 
 #define PATH_CONFIG_PLA "../pla.conf"
-/*
+
 extern t_dictionary *bloqueados;
 extern t_dictionary *listos;
-extern t_dictionary *anormales;*/
+//extern t_dictionary *anormales;
 extern t_dictionary *monitoreo;
 
 t_config *config;
 t_log* logger;
 
-void planificador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje);
+void planificador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel );
 
 
-void *hilo_planificador(int32_t *nivel) {
+void *hilo_planificador(t_niveles_sistema *nivel) {
 
-	int32_t miNivel = (int32_t) nivel;
-
+	int32_t miNivel = nivel->nivel;
+	int32_t miFd = nivel->fd;
+	printf("hola, soy el planificador del nivel %d , mi fd es %d \n", miNivel, miFd);
 	//inicialización
 	//config = config_create(PATH_CONFIG_PLA);
 	//char *PATH_LOG = config_get_string_value(config, "PATH_LOG_PLA");
@@ -82,7 +83,7 @@ void *hilo_planificador(int32_t *nivel) {
 				char* mensaje = NULL;
 
 				// gestionar datos del cliente del socket i!
-				if (!recibirMensaje(i, &tipoMensaje, mensaje)) {
+				if (recibirMensaje(i, &tipoMensaje, &mensaje)!= EXIT_SUCCESS) {
 
 					//todo: borrarlo de bloqueados , listos, etc y que libere los recursos!
 					//eliminarlo de las estructuras
@@ -91,11 +92,11 @@ void *hilo_planificador(int32_t *nivel) {
 					FD_CLR(i, &master); // eliminar del conjunto maestro
 				} else {
 					// tenemos datos del cliente del socket i!
-					printf("Llego el tipo de paquete: %s ./n",
-					nombre_del_enum_paquete(tipoMensaje));
-					printf("Llego este mensaje: %s ./n", mensaje);
+					printf("Llego el tipo de paquete: %s .\n",
+					obtenerNombreEnum(tipoMensaje));
+					printf("Llego este mensaje: %s .\n", mensaje);
 
-					planificador_analizar_mensaje(i, tipoMensaje, mensaje);
+					planificador_analizar_mensaje(i, tipoMensaje, mensaje, nivel );
 
 				} // fin seccion recibir OK los datos
 			} // fin de tenemos datos
@@ -106,51 +107,124 @@ void *hilo_planificador(int32_t *nivel) {
 
 }
 
-void planificar(void){
+void planificar(char * str_nivel){
+	//todo : esto es solo para poder hacer las pruebas. hay que desarrollar los algoritmos
+	t_list *p_listos = dictionary_get(listos, str_nivel);
+	t_pers_por_nivel *aux = list_remove(p_listos, 0); //el primer elemento de la lista
+
+	printf("ahora le toca a %c moverse", aux->personaje);
+	enviarMensaje (aux->fd, PLA_turnoConcedido_PER, "0");
+
+	list_add(p_listos, aux);
 
 }
-void tratamiento_muerte(void){
+void tratamiento_muerte(int32_t socket, int32_t nivel_fd, char* mensaje, char* str_nivel){
+
+	printf("le aviso al nivel que el personaje %c murio \n", mensaje[0]);
+	printf("yo planificador debería liberar recursos? creo que no \n");
+	enviarMensaje (nivel_fd, PLA_personajeMuerto_NIV , mensaje);
+
+	t_list *p_listos = dictionary_get(listos, str_nivel);
+
+	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+		return nuevo->fd == socket;
+	}
+	t_pers_por_nivel *aux = list_remove_by_condition(p_listos, (void*) _esta_personaje); //el primer elemento de la lista
+
+
+	printf("el personaje %c murio, se lo saca de este nivel %s", aux->personaje, str_nivel);
+	free(aux);
 
 }
 
 void planificador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
-char* mensaje) {
+char* mensaje, t_niveles_sistema *nivel ) {
+	char *str_nivel = string_from_format("%d", nivel->nivel);
+
 	switch (tipoMensaje) {
 
-		case PER_dameUnTurno_PLA: {
-			planificar();//todo
+	/*	case PER_dameUnTurno_PLA: {
+			planificar(str_nivel);//todo
 			break;
 		}
-		case PER_posCajaRecurso_PLA: {
-//pasamanos al nivel, sin procesar nada
+		*/case PER_posCajaRecurso_PLA: {
+			//pasamanos al nivel, sin procesar nada
+			enviarMensaje (nivel->fd, PLA_posCaja_NIV , mensaje);
+			enum tipo_paquete t_mensaje;
+			char* m_mensaje = NULL;
+			recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+			//if (t_mensaje = NIV_posCaja_PLA){
+			enviarMensaje (socket, PLA_posCajaRecurso_PER , m_mensaje);
+			//}
 			break;
 		}
 		case PER_movimiento_PLA: {
-//pasamanos al nivel, sin procesar nada
+			//pasamanos al nivel, sin procesar nada
+			enviarMensaje (nivel->fd, PLA_movimiento_NIV , mensaje);
+			enum tipo_paquete t_mensaje;
+			char* m_mensaje = NULL;
+			recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+			//if (t_mensaje = NIV_movimiento_PLA){
+			enviarMensaje (socket, PLA_movimiento_PER , m_mensaje);
+			//}
 			break;
 		}
 		case PER_recurso_PLA: {
-//pasamanos al nivel, lo paso de listos a bloqueados
+			//pasamanos al nivel, lo paso de listos a bloqueados
+			t_list *p_listos = dictionary_get(listos, str_nivel);
+			t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+
+			int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+				return nuevo->fd == socket;
+			}
+			t_pers_por_nivel *aux = list_remove_by_condition(p_listos, (void*) _esta_personaje); //el primer elemento de la lista
+
+			printf("se bloquea a %c por pedir un recurso", aux->personaje);
+			list_add(p_bloqueados, aux);
+
+
+			enviarMensaje (nivel->fd, PLA_solicitudRecurso_NIV , mensaje);
+			enum tipo_paquete t_mensaje;
+			char* m_mensaje = NULL;
+			recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+			if (t_mensaje == NIV_recursoConcedido_PLA){
+				if(atoi(m_mensaje) == 0){//recurso concedido
+
+					//
+					t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados, (void*) _esta_personaje); //el primer elemento de la lista
+
+					printf("se desbloquea a %c por haber obtenido su recurso", aux->personaje);
+					list_add(p_listos, aux);
+					//
+
+					enviarMensaje (socket, PLA_rtaRecurso_PER , m_mensaje);
+
+				}else
+				printf("el personaje %c sigue bloqueado porque no le dieron el recurso", aux->personaje);
+			}
 			break;
 		}
 		case PER_nivelFinalizado_PLA: {
-//pasamanos al nivel, lo saco de listos
+			//pasamanos al nivel, lo saco de listos
+			t_list *p_listos = dictionary_get(listos, str_nivel);
+			int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+				return nuevo->fd == socket;
+			}
+			t_pers_por_nivel *aux = list_remove_by_condition(p_listos, (void*) _esta_personaje); //el primer elemento de la lista
+			printf("el personaje %c termino este nivel %d", aux->personaje, nivel->nivel);
+			free(aux);
+
+			enviarMensaje (nivel->fd, PLA_nivelFinalizado_NIV , mensaje);
+			enum tipo_paquete t_mensaje;
+			char* m_mensaje = NULL;
+			recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+			//if (t_mensaje = OK){
+			enviarMensaje (socket, OK , m_mensaje);
+			//}
 			break;
 		}
 		case PER_meMori_PLA: {
-			tratamiento_muerte();//todo
-			break;
-		}
-		case NIV_posCaja_PLA: {
-//pasamanos al personaje, sin procesar nada
-			break;
-		}
-		case NIV_movimiento_PLA: {
-//pasamanos al personaje, sin procesar nada
-			break;
-		}
-		case NIV_recursoConcedido_PLA: {
-//pasamanos al personaje, lo paso de bloqueados a listos
+			tratamiento_muerte(socket,nivel->fd,mensaje,str_nivel);//todo
 			break;
 		}
 		case NIV_cambiosConfiguracion_PLA: {

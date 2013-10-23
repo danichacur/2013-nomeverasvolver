@@ -8,6 +8,13 @@
 #ifndef PLANIFICADOR_H_
 #define PLANIFICADOR_H_
 
-void *hilo_planificador(int32_t *nivel);
+#include "orquestador.h"
+
+typedef struct{
+int32_t nivel;
+int32_t fd;
+} t_niveles_sistema;
+
+void *hilo_planificador(t_niveles_sistema *nivel);
 
 #endif /* PLANIFICADOR_H_ */
