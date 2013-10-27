@@ -51,6 +51,11 @@ t_list *recursos_obtenidos;
 } t_pers_por_nivel;
 
 typedef struct{
+	char recurso;
+	int32_t cantidad;
+}t_recursos_obtenidos;
+
+typedef struct{
 bool es_personaje;
 char simbolo;
 int32_t nivel;

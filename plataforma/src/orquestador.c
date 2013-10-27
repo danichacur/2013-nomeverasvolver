@@ -40,6 +40,7 @@ t_pers_por_nivel *crear_personaje (char personaje, int32_t fd ){
         nuevo->ingreso_al_sistema = comienzo;
         comienzo++;
         nuevo->estoy_bloqueado = false;
+        nuevo->recursos_obtenidos = list_create();
         return nuevo;
 }
 
