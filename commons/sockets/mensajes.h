@@ -39,7 +39,8 @@ enum tipo_paquete{
 	NIV_cambiosConfiguracion_PLA,
 	NIV_enemigosAsesinaron_PLA,
 	NIV_perMuereInterbloqueo_PLA,
-	OK
+	OK1,		//OK esta en la biblioteca ncurses que se usa para la gui del nivel, la toma como duplicada
+	NIV_datosPlanificacion_PLA,
 };
 
 
