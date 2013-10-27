@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "../commons/string.h"
+
+
 typedef struct {
 	int posX;
 	int posY;

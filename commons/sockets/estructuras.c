@@ -5,9 +5,9 @@
  *      Author: utnso
  */
 
-//#include "estructuras.h"
+#include "estructuras.h"
 
-char* posicionToString(t_posicion * posicion){
+char * posicionToString(t_posicion * posicion){
 	char * pos = string_new();
 	string_append(&pos, string_from_format("%d",posicion->posX));
 	string_append(&pos, ",");
