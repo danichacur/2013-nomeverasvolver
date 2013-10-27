@@ -45,8 +45,10 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	//voy metiendo aca los personajes para monitorear
 	char *str_nivel = string_from_format("%d", miNivel);
 	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
+	t_list *p_listos = dictionary_get(listos, str_nivel);
+
 	printf("por entrar al while infinito de espera de conexiones");
-	while (list_is_empty(p_monitoreo)) {
+	while (list_is_empty(p_listos)) {
 		;
 	}
 	//todo - poner un semaforo aca!

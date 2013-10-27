@@ -181,9 +181,9 @@ int main() {
                                                 FD_CLR(i, &master); // eliminar del conjunto maestro
                                         } else {
                                                 // tenemos datos del cliente del socket i!
-                                                printf("Llego el tipo de paquete: %s ./n",
+                                                printf("Llego el tipo de paquete: %s .\n",
                                                 obtenerNombreEnum(tipoMensaje));
-                                                printf("Llego este mensaje: %s ./n", mensaje);
+                                                printf("Llego este mensaje: %s .\n", mensaje);
 
                                                 if ((tipoMensaje == PER_conexionNivel_ORQ) || (tipoMensaje == NIV_handshake_ORQ))
                                                 FD_CLR(i, &master); // eliminar del conjunto maestro

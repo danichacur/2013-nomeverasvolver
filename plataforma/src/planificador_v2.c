@@ -4,7 +4,7 @@
  *  Created on: 26/10/2013
  *      Author: utnso
  */
-
+/*
 #include "planificador.h"
 
 #define PATH_CONFIG_PLA "../pla.conf"
@@ -137,7 +137,7 @@ void planificador_analizar_mensaje(t_pers_por_nivel *personaje,
 		}
 		t_pers_por_nivel *aux = list_remove_by_condition(p_listos,
 				(void*) _esta_personaje); //el primer elemento de la lista
-*/
+*
 		printf("se bloquea a %c por pedir un recurso", personaje->personaje);
 		list_add(p_bloqueados, personaje);
 
@@ -189,10 +189,10 @@ void planificador_analizar_mensaje(t_pers_por_nivel *personaje,
 		tratamiento_muerte(personaje->fd, nivel->fd, mensaje, str_nivel); //todo
 		break;
 	}
-	*/	default:
+	*	default:
 		printf("mensaje erroneo");
 		break;
 	}
 
 	free(mensaje);
-}
+}*/
