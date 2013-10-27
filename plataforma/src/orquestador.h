@@ -47,6 +47,7 @@ int32_t fd;
 int32_t ingreso_al_sistema;
 char recurso_bloqueo;
 bool estoy_bloqueado;
+t_list *recursos_obtenidos;
 } t_pers_por_nivel;
 
 typedef struct{
