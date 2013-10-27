@@ -275,14 +275,14 @@ char* mensaje) {
                         char personaje = mensaje[0];
 
                         //estructura: personajes_para_koopa
-                        int32_t _esta_personaje(t_pers_koopa *koopa) {
+                        /*int32_t _esta_personaje(t_pers_koopa *koopa) {
                                 return koopa->personaje == personaje;
                         }
                         if (list_find(personajes_para_koopa, (void*) _esta_personaje) == NULL ){
                                 t_pers_koopa * item = per_koopa_crear(personaje);
 
                                 list_add(personajes_para_koopa, item);
-                        }
+                        }*/
                         //estructura: personajes_para_koopa
 
                         //estructura: personajes_del_sistema

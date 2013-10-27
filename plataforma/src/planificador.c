@@ -47,10 +47,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
-	printf("por entrar al while infinito de espera de conexiones");
-	while (list_is_empty(p_listos)) {
-		;
-	}
 	//todo - poner un semaforo aca!
 	t_monitoreo *aux = list_remove(p_monitoreo, 0); //el primer elemento de la lista
 	//todo - poner un semaforo aca!
@@ -66,6 +62,13 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 			perror("select");
 			exit(1);
 		}
+
+
+		printf("por entrar al while infinito de espera de conexiones\n");
+			while (list_is_empty(p_listos)) {
+				;
+			}
+
 
 		//voy metiendo aca los personajes para monitorear
 		int j = 0;
@@ -147,7 +150,7 @@ t_pers_por_nivel *planificar(char * str_nivel) {
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 	t_pers_por_nivel *aux = list_remove(p_listos, 0); //el primer elemento de la lista
 
-	printf("ahora le toca a %c moverse", aux->personaje);
+	printf("ahora le toca a %c moverse\n", aux->personaje);
 
 //	list_add(p_listos, aux);
 

@@ -107,7 +107,7 @@ int32_t enviarMensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 		return EXIT_FAILURE;
 	} else {
 
-		if (send(socket, mensaje, longitud + 1, 0) < 0) {
+		if (send(socket, mensajeReal, longitud, 0) < 0) {
 			perror("enviarMensaje: Error al Enviar Mensaje\n");
 		}
 	}
