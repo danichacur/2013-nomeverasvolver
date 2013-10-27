@@ -5,8 +5,19 @@
  *      Author: utnso
  */
 
-#include "estructuras.h"
+//#include "estructuras.h"
 
+char* posicionToString(t_posicion * posicion){
+	char * pos = string_new();
+	string_append(&pos, string_from_format("%d",posicion->posX));
+	string_append(&pos, ",");
+	string_append(&pos, string_from_format("%d",posicion->posY));
+
+	return pos;
+}
+
+
+/*
 static t_posicion * posicion_create(int posX, int posY){
 	t_posicion *new = malloc(sizeof(t_posicion));
 	new->posX = posX;
@@ -32,4 +43,4 @@ void fnAlPedo(){
 	pos2->posX = 22;
 	pos2->posY = 3;
 
-}
+}*/
