@@ -5,15 +5,18 @@
 #include <unistd.h>
 #include <string.h>
 ////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
+
 #include <sockets/sockets.h>
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
-#include <temporal.h>
+#include <commons/temporal.h>
 #include <collections/list.h>
-#include <config.h>
+#include <commons/config.h>
 #include <pthread.h>
-//#include <tad_items.h>
-//#include <nivel.h>
+#include "nivel.h"
+#include <commons/log.h>
+//#include <nivel-gui/tad_items.h>
+
 
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
@@ -23,8 +26,8 @@
 
 #define PUERTO 4000
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES////////////////////////////////////////////////////
-
-char *ruta = "./configNivel.cfg";
+tListaItems listaItems;
+char *ruta = ".//configNivel.cfg";
 t_config *config;
 int quantum;
 long int tiempoDeadlock;
@@ -33,44 +36,154 @@ int enemigos;
 long int sleepEnemigos;
 char * tipoAlgoritmo;
 long int retardo;
-char **caja;
+char **caja[6];
 char litCaja[6] = "Caja1\0";
-char * direccionIPyPuerto;
+char ** direccionIPyPuerto;
+char ** nombre;
+int ret;
+t_config *config;
+t_log* logger;
+int cantidadIntentosFallidos;
+t_list *listaDeNiveles;
+t_list *listaCajas;
+t_list *listaDeNivelesFinalizados;
+
+////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
+int main (){
+	printf("hola mundo!!\n");
+	char *tiempo=temporal_get_string_time();
+	puts(tiempo);
+	leerArchivoConfiguracion();
+	while (listaNiveles<>NULL){
+	conectarmeConPlataforma(); // handshake inicial
+	enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
+	crearHilosEnemigos();
+	crearHiloInterbloqueo();
+	crearHiloInotify();
+	}
+	while(1){
+		procesarSolicitudesPlanificador(socket,tipoMensaje,mensaje);//PLA_movimiento_NIV,	PLA_personajeMuerto_NIV,PLA_nivelFinalizado_NIV,PLA_solicitudRecurso_NIV,
+	}
+	return EXIT_SUCCESS;
+}
 ////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
-/*
-int leerArchivoConfiguracion();
-	longint retardo_aux;
+
+int leerArchivoConfiguracion(){
+	long retardo_aux;
 	config = config_create(ruta);
+	nombre=config_get_array_value(config, "Nombre");
 	quantum = config_get_int_value(config, "quantum");
-	tiempoDeadlock = config_get_long_int_value(config, "TiempoChequeoDeadlock");
-	sleepEnemigos = config_get_long_int_value(config, "Sleep_Enemigos");
+	tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
+	sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
 	tipoAlgoritmo=config_get_string_value(config,"algortimo");
-	direccionIPyPuerto = config_get_int_value(config, "Plataforma");
+	direccionIPyPuerto = config_get_array_value(config, "Plataforma");
 	retardo_aux = config_get_int_value(config, "retardo");
-	retardo=retardo_aux*1000
+	retardo=retardo_aux*1000;
 	// Leo las cajas
-		printf("Literal = [%s]\n",litCaja);
+	printf("Literal = [%s]\n",litCaja);
+	ret = config_has_property(config, litCaja);
+	printf("Paso el 1er ret\n");
+	printf("Voy a leer las cajas\n");
+	while (ret == true){
+		caja = config_get_array_value(config, litCaja);
+		crearCaja(listaItems,caja[1],caja[2],caja[3],caja[4],caja[5]);
+		printf("Creé una caja\n");
+		litCaja[4]++;
+		printf("Le sumo uno al numero de la caja\n");
 		ret = config_has_property(config, litCaja);
-		printf("Paso el 1er ret\n");
-		printf("Voy a leer las cajas\n");
-		while (ret == true){
-			caja = config_get_array_value(config, litCaja);
-			crearCaja(&ListaItems,caja[1],caja[3],caja[4],caja[2],caja[5]));
-			printf("Creé una caja\n");
-			litCaja[4]++;
-			printf("Le sumo uno al numero de la caja\n");
-			ret = config_has_property(config, litCaja);
+	}
+	crearListaNiveles();
+	crearListaRecursos();
 
-		return EXIT_SUCCESS;
-		};
+	return EXIT_SUCCESS;
 
-void crearCaja(t_listaItems *lista ,char ** elemento1,char ** elemento2,char ** elemento3,char ** elemento4,char ** elemento5){
+};
+void crearListaNiveles(t_list *){
+
+}
+
+void crearCaja(t_list *listaCajas ,char ** elemento1,char ** elemento2,char ** elemento3,char ** elemento4,char ** elemento5){
+	tListaItems *unaCaja=malloc(sizeof(tListaItems));
+	unaCaja->nombre=elemento1;
+	unaCaja->simbolo=elemento2;
+	unaCaja->instancias=elemento3;
+	unaCaja->posX=elemento4;
+	unaCaja->posY=elemento5;
+	listaCajas=list_create();
+	int cantElementos= list_add(listaCajas,unaCaja);
+	printf("cantidad de elementos %d",cantElementos);
 
 
+};
+void conectarmeConPlataforma() {
+	int conexionOK=0;
+		while(conexionOK){
+			int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+			int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,(char*) nombre);
+			printf("%d",ok);
+			enum tipo_paquete unMensaje;
+			char* elMensaje=NULL;
+			int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+			printf("%d\n",respuesta);
+			printf("%s\n",elMensaje);
+			if(strcmp(elMensaje,"OK")){
+				conexionOK=1;
+			}
+		}
+};
+void enviarDatosInicioNivel(){
+	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+	int32_t ok= enviarMensaje(socketEscucha, NIV_datosPlanificacion_PLA,(char*) nombre);
+	printf("%d",ok);
+	enum tipo_paquete unMensaje;
+	char* elMensaje=NULL;
+	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+
+};
+
+void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje){
+	switch (tipoMensaje) {
+		case PLA_movimiento_NIV: {
+		break;
+		}
+		case PLA_personajeMuerto_NIV:{
+		break;
+		}
+		case PLA_solicitudRecurso_NIV:{
+		break;
+		}
+		case PLA_posCaja_NIV:{
+		break;
+		}
+		default: break;
+
+	}
 }
 
 
 
+void buscaPersonajeCercano(){
+
+};
+
+void moverseAlternado(){
+
+};
+
+void actualizarUltimoMovimiento(){
+
+};
+
+void crearseASiMismo(){
+
+};
+
+void movermeEnL(){
+
+};
+
+
+/*
 void crearHiloInotify(){
         r2 = pthread_create(&thr2,NULL,&hilo_inotify,NULL);
 		sprintf(buffer_log,"Se lanza el hilo para notificar cambios del quantum");
@@ -197,120 +310,14 @@ void enemigo(){
 		}
 	}
 }
-int conectarmeConPlataforma() {
-
-	int socketEscucha, socketNuevaConexion;
-	int nbytesRecibidos;
-
-	struct sockaddr_in socketInfo;  //aca indicarle la del orquestador y la mia
-	char buffer[BUFF_SIZE];
-	int optval = 1;
-
-	// Crear un socket:
-	// AF_INET: Socket de internet IPv4
-	// SOCK_STREAM: Orientado a la conexion, TCP
-	// 0: Usar protocolo por defecto para AF_INET-SOCK_STREAM: Protocolo TCP/IPv4
-	if ((socketEscucha = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("socket");
-		return EXIT_FAILURE;
-	}
-
-	// Hacer que el SO libere el puerto inmediatamente luego de cerrar el socket.
-	setsockopt(socketEscucha, SOL_SOCKET, SO_REUSEADDR, &optval,
-			sizeof(optval));
-
-	socketInfo.sin_family = AF_INET;
-	socketInfo.sin_addr.s_addr = DIRECCION; //Notar que aca no se usa inet_addr()
-	socketInfo.sin_port = htons(PUERTO);
-
-// Vincular el socket con una direccion de red almacenada en 'socketInfo'.
-	if (bind(socketEscucha, (struct sockaddr*) &socketInfo, sizeof(socketInfo))
-			!= 0) {
-
-		perror("Error al bindear socket escucha");
-		return EXIT_FAILURE;
-	}
-
-// Escuchar nuevas conexiones entrantes.El 10 es la cantidad de conexiones en cola
-	if (listen(socketEscucha, 10) != 0) {
-
-		perror("Error al poner a escuchar socket");
-		return EXIT_FAILURE;
-
-	}
-
-	printf("Escuchando conexiones entrantes.\n");
-
-// Aceptar una nueva conexion entrante. Se genera un nuevo socket con la nueva conexion.
-	if ((socketNuevaConexion = accept(socketEscucha, NULL, 0)) < 0) {
-
-		perror("Error al aceptar conexion entrante");
-		return EXIT_FAILURE;
-
-	}
-
-	while (1) {
-
-		// Recibir hasta BUFF_SIZE datos y almacenarlos en 'buffer'.
-		if ((nbytesRecibidos = recv(socketNuevaConexion, buffer, BUFF_SIZE, 0))
-				> 0) {
-
-			printf("Mensaje recibido: ");
-			fwrite(buffer, 1, nbytesRecibidos, stdout);
-			printf("\n");
-			printf("Tamanio del buffer %d bytes!\n", nbytesRecibidos);
-			fflush(stdout);
-
-			if (memcmp(buffer, "fin", nbytesRecibidos) == 0) {
-
-				printf("Server cerrado correctamente.\n");
-				break;
-
-			}
-
-		} else {
-			perror("Error al recibir datos");
-			break;
-		}
-	}
-
-	close(socketEscucha);
-	close(socketNuevaConexion);
-
-	return EXIT_SUCCESS;
-}
-
-
 */
 
 
-////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
-int main (){
-
-	printf("hola mundo!!\n");
-	char *tiempo=temporal_get_string_time();
-	puts(tiempo);
-	int32_t unSocket= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
-	int32_t ok= enviarMensaje(unSocket, NIV_handshake_ORQ,"holaa");
-	printf("%d",ok);
-	enum tipo_paquete unMensaje;
-	char* elMensaje=NULL;
-	int32_t respuesta= recibirMensaje(unSocket, &unMensaje,&elMensaje);
-	printf("%d\n",respuesta);
-	printf("%s\n",elMensaje);
-	printf("%s",nombre_del_enum_paquete(unMensaje));
 
 
 
-	/* cargarArchivoDeConfiguracion();
-	crearCajasRecursos();
-	conectarmeConPlataforma(); // implica handShake - envia algoritmo
-	crearHilosEnemigos();
-	crearHiloInterbloqueo();
-	crearHiloInotify();
-*/
-	return EXIT_SUCCESS;
-}
+
+
 
 
 
