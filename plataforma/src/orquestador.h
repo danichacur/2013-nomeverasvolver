@@ -63,6 +63,6 @@ int32_t fd;
 } t_monitoreo;
 
 void supr_pers_de_estructuras (int32_t socket);
-void desbloquear_personajes(t_list *recursos_obtenidos);
+void desbloquear_personajes(t_list *recursos_obtenidos, char* str_nivel);
 
 #endif /* ORQUESTADOR_H_ */

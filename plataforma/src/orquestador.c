@@ -54,7 +54,9 @@ t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel,
 	return nuevo;
 }
 
-void desbloquear_personajes(t_list *recursos_obtenidos){
+void desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel){
+
+	//t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
 	//todo
 
@@ -133,16 +135,17 @@ void supr_pers_de_estructuras(int32_t socket) {
 		free(aux1);
 		t_pers_por_nivel * aux2 = list_remove_by_condition(p_bloqueados,
 				(void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos);
+		desbloquear_personajes(aux2->recursos_obtenidos,str_nivel);
 		free(aux2);
 		aux2 = list_remove_by_condition(p_anormales, (void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos);
+		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
 		free(aux2);
 		aux2 = list_remove_by_condition(p_listos, (void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos);
+		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
 		free(aux2);
 
 		//por cada nivel en el que estaba jugando deberia avisarle al nivel!
+		//esto lo recibe cada planificador
 		//todo enviarMensaje(aux->fd, PLA_personajeDesconectado_NIV, mensaje);
 		//por cada nivel en el que estaba jugando deberia avisarle al nivel!
 	}
