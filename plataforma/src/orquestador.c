@@ -26,6 +26,10 @@ t_list *personajes_del_sistema; // es para identificar los simbolos de los perso
 t_list *niveles_del_sistema;
 int32_t comienzo = 0;
 
+// Semaforos para las funciones que agregan personajes a las colas de listos y bloqueados
+//extern pthread_mutex_t mutex_planificador;
+//pthread_mutex_t mutexBloqueados = PTHREAD_MUTEX_INITIALIZER;
+
 t_pers_koopa *per_koopa_crear(char personaje) {
         t_pers_koopa *nuevo = malloc(sizeof(t_pers_koopa));
         nuevo->personaje = personaje;
@@ -117,6 +121,8 @@ int main() {
         bloqueados = dictionary_create();
         anormales = dictionary_create();
         monitoreo = dictionary_create();
+
+
         //inicialización
 
         fd_set master; // conjunto maestro de descriptores de fichero
@@ -267,6 +273,7 @@ char* mensaje) {
                         list_add(p_listos, item2);
                         //todo - poner un semaforo aca!
                         //agregar a la lista de listos del nivel
+
 
                         break;
                 }

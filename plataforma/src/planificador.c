@@ -13,7 +13,7 @@ extern t_dictionary *bloqueados;
 extern t_dictionary *listos;
 //extern t_dictionary *anormales;
 extern t_dictionary *monitoreo;
-
+//pthread_mutex_t mutex_planificador;
 t_config *config;
 t_log* logger;
 
@@ -24,7 +24,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 t_pers_por_nivel *planificar(char * str_nivel);
 
 void *hilo_planificador(t_niveles_sistema *nivel) {
-
+	// pthread_mutex_init(&mutex_planificador, NULL);
 	int32_t miNivel = nivel->nivel;
 	int32_t miFd = nivel->fd;
 	printf("hola, soy el planificador del nivel %d , mi fd es %d \n", miNivel,
@@ -41,7 +41,10 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	int i;
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
-
+	struct timeval tv;
+	//el select espera 2.5 segundos
+	tv.tv_sec = 2;
+	tv.tv_usec = 500000;
 	//voy metiendo aca los personajes para monitorear
 	char *str_nivel = string_from_format("%d", miNivel);
 	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
@@ -56,19 +59,22 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	//voy metiendo aca los personajes para monitorear
 	int32_t fd_personaje_actual;
 	// bucle principal
+
 	for (;;) {
+		//planificar a un personaje
+		t_pers_por_nivel *personaje = NULL;
+		if (!list_is_empty(p_listos)) {
+			personaje = planificar(str_nivel);
+			enviarMensaje(personaje->fd, PLA_turnoConcedido_PER, "0");
+			fd_personaje_actual = personaje->fd;
+			//planificar a un personaje
+		}
+
 		read_fds = master;
-		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL ) == -1) {
+		if (select(fdmax + 1, &read_fds, NULL, NULL, &tv ) == -1) {
 			perror("select");
 			exit(1);
 		}
-
-
-		printf("por entrar al while infinito de espera de conexiones\n");
-			while (list_is_empty(p_listos)) {
-				;
-			}
-
 
 		//voy metiendo aca los personajes para monitorear
 		int j = 0;
@@ -83,12 +89,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 			}
 		}
 		//voy metiendo aca los personajes para monitorear
-
-		//planificar a un personaje
-		t_pers_por_nivel *personaje = planificar(str_nivel);
-		enviarMensaje(personaje->fd, PLA_turnoConcedido_PER, "0");
-		fd_personaje_actual = personaje->fd;
-		//planificar a un personaje
 
 		// explorar conexiones existentes en busca de datos que leer
 		for (i = 0; i <= fdmax; i++) {
@@ -212,8 +212,8 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 
 		char recurso = mensaje[0];
 		int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
-				return nuevo->recurso == recurso;
-			}
+			return nuevo->recurso == recurso;
+		}
 
 		enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, mensaje);
 		recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
@@ -227,29 +227,30 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				printf("se desbloquea a %c por haber obtenido su recurso",
 						aux->personaje);
 				list_add(p_listos, aux);
-				t_recursos_obtenidos *rec = malloc (sizeof(t_recursos_obtenidos));
-				if (list_is_empty(personaje->recursos_obtenidos)){
+				t_recursos_obtenidos *rec = malloc(
+						sizeof(t_recursos_obtenidos));
+				if (list_is_empty(personaje->recursos_obtenidos)) {
 					rec->recurso = recurso;
 					rec->cantidad = 1;
-				}else{
-				rec = list_find(personaje->recursos_obtenidos,
-						(void*) _esta_recurso);
-				if (rec == NULL){
-					rec->recurso = recurso;
-					rec->cantidad = 1;
-				}else
-					rec->cantidad++;
+				} else {
+					rec = list_find(personaje->recursos_obtenidos,
+							(void*) _esta_recurso);
+					if (rec == NULL ) {
+						rec->recurso = recurso;
+						rec->cantidad = 1;
+					} else
+						rec->cantidad++;
 				}
 				//
 
 				enviarMensaje(personaje->fd, PLA_rtaRecurso_PER, m_mensaje);
 
-			} else{
+			} else {
 				printf(
 						"el personaje %c sigue bloqueado porque no le dieron el recurso",
 						personaje->personaje);
-			personaje->recurso_bloqueo = recurso;
-			personaje->estoy_bloqueado = true;
+				personaje->recurso_bloqueo = recurso;
+				personaje->estoy_bloqueado = true;
 			}
 		}
 		free(m_mensaje);
@@ -282,10 +283,10 @@ void planificador_analizar_mensaje(int32_t socket,
 		free(aux);
 
 		enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
-/*		enum tipo_paquete t_mensaje;
-		char* m_mensaje = NULL;
-		recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
-*/		break;
+		/*		enum tipo_paquete t_mensaje;
+		 char* m_mensaje = NULL;
+		 recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+		 */break;
 	}
 	case PER_meMori_PLA: {
 		tratamiento_muerte(socket, nivel->fd, mensaje, str_nivel); //todo

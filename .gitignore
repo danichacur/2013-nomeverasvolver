@@ -20,6 +20,15 @@ commons/Debug/objects.mk
 commons/Debug/sockets/mensajes.d
 commons/Debug/sockets/sockets.d
 commons/Debug/sockets/subdir.mk
+commons/Debug/commons/bitarray.d
+commons/Debug/commons/config.d
+commons/Debug/commons/error.d
+commons/Debug/commons/log.d
+commons/Debug/commons/process.d
+commons/Debug/commons/string.d
+commons/Debug/commons/subdir.mk
+commons/Debug/commons/temporal.d
+
 nivel/Debug/makefile
 nivel/Debug/nivel
 nivel/Debug/sources.mk
