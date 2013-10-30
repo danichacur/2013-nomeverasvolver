@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <sys/fcntl.h>
 #include <netdb.h>
-#include <stdint.h>
 
 #include <arpa/inet.h>
 #include <string.h>
+#include "../commons/string.h"
 
 #define BUFF_SIZE 1024
 
@@ -117,6 +117,7 @@ int32_t enviarMensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 
 int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
 		char **mensaje) {
+	//free(mensaje);
 	int nbytes;
 	char MensajeEnvio[BUFF_SIZE];
 	struct t_cabecera miCabecera;
@@ -141,8 +142,8 @@ int32_t recibirMensaje(int32_t socket, enum tipo_paquete *tipoMensaje,
 			return EXIT_FAILURE; //Devuelve distinto de 0
 		} else {
 			(*tipoMensaje) = miCabecera.tipoP;
-			 *mensaje = (char *)malloc(sizeof(char) * miCabecera.length + 1);
-			strncpy(*mensaje, &MensajeEnvio[0], miCabecera.length + 1);
+			 *mensaje = (char*)calloc(sizeof(char) * miCabecera.length + 1, sizeof(char));
+			strncpy(*mensaje, MensajeEnvio, miCabecera.length);
 
 			return EXIT_SUCCESS; //Devuelve 0
 		}
