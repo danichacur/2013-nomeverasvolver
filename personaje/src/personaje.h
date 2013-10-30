@@ -10,13 +10,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 /* Librerias de Commons */
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
-#include <sockets/sockets.h>
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
 #include <collections/list.h>
@@ -34,6 +34,8 @@ typedef struct {
 	t_list *recursosNecesariosPorNivel;
 	char * remain;
 	t_list *recursosActualesPorNivel;
+	t_list *posicionesPorNivel;
+	t_list *ultimosMovimientosPorNivel;
 } t_personaje;
 
 typedef struct {
@@ -51,13 +53,13 @@ enum tipoMuertes{
 	MUERTE_POR_INTERBLOQUEO,
 };
 
-
-
 void levantarArchivoConfiguracion();
 static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas,t_list * nivelesOrdenados,
-										t_list * recursosPorNivel, char * ipOrquestador,int16_t puertoOrquestador, char* remain);
+										t_list * recursosPorNivel, t_list * listaDeNivelesConRecursosActualesVacios,
+										char * ipOrquestador,int16_t puertoOrquestador, char* remain, t_list * posicionesPorNivel,
+										t_list * ultimosMovimientosPorNivel);
 /*static void personaje_destroy(t_personaje *self);*/
-void* conectarAlNivel(void* nivel);
+void* conectarAlNivel(int* nivel);
 void conectarAlOrquestador();
 //int todosNivelesFinalizados();
 void avisarPlanNivelesConcluido();
@@ -88,5 +90,8 @@ void recibirHandshake(int ordNivel);
 void enviaSolicitudConexionANivel(int ordNivel);
 void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensajeRecibido, int ordNivel);
 int32_t obtenerFDPlanificador(int ordNivel);
+char *estoyEnLineaRectaALaCaja(int ordNivel);
+void moverpersonajeEn(char * orientacion, int ordNivel);
+char * obtenerProximoRecursosNecesario(int ordNivel);
 
 #endif /* PERSONAJE_H_ */

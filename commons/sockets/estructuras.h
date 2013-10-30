@@ -26,4 +26,6 @@ typedef struct {
 } ipPuerto_t;
 
 
+char * posicionToString(t_posicion * posicion);
+
 #endif /* ESTRUCTURAS_H_ */

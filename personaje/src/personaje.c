@@ -7,6 +7,9 @@
 
 #include "personaje.h"
 
+#include <sockets/sockets.h>
+
+
 #define FIRST_PART_PATH "./"
 #define PATH_CONFIG "personaje.conf"
 #define MAX_THREADS 10
@@ -31,18 +34,19 @@ pthread_t tabla_thr[MAX_THREADS];
 
 //PROCESO PERSONAJE
 int main(){
+
 	cantidadIntentosFallidos = 0;
 
 	levantarArchivoConfiguracion();
 
-	int nivel;
-	for (nivel = 0 ; nivel < list_size(personaje->niveles) ; nivel++)
-		pthread_create(&tabla_thr[nivel], NULL, (void*)&conectarAlNivel, (void*)nivel);
+	int ordenNivel;
+	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++)
+		pthread_create(&tabla_thr[ordenNivel], NULL, (void*)&conectarAlNivel, (int*)ordenNivel);
 
-	for (nivel = list_size(personaje->niveles)-1 ; nivel != 0  ; nivel--)
-		pthread_join(tabla_thr[nivel],NULL);
+	for (ordenNivel = list_size(personaje->niveles)-1 ; ordenNivel >= 0  ; ordenNivel--)
+		pthread_join(tabla_thr[ordenNivel],NULL);
 
-	conectarAlOrquestador();
+	conectarAlOrquestador(-1);
 	avisarPlanNivelesConcluido();
 
 	terminarProceso();
@@ -50,20 +54,21 @@ int main(){
 	return 1;
 }
 
-void* conectarAlNivel(void* nroNivel){
+void* conectarAlNivel(int* nroNivel){
 
 	int ordNivel;
 	ordNivel = (int) nroNivel;
 
-	conectarAlOrquestador(nroNivel);
+	conectarAlOrquestador(ordNivel);
 	enviarHandshake(ordNivel);
 	recibirHandshake(ordNivel);
 	enviaSolicitudConexionANivel(ordNivel);
+
 	// aca mágicamente obtengo el fd del Planificador
 
 	while(1){
 
-		solicitarTurno(ordNivel);
+//		solicitarTurno(ordNivel);
 		recibirTurno();
 
 		if(!tengoPosicionProximaCaja(ordNivel))
@@ -72,10 +77,8 @@ void* conectarAlNivel(void* nroNivel){
 		realizarMovimientoHaciaCajaRecursos(ordNivel);
 		enviarNuevaPosicion(ordNivel);
 
-		if(estoyEnCajaRecursos(ordNivel)){
+		if(estoyEnCajaRecursos(ordNivel))
 			solicitarRecurso(ordNivel);
-
-		}
 
 		if(tengoTodosLosRecursos(ordNivel))
 			break;
@@ -88,6 +91,8 @@ void* conectarAlNivel(void* nroNivel){
 	//liberarMemoria!!!
 	pthread_exit(NULL);
 	//return ptr;
+
+
 }
 
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
@@ -135,13 +140,17 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 }*/
 
 void conectarAlOrquestador(int ordNivel){
-	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
+	char * nomNivel = string_new();
+	if (ordNivel != -1)
+		string_append(&nomNivel, obtenerNombreNivelDesdeOrden(ordNivel));
 
-	// TODO
-	//int32_t fd = cliente_crearSocketDeConexion(personaje->ipOrquestador, personaje->puertoOrquestador);
-	int32_t fd = 1;
+	int32_t fd = cliente_crearSocketDeConexion(personaje->ipOrquestador, personaje->puertoOrquestador);
+	//int32_t fd = 1;
 	if (fd > 0){
-		log_info(logger, "Personaje %s (nivel: %s) se conectó correctamente al Orquestador", personaje->nombre, nomNivel);
+		if (ordNivel != -1)
+			log_info(logger, "Personaje %s (nivel: %s) se conectó correctamente al Orquestador", personaje->nombre, nomNivel);
+		else
+			log_info(logger, "Personaje %s se conectó correctamente al Orquestador", personaje->nombre);
 		fdOrquestador = fd;
 	}
 
@@ -162,6 +171,10 @@ void levantarArchivoConfiguracion(){
 		t_list *nombresNiveles;
 		//t_list *niveles;
 		t_list *listaRecursosPorNivel;
+		t_list *listaDeRecursosParaTodosLosNiveles;
+		t_list *listaDeNivelesConRecursosAsignadosVacio;
+		t_list *listaConPosicionesEnCero;
+		t_list * listaUltimosMovimientosPorNivel;
 		////t_nivel *miNivel;
 		int8_t cantVidas;
 		char * ipOrquestador = string_new();
@@ -190,6 +203,10 @@ void levantarArchivoConfiguracion(){
 		nombresNiveles = list_create();
 		listaDeUbicacionProximaCajaNiveles = list_create();
 		listaDeFilesDescriptorsPorNivel = list_create();
+		listaDeRecursosParaTodosLosNiveles = list_create();
+		listaDeNivelesConRecursosAsignadosVacio = list_create();
+		listaConPosicionesEnCero = list_create();
+		listaUltimosMovimientosPorNivel = list_create();
 		//niveles = list_create();
 
 		int i=0;
@@ -206,19 +223,35 @@ void levantarArchivoConfiguracion(){
 				list_add(listaRecursosPorNivel,objetivosArray[j]);
 				j++;
 			}
+			//Agrego a la lista de Recursos para TODOS los niveles
+			list_add(listaDeRecursosParaTodosLosNiveles,listaRecursosPorNivel);
 
 			//Agrego el nivel en la lista de posiciones de cajas
-			/*t_nivelProximaCaja * nivelProximaCaja = malloc(sizeof(t_nivelProximaCaja));
+			t_nivelProximaCaja * nivelProximaCaja = malloc(sizeof(t_nivelProximaCaja));
 			nivelProximaCaja->nomNivel = listaNiveles[i];
-			nivelProximaCaja->posicionCaja = posicion_create_in_zero();
+			nivelProximaCaja->posicionCaja = malloc(sizeof(t_posicion));
+			nivelProximaCaja->posicionCaja->posX = 0;
+			nivelProximaCaja->posicionCaja->posY = 0;
 			list_add(listaDeUbicacionProximaCajaNiveles, nivelProximaCaja);
-			*/ //FIXME
 
 			//Agrego el nivel en la lista de descriptores por nivel
 			t_descriptorPorNivel * descriptorNivel = malloc(sizeof(t_descriptorPorNivel));
 			descriptorNivel->nomNivel = listaNiveles[i];
 			descriptorNivel->fdNivel = 0;
 			list_add(listaDeFilesDescriptorsPorNivel, descriptorNivel);
+
+			//Agrego el nivel a la lista de recursosAsignados
+			t_list *listaVacia = list_create();
+			list_add(listaDeNivelesConRecursosAsignadosVacio,listaVacia);
+
+			//Por nivel agrego una posicion en 0,0
+			t_posicion *posicionCaja = malloc(sizeof(t_posicion));
+			posicionCaja->posX = 0;
+			posicionCaja->posY = 0;
+			list_add(listaConPosicionesEnCero,posicionCaja);
+
+			//por nivel agrego el ultimo movimiento, pongo '' ya que no realizó ninguno
+			list_add(listaUltimosMovimientosPorNivel,string_new());
 
 			////miNivel = nivel_create(listaNiveles[i],listaRecursosPorNivel);
 			////list_add(niveles,miNivel);
@@ -232,7 +265,8 @@ void levantarArchivoConfiguracion(){
 		puertoOrquestador = atoi(infoOrquestador[1]);
 
 		//creo el Personaje con todos sus parametros
-		personaje = personaje_create(nombre,simbolo,cantVidas,nombresNiveles, listaRecursosPorNivel, ipOrquestador,puertoOrquestador, remain);
+		personaje = personaje_create(nombre,simbolo,cantVidas,nombresNiveles, listaDeRecursosParaTodosLosNiveles, listaDeNivelesConRecursosAsignadosVacio,
+				ipOrquestador,puertoOrquestador, remain, listaConPosicionesEnCero, listaUltimosMovimientosPorNivel);
 
 
 		config_destroy(config);
@@ -245,20 +279,25 @@ static t_personaje *personaje_create(char *nombre,
 										int8_t cantVidas,
 										t_list * niveles,
 										t_list * recursosPorNivel,
+										t_list * listaDeNivelesConRecursosActualesVacios,
 										char * ipOrquestador,
 										int16_t puertoOrquestador,
-										char* remain
+										char* remain,
+										t_list * posicionesPorNivel,
+										t_list * ultimosMovimientosPorNivel
 									 ){
-	t_personaje *new = malloc( sizeof(t_personaje) );
+	t_personaje *new = malloc(sizeof(t_personaje));
 	new->nombre = nombre;
 	new->simbolo = simbolo;
 	new->cantVidas = cantVidas;
 	new->niveles = niveles;
 	new->recursosNecesariosPorNivel = recursosPorNivel;
-	new->recursosActualesPorNivel = list_create();
+	new->recursosActualesPorNivel = listaDeNivelesConRecursosActualesVacios;
 	new->ipOrquestador = ipOrquestador;
 	new->puertoOrquestador = puertoOrquestador;
-	new->remain= remain;
+	new->remain = remain;
+	new->posicionesPorNivel = posicionesPorNivel;
+	new->ultimosMovimientosPorNivel = ultimosMovimientosPorNivel;
 	return new;
 }
 
@@ -268,7 +307,7 @@ static t_personaje *personaje_create(char *nombre,
 }*/
 
 void avisarPlanNivelesConcluido(){
-
+	enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,"0");
 }
 
 void terminarProceso(){
@@ -280,9 +319,9 @@ int tengoTodosLosRecursos(int nivel){
 	 t_list *listaRecursosActuales = list_get(personaje->recursosActualesPorNivel,nivel);
 
 	 if(list_size(listaRecursosNecesarios) == list_size(listaRecursosActuales)){
-		 return EXIT_SUCCESS;
+		 return true;
 	 }else{
-		 return EXIT_FAILURE;
+		 return false;
 	 }
  }
 
@@ -291,30 +330,14 @@ void solicitarTurno(int ordNivel) {
 }
 
 void recibirTurno(int ordNivel){
-
 	char* mensaje;
-	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_turnoConcedido_PER, &mensaje, ordNivel);
+	//recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_turnoConcedido_PER, &mensaje, ordNivel);
+	recibirUnMensaje(fdOrquestador, PLA_turnoConcedido_PER, &mensaje, ordNivel);
 	free(mensaje);
 
 }
 
 int tengoPosicionProximaCaja(int ordNivel){
-/*	T0DO ESTO ERA SUPONIENDO QUE NO SABIA LA POSICION DE NI NIVELPROXIMACAJA EN LA LISTA, PERO SÍ LA SE.
- 	IGUAL POR LAS DUDAS ME GUARDO EL CÓDIGO
- 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
-	int i = 0;
-	int encontrado = 0;
-
-	while(i < list_size(listaDeUbicacionProximaCajaNiveles) && encontrado == 0){
-		t_nivelProximaCaja * nivProxCaja = list_get(listaDeUbicacionProximaCajaNiveles, i);
-		if (nomNivel == nivProxCaja->nomNivel){
-			encontrado = 1;
-			break;
-		}
-	}
-		free(nomNivel);
-	*/
-
 	t_nivelProximaCaja * nivProxCaja = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
 	if (nivProxCaja->posicionCaja->posX == 0 && nivProxCaja->posicionCaja->posY == 0)
 		return EXIT_SUCCESS;
@@ -323,65 +346,126 @@ int tengoPosicionProximaCaja(int ordNivel){
 }
 
 void solicitarYRecibirPosicionProximoRecurso(int ordNivel){
-	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, "0");
+	char * proximoRecursoNecesario  = obtenerProximoRecursosNecesario(ordNivel);
 
-	/*char * mensaje;
-	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_posCajaRecurso_PER, &mensaje, ordNivel);
+	log_info(logger, "Personaje %s (nivel: %s) solicita la ubicacion de la caja del recurso %s", personaje->nombre, obtenerNombreNivelDesdeOrden(ordNivel), proximoRecursoNecesario);
+	//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, proximoRecursoNecesario);
+	enviarMensaje(fdOrquestador, PER_posCajaRecurso_PLA, proximoRecursoNecesario);
+
+	char * mensaje;
+	//recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_posCajaRecurso_PER, &mensaje, ordNivel);
+	recibirUnMensaje(fdOrquestador, PLA_posCajaRecurso_PER, &mensaje, ordNivel);
+	//mensaje = "2,4";
+	log_info(logger, "Personaje %s (nivel: %s) recibió la ubicacion del recurso %s, y es %s", personaje->nombre, obtenerNombreNivelDesdeOrden(ordNivel), proximoRecursoNecesario, mensaje);
 	char ** arr = string_split(mensaje,",");
 
-	t_posicion * nuevaPosicion;
-	nuevaPosicion = posicion_create(atoi(arr[0]),atoi(arr[1]));
+	t_posicion * nuevaPosicion = malloc(sizeof(t_posicion));
+	nuevaPosicion->posX = atoi(arr[0]);
+	nuevaPosicion->posY = atoi(arr[1]);
 
 	t_nivelProximaCaja * nivelProxCaja = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
 	free(nivelProxCaja->posicionCaja);
 	nivelProxCaja->posicionCaja = nuevaPosicion;
-	*/ //FIXME
 }
 
 void realizarMovimientoHaciaCajaRecursos(int ordNivel){
+	t_posicion * verdaderaPosicionAnterior = malloc(sizeof(t_posicion));
+	t_posicion * posicionAnterior = list_get(personaje->posicionesPorNivel,ordNivel);
+	memcpy(verdaderaPosicionAnterior, posicionAnterior, sizeof(t_posicion));
+
+	t_posicion * posicionFinal;
+
+
+	char * horizontal = "H";
+	char * vertical = "V";
+
+
+	char * ultimoMovimientoPersonajeEnNivel;
+
+	ultimoMovimientoPersonajeEnNivel = list_get(personaje->ultimosMovimientosPorNivel,ordNivel);
+
+	char * condicion = estoyEnLineaRectaALaCaja(ordNivel); // 'H','V' o ''
+
+	if(condicion == string_new()) //si no estoy en linea recta a la caja,
+		if(ultimoMovimientoPersonajeEnNivel == horizontal)
+			moverpersonajeEn(vertical, ordNivel);
+		else if(ultimoMovimientoPersonajeEnNivel == vertical)
+			moverpersonajeEn(horizontal, ordNivel);
+		else //primer movimiento
+			moverpersonajeEn(horizontal, ordNivel);
+	else //si estoy en linea recta, condicion me dice la direccion en la que me tengo que mover
+		moverpersonajeEn(condicion,ordNivel);
+
+	posicionFinal = list_get(personaje->posicionesPorNivel,ordNivel);
+
+	log_info(logger, "Personaje %s (nivel: %s) se movio de posicion %s a posicion %s", personaje->nombre, obtenerNombreNivelDesdeOrden(ordNivel),
+			posicionToString(posicionAnterior),
+			posicionToString(posicionFinal));
 
 }
 
 void enviarNuevaPosicion(int ordNivel){
-
+	t_posicion* posicion = list_get(personaje->posicionesPorNivel,ordNivel);
+	//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
+	enviarMensaje(fdOrquestador, PER_movimiento_PLA, posicionToString(posicion));
+	log_info(logger, "Personaje %s (nivel: %s) envió su posicion %s al Planificador", personaje->nombre, obtenerNombreNivelDesdeOrden(ordNivel), posicionToString(posicion));
 }
 
 int estoyEnCajaRecursos(int ordNivel){
-	return EXIT_SUCCESS;
+	t_posicion * posicionActual = list_get(personaje->posicionesPorNivel,ordNivel);
+	t_posicion * posicionBuscada = list_get(personaje->posicionesPorNivel,ordNivel);
+	int estoy = false;
+
+	if(posicionActual->posX == posicionBuscada->posX && posicionActual->posY == posicionBuscada->posY)
+		estoy = true;
+
+	return estoy;
 }
 
-void solicitarRecurso(int nivel){
+void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando una respuesta
+	char * recursoNecesario = obtenerProximoRecursosNecesario(nivel);
+	log_info(logger, "Personaje %s (nivel: %s) solicita el recurso %s", personaje->nombre, obtenerNombreNivelDesdeOrden(nivel), recursoNecesario);
+	//enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
+	enviarMensaje(fdOrquestador,PER_recurso_PLA,recursoNecesario);
 
+	char * mensaje;
+	//recibirUnMensaje(obtenerFDPlanificador(nivel),PLA_rtaRecurso_PER,&mensaje,nivel);
+	recibirUnMensaje(fdOrquestador,PLA_rtaRecurso_PER,&mensaje,nivel);
+	log_info(logger, "Personaje %s (nivel: %s) obtuvo el recurso %s", personaje->nombre, obtenerNombreNivelDesdeOrden(nivel), recursoNecesario);
 }
 
 void avisarNivelConcluido(int nivel){
+	log_info(logger, "Personaje %s (nivel: %s) informa que finalizó dicho nivel", personaje->nombre, obtenerNombreNivelDesdeOrden(nivel));
+	//enviarMensaje(obtenerFDPlanificador(nivel),PER_nivelFinalizado_PLA,"0");
+	enviarMensaje(fdOrquestador,PER_nivelFinalizado_PLA,"0");
 
 }
 
 void desconectarPlataforma(){
-
+	// TODO
 }
 
 int meQuedanVidas(){
-	return EXIT_SUCCESS;
+	return personaje->cantVidas > 0;
 }
 
 void descontarUnaVida(){
-
+	personaje->cantVidas = personaje->cantVidas - 1;
 }
 
 void desconectarmeDePlataforma(int nivel){
-
+	// TODO
 }
 
 void conectarAPlataforma(int nivel){
-
+	// TODO ?
 }
-void interrumpirTodosPlanesDeNiveles(){
 
+void interrumpirTodosPlanesDeNiveles(){
+	// TODO
 }
 void finalizarTodoElProcesoPersonaje(){
-
+	// TODO
 }
 
 char * obtenerNombreNivelDesdeOrden(int ordNivel){
@@ -402,8 +486,8 @@ void enviarHandshake(int ordNivel){
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
 	string_append(&mensaje,personaje->simbolo);
-	string_append(&mensaje,personaje->remain);
-	//enviarMensaje(fdOrquestador, PER_handshake_ORQ, mensaje);
+	//string_append(&mensaje,personaje->remain);
+	enviarMensaje(fdOrquestador, PER_handshake_ORQ, mensaje);
 	log_info(logger, "Personaje %s (nivel: %s) envía handshake al Orquestador con los siguientes datos: %s", personaje->nombre, nomNivel, mensaje);
 
 	free(mensaje);
@@ -414,17 +498,15 @@ void recibirHandshake(int ordNivel){
 	char* mensaje = string_new();
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
-	/*enum tipoMensaje tipoRecibido;
+	enum tipo_paquete tipoRecibido;
 
-	//TODO
-	recibirMensaje(fdOrquestador,tipoRecibido,&mensaje);
-	tipoRecibido = ORQ_handshake_PER;
+	recibirMensaje(fdOrquestador,&tipoRecibido,&mensaje);
+	//tipoRecibido = ORQ_handshake_PER;
 
 	if(tipoRecibido == ORQ_handshake_PER)
 		log_info(logger, "Personaje %s (nivel: %s) recibe handshake del Orquestador", personaje->nombre, nomNivel);
 	else
 		log_info(logger, "Personaje %s (nivel: %s) recibe un mensaje incorrecto del Orquestador. Recibe: ", personaje->nombre, nomNivel, obtenerNombreEnum(tipoRecibido));
-	 */ // FIXME
 	free(mensaje);
 	free(nomNivel);
 }
@@ -434,7 +516,7 @@ void enviaSolicitudConexionANivel(int ordNivel){
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
 	string_append(&mensaje,obtenerNumeroNivel(nomNivel));
-	//enviarMensaje(fdOrquestador, PER_conexionNivel_ORQ, mensaje);
+	enviarMensaje(fdOrquestador, PER_conexionNivel_ORQ, mensaje);
 	log_info(logger, "Personaje %s (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, nomNivel, mensaje);
 
 	free(mensaje);
@@ -446,11 +528,10 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 	char* mensaje = NULL;
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
-	//TODO
-	//int retorno = recibirMensaje(fd, &tipoMensaje, &mensaje);
-	int retorno = EXIT_SUCCESS;
-	tipoMensaje = tipoEsperado;
-	mensaje = "hola";
+	int retorno = recibirMensaje(fd, &tipoMensaje, &mensaje);
+	//int retorno = EXIT_SUCCESS;
+	//tipoMensaje = tipoEsperado;
+	//mensaje = "hola";
 
 
 	if (!retorno) {
@@ -470,4 +551,57 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 int32_t obtenerFDPlanificador(int ordNivel){
 	t_descriptorPorNivel * descriptorNivel = list_get(listaDeFilesDescriptorsPorNivel, ordNivel);
 	return descriptorNivel->fdNivel;
+}
+
+char* posicionToString(t_posicion * posicion){
+	char * pos = string_new();
+	string_append(&pos, string_from_format("%d",posicion->posX));
+	string_append(&pos, ",");
+	string_append(&pos, string_from_format("%d",posicion->posY));
+
+	return pos;
+}
+
+char * estoyEnLineaRectaALaCaja(int ordNivel){
+	t_posicion * posicionActual = list_get(personaje->posicionesPorNivel,ordNivel);
+	t_posicion * posicionBuscada = list_get(personaje->posicionesPorNivel,ordNivel);
+
+	char * condicion = string_new();
+
+	if(posicionActual->posX == posicionBuscada->posX){
+		condicion = "H";
+
+	}else if(posicionActual->posY == posicionBuscada->posY)
+		condicion = "V";
+
+	return condicion;
+}
+
+void moverpersonajeEn(char * orientacion, int ordNivel){
+	t_posicion * posicionActual = list_get(personaje->posicionesPorNivel,ordNivel);
+	t_posicion * posicionBuscada = list_get(personaje->posicionesPorNivel,ordNivel);
+	char * horizontal = "H";
+	char * vertical = "V";
+
+	if(orientacion == horizontal)
+		if(posicionActual->posX > posicionBuscada->posX)
+			posicionActual->posX = posicionActual->posX - 1;
+		else
+			posicionActual->posX = posicionActual->posX + 1;
+	else if(orientacion == vertical){
+		if(posicionActual->posY > posicionBuscada->posY)
+			posicionActual->posY = posicionActual->posY - 1;
+		else
+			posicionActual->posY = posicionActual->posY + 1;
+	}
+	//TODO alcanza con esto o tengo q usar una funcion list_replace?
+	//char * ultimoMovimiento = list_get(personaje->ultimosMovimientosPorNivel, ordNivel);
+	//ultimoMovimiento = orientacion;
+}
+
+char * obtenerProximoRecursosNecesario(int ordNivel){
+	int cantRecursosObtenidos = list_size(list_get(personaje->recursosActualesPorNivel, ordNivel));
+	char * proximoRecurso = list_get(list_get(personaje->recursosNecesariosPorNivel,ordNivel), cantRecursosObtenidos);
+
+	return proximoRecurso;
 }
