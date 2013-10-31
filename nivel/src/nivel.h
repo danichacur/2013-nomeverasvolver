@@ -30,12 +30,25 @@
 
 
 typedef struct {
-	char** nombre;
-	char** simbolo;
-	char** instancias;
-	char** posX;
-	char** posY;
-}tListaItems;
+	char* nombre;
+	char* simbolo;
+	char* instancias;
+	char* posX;
+	char* posY;
+}tRecursosNivel;
+
+typedef struct {
+	t_list listaRecursosNivel;
+	char* nombre;
+	int quantum;
+	int recovery;
+	int enemigos;
+	long tiempoDeadlock;
+	long sleepEnemigos;
+	char* tipoAlgoritmo;
+	char* direccionIPyPuerto;
+	int retardo;
+}tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
 
 
 void buscaPersonajeCercano();
@@ -43,10 +56,9 @@ void moverseAlternado();
 void actualizarUltimoMovimiento();
 void crearseASiMismo();
 void movermeEnL();
-int main();
-void crearCaja(t_list *listaCajas ,char ** elemento1,char ** elemento2,char ** elemento3,char ** elemento4,char ** elemento5);
+void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
-void conectarmeConPlataforma(); // handshake inicial
+void handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
 void crearHilosEnemigos();
 void crearHiloInterbloqueo();
