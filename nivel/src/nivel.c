@@ -23,37 +23,33 @@
 
 #define DIRECCION "192.168.0.60"   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
 #define BUFF_SIZE 1024
-
+#define RUTA "/home/utnso/Escritorio/config.cfg"
 #define PUERTO 4000
-////////////////////////////////////////////////////ESPACIO DE VARIABLES////////////////////////////////////////////////////
-tListaItems listaItems;
-char *ruta = ".//configNivel.cfg";
-t_config *config;
-int quantum;
-long int tiempoDeadlock;
-int recovery;
-int enemigos;
-long int sleepEnemigos;
-char * tipoAlgoritmo;
-long int retardo;
-char **caja[6];
-char litCaja[6] = "Caja1\0";
-char ** direccionIPyPuerto;
-char ** nombre;
-int ret;
-t_config *config;
+#define CANT_NIVELES_MAXIMA 100
+
+////////////////////////////////////////////////////ESPACIO DE VARIABLES GLOBALES////////////////////////////////////////////////////
 t_log* logger;
 int cantidadIntentosFallidos;
-t_list *listaDeNiveles;
+t_list *listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
 t_list *listaCajas;
 t_list *listaDeNivelesFinalizados;
+bool listaRecursosVacia;
+t_list vectorNiveles[CANT_NIVELES_MAXIMA];
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
-	printf("hola mundo!!\n");
-	char *tiempo=temporal_get_string_time();
-	puts(tiempo);
-	leerArchivoConfiguracion();
+	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
+	handshakeConPlataforma();
+	/*
+
+	*/
+	return true;
+}
+
+
+	/*
+
+	 leerArchivoConfiguracion();
 	while (listaNiveles<>NULL){
 	conectarmeConPlataforma(); // handshake inicial
 	enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
@@ -64,73 +60,93 @@ int main (){
 	while(1){
 		procesarSolicitudesPlanificador(socket,tipoMensaje,mensaje);//PLA_movimiento_NIV,	PLA_personajeMuerto_NIV,PLA_nivelFinalizado_NIV,PLA_solicitudRecurso_NIV,
 	}
+
 	return EXIT_SUCCESS;
 }
+*/
 ////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
 
 int leerArchivoConfiguracion(){
-	long retardo_aux;
-	config = config_create(ruta);
-	nombre=config_get_array_value(config, "Nombre");
-	quantum = config_get_int_value(config, "quantum");
-	tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
-	sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
-	tipoAlgoritmo=config_get_string_value(config,"algortimo");
-	direccionIPyPuerto = config_get_array_value(config, "Plataforma");
-	retardo_aux = config_get_int_value(config, "retardo");
-	retardo=retardo_aux*1000;
-	// Leo las cajas
+	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
+	t_config *config = config_create(RUTA);
+	printf("Voy a leer el nivel\n");
+	char *nombre= config_get_string_value(config, "Nombre");
+	printf("Voy a leer los atributos de  %s \n",nombre);
+	int quantum = config_get_int_value(config, "quantum");
+	printf("Paso el quantum %d \n",quantum);
+	int recovery = config_get_int_value(config, "Recovery");
+	printf("Paso el recovery %d \n",recovery);
+	int enemigos = config_get_int_value(config, "Enemigos");
+	printf("Paso los enemigos %d \n",enemigos);
+	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
+	printf("Paso el tiempo de deadlock %ld \n",tiempoDeadlock);
+	long sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
+	printf("Paso el sleep %ld \n",sleepEnemigos);
+	char* tipoAlgoritmo=config_get_string_value(config,"algoritmo");
+	printf("Paso el algoritmo %s \n",tipoAlgoritmo);
+	char *direccionIPyPuerto = config_get_string_value(config, "Plataforma");
+	printf("Paso el puerto e IP %s \n",direccionIPyPuerto);
+	int retardoAux = config_get_int_value(config, "retardo");
+	printf("Paso el retardo %d \n",retardoAux);
+	int retardo=retardoAux*1000;
+	printf("Imprimo el retardo en milisegundos %d \n",retardo);
+	// LEO LAS CAJAS DEL NIVEL //
+	char litCaja[6]="Caja1\0";
 	printf("Literal = [%s]\n",litCaja);
-	ret = config_has_property(config, litCaja);
-	printf("Paso el 1er ret\n");
+	bool ret = config_has_property(config, litCaja);
+	printf("Encontre la %s = %d \n",litCaja,ret);
 	printf("Voy a leer las cajas\n");
-	while (ret == true){
-		caja = config_get_array_value(config, litCaja);
-		crearCaja(listaItems,caja[1],caja[2],caja[3],caja[4],caja[5]);
-		printf("Creé una caja\n");
-		litCaja[4]++;
-		printf("Le sumo uno al numero de la caja\n");
-		ret = config_has_property(config, litCaja);
-	}
-	crearListaNiveles();
-	crearListaRecursos();
-
+	listaRecursosNivel=list_create();
+		while (ret == true){
+			printf("Encontre la %s = %d \n",litCaja,ret);
+			char **caja = config_get_array_value(config, litCaja);
+			printf("detalles de la caja %s %s %s %s %s \n",caja[0], caja[1],caja[2],caja[3],caja[4]);
+			crearCaja(caja);
+			printf("Creé una caja\n");
+			litCaja[4]++;
+			printf("Le sumo uno al numero de la caja\n");
+			ret = config_has_property(config, litCaja);
+		}
+		printf("el nivel es %d \n",nombre[5]); //CORREGIR, LO DA EN ASCII
 	return EXIT_SUCCESS;
-
-};
-void crearListaNiveles(t_list *){
-
 }
 
-void crearCaja(t_list *listaCajas ,char ** elemento1,char ** elemento2,char ** elemento3,char ** elemento4,char ** elemento5){
-	tListaItems *unaCaja=malloc(sizeof(tListaItems));
-	unaCaja->nombre=elemento1;
-	unaCaja->simbolo=elemento2;
-	unaCaja->instancias=elemento3;
-	unaCaja->posX=elemento4;
-	unaCaja->posY=elemento5;
-	listaCajas=list_create();
-	int cantElementos= list_add(listaCajas,unaCaja);
+void crearCaja(char ** caja){
+	tRecursosNivel *unaCaja=malloc(sizeof(tRecursosNivel));
+	unaCaja->nombre=caja[0];
+	unaCaja->simbolo=caja[1];
+	unaCaja->instancias=caja[2];
+	unaCaja->posX=caja[3];
+	unaCaja->posY=caja[4];
+	int cantElementos= list_add(listaRecursosNivel,unaCaja);
 	printf("cantidad de elementos %d",cantElementos);
+	free(unaCaja);
+}
 
 
-};
-void conectarmeConPlataforma() {
-	int conexionOK=0;
-		while(conexionOK){
-			int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
-			int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,(char*) nombre);
-			printf("%d",ok);
-			enum tipo_paquete unMensaje;
-			char* elMensaje=NULL;
-			int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-			printf("%d\n",respuesta);
-			printf("%s\n",elMensaje);
-			if(strcmp(elMensaje,"OK")){
-				conexionOK=1;
-			}
-		}
-};
+
+void handshakeConPlataforma() {
+	char *tiempo=temporal_get_string_time();
+	printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
+
+	puts(tiempo);
+	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+	int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,"1");
+	printf("%d \n",ok);
+	enum tipo_paquete unMensaje;
+	char* elMensaje=NULL;
+	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo ok del orquestador por el handshake
+	printf("la conexion se hizo ok %s\n",elMensaje);
+	printf("%d",respuesta);
+	free(elMensaje);
+	int32_t respuesta1= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo peticion de ubicacion de caja
+	printf("%d",respuesta1);
+	printf("requiero la caja de %s\n",elMensaje);
+	free(elMensaje);
+	int32_t ok1= enviarMensaje(socketEscucha, NIV_posCaja_PLA,"1,3");
+	printf("%d",ok1);
+}
+/*
 void enviarDatosInicioNivel(){
 	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
 	int32_t ok= enviarMensaje(socketEscucha, NIV_datosPlanificacion_PLA,(char*) nombre);
@@ -139,7 +155,7 @@ void enviarDatosInicioNivel(){
 	char* elMensaje=NULL;
 	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
-};
+}
 
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje){
 	switch (tipoMensaje) {
@@ -183,7 +199,7 @@ void movermeEnL(){
 };
 
 
-/*
+
 void crearHiloInotify(){
         r2 = pthread_create(&thr2,NULL,&hilo_inotify,NULL);
 		sprintf(buffer_log,"Se lanza el hilo para notificar cambios del quantum");
