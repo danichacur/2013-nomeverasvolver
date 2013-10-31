@@ -33,6 +33,7 @@ enum tipo_paquete{
 	PLA_personajeMuerto_NIV,
 	PLA_nivelFinalizado_NIV,
 	PLA_solicitudRecurso_NIV,
+	PLA_personajeDesconectado_NIV,
 	NIV_posCaja_PLA,
 	NIV_movimiento_PLA,
 	NIV_recursoConcedido_PLA,
@@ -41,6 +42,7 @@ enum tipo_paquete{
 	NIV_perMuereInterbloqueo_PLA,
 	OK1,		//OK esta en la biblioteca ncurses que se usa para la gui del nivel, la toma como duplicada
 	NIV_datosPlanificacion_PLA,
+
 };
 
 

@@ -42,8 +42,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 	struct timeval tv;
-	//el select espera 2.5 segundos
-	tv.tv_sec = 2;
+	//el select espera 4.5 segundos
+	tv.tv_sec = 4;
 	tv.tv_usec = 500000;
 	//voy metiendo aca los personajes para monitorear
 	char *str_nivel = string_from_format("%d", miNivel);
@@ -57,21 +57,23 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	fdmax = aux->fd;
 	free(aux);
 	//voy metiendo aca los personajes para monitorear
-	int32_t fd_personaje_actual;
+
+	int32_t fd_personaje_actual = 0;
+	t_pers_por_nivel *personaje = NULL;
+
 	// bucle principal
 
 	for (;;) {
 		//planificar a un personaje
-		t_pers_por_nivel *personaje = NULL;
 		if (!list_is_empty(p_listos)) {
 			personaje = planificar(str_nivel);
 			enviarMensaje(personaje->fd, PLA_turnoConcedido_PER, "0");
 			fd_personaje_actual = personaje->fd;
-			//planificar a un personaje
 		}
+		//planificar a un personaje
 
 		read_fds = master;
-		if (select(fdmax + 1, &read_fds, NULL, NULL, &tv ) == -1) {
+		if (select(fdmax + 1, &read_fds, NULL, NULL, &tv) == -1) {
 			perror("select");
 			exit(1);
 		}
@@ -100,9 +102,17 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 				// gestionar datos del cliente del socket i!
 				if (recibirMensaje(i, &tipoMensaje, &mensaje) != EXIT_SUCCESS) {
 
-					//todo: borrarlo de bloqueados , listos, etc y que libere los recursos!
-					//eliminarlo de las estructuras, si era el que estaba planificando liberar los recursos
+					//todo: que libere los recursos y haga gestion de los bloqueados!
+					//si era el que estaba planificando liberar los recursos
 					//y salir del for asi planifica a alguien mas
+
+					//eliminarlo de las estructuras
+					if (i==fd_personaje_actual){
+						//si lo estaba planificando tengo que liberar los recursos que tenía igual y asignarlos.
+						desbloquear_personajes(personaje->recursos_obtenidos);
+					}
+					supr_pers_de_estructuras(i);
+					//eliminarlo de las estructuras
 
 					close(i); // ¡Hasta luego!
 					FD_CLR(i, &master); // eliminar del conjunto maestro
@@ -126,8 +136,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 							free(mensaje);
 							recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
 							//if (t_mensaje = NIV_posCaja_PLA){
-							enviarMensaje(personaje->fd, PLA_posCajaRecurso_PER,
-									mensaje);
+							//aca cuando le manda el mensaje asi como esta, le llega con un simbolo raro al personaje fixme
+							enviarMensaje(i, PLA_posCajaRecurso_PER, mensaje);
 						}
 						recibirMensaje(i, &tipoMensaje, &mensaje);
 						analizar_mensaje_rta(personaje, tipoMensaje, mensaje,
@@ -161,7 +171,7 @@ void tratamiento_muerte(int32_t socket, int32_t nivel_fd, char* mensaje,
 		char* str_nivel) {
 
 	printf("le aviso al nivel que el personaje %c murio \n", mensaje[0]);
-	printf("yo planificador debería liberar recursos? creo que no \n");
+	printf("yo planificador debería liberar recursos? SI \n");
 	enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, mensaje);
 
 	t_list *p_listos = dictionary_get(listos, str_nivel);
