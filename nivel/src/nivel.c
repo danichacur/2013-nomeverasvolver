@@ -4,8 +4,8 @@
 #include <curses.h>
 #include <unistd.h>
 #include <string.h>
-////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
 #include <sockets/sockets.h>
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
@@ -15,12 +15,9 @@
 #include <pthread.h>
 #include "nivel.h"
 #include <commons/log.h>
-//#include <nivel-gui/tad_items.h>
-
-
+#include <tad_items.h>
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
-
 #define DIRECCION "192.168.0.60"   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
 #define BUFF_SIZE 1024
 #define RUTA "/home/utnso/Escritorio/config.cfg"
@@ -34,38 +31,28 @@ t_list *listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
 t_list *listaCajas;
 t_list *listaDeNivelesFinalizados;
 bool listaRecursosVacia;
-t_list vectorNiveles[CANT_NIVELES_MAXIMA];
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
+	listaRecursosNivel=list_create();
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
-	handshakeConPlataforma();
-	/*
-
-	*/
+	//inicializarMapaNivel(listaRecursosNivel);
+	int32_t socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+	while(1){
+		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
+	}
+	eliminarEstructuras();
 	return true;
 }
-
-
 	/*
-
-	 leerArchivoConfiguracion();
-	while (listaNiveles<>NULL){
-	conectarmeConPlataforma(); // handshake inicial
-	enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
 	crearHilosEnemigos();
 	crearHiloInterbloqueo();
 	crearHiloInotify();
-	}
-	while(1){
-		procesarSolicitudesPlanificador(socket,tipoMensaje,mensaje);//PLA_movimiento_NIV,	PLA_personajeMuerto_NIV,PLA_nivelFinalizado_NIV,PLA_solicitudRecurso_NIV,
-	}
-
 	return EXIT_SUCCESS;
 }
 */
-////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
 int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
 	t_config *config = config_create(RUTA);
@@ -96,7 +83,6 @@ int leerArchivoConfiguracion(){
 	bool ret = config_has_property(config, litCaja);
 	printf("Encontre la %s = %d \n",litCaja,ret);
 	printf("Voy a leer las cajas\n");
-	listaRecursosNivel=list_create();
 		while (ret == true){
 			printf("Encontre la %s = %d \n",litCaja,ret);
 			char **caja = config_get_array_value(config, litCaja);
@@ -111,7 +97,7 @@ int leerArchivoConfiguracion(){
 	return EXIT_SUCCESS;
 }
 
-void crearCaja(char ** caja){
+void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE RECURSOS DEL NIVEL
 	tRecursosNivel *unaCaja=malloc(sizeof(tRecursosNivel));
 	unaCaja->nombre=caja[0];
 	unaCaja->simbolo=caja[1];
@@ -122,61 +108,122 @@ void crearCaja(char ** caja){
 	printf("cantidad de elementos %d",cantElementos);
 	free(unaCaja);
 }
-
-
-
-void handshakeConPlataforma() {
-	char *tiempo=temporal_get_string_time();
-	printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
-
-	puts(tiempo);
-	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
-	int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,"1");
-	printf("%d \n",ok);
-	enum tipo_paquete unMensaje;
-	char* elMensaje=NULL;
-	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo ok del orquestador por el handshake
-	printf("la conexion se hizo ok %s\n",elMensaje);
-	printf("%d",respuesta);
-	free(elMensaje);
-	int32_t respuesta1= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo peticion de ubicacion de caja
-	printf("%d",respuesta1);
-	printf("requiero la caja de %s\n",elMensaje);
-	free(elMensaje);
-	int32_t ok1= enviarMensaje(socketEscucha, NIV_posCaja_PLA,"1,3");
-	printf("%d",ok1);
-}
 /*
-void enviarDatosInicioNivel(){
-	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
-	int32_t ok= enviarMensaje(socketEscucha, NIV_datosPlanificacion_PLA,(char*) nombre);
-	printf("%d",ok);
+void inicializarMapaNivel(t_list* listaRecursos){
+    t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
+	int rows, cols; // TAMAÑO DEL MAPA
+
+	int x = 1;
+	int y = 1;
+	int ex1 = 10, ey1 = 14;
+	int ex2 = 20, ey2 = 3;
+	tRecursosNivel *unaCaja= list_get(listaRecursos, 0);
+	while(unaCaja!=NULL){
+		unaCaja->posX
+		unaCaja->nombre
+		unaCaja->simbolo
+		unaCaja->instancias
+		unaCaja->posX
+		unaCaja->posY
+
+	}
+	nivel_gui_inicializar();
+	nivel_gui_get_area_nivel(&rows, &cols);
+	CrearPersonaje(items, '#', x, y);
+
+	CrearEnemigo(items, '1', ex1, ey1);
+	CrearEnemigo(items, '2', ex2, ey2);
+
+	CrearCaja(items, 'H', 26, 10, 5);
+	CrearCaja(items, 'M', 8, 15, 3);
+	CrearCaja(items, 'F', 19, 9, 2);
+
+	nivel_gui_dibujar(items, "Test Chamber 04");
+
+	MoverPersonaje(items, '1', ex1, ey1 );
+	MoverPersonaje(items, '2', ex2, ey2 );
+
+	MoverPersonaje(items, '#', x, y);
+
+	if (   ((p == 26) && (q == 10)) || ((x == 26) && (y == 10)) ) {
+		restarRecurso(items, 'H');
+	}
+
+
+	if((p == x) && (q == y)) {
+		BorrarItem(items, '#'); //si chocan, borramos uno (!)
+	}
+
+	nivel_gui_dibujar(items, "Test Chamber 04");
+
+	BorrarItem(items, '#');
+	BorrarItem(items, '@');
+
+	BorrarItem(items, '1');
+	BorrarItem(items, '2');
+
+	BorrarItem(items, 'H');
+	BorrarItem(items, 'M');
+	BorrarItem(items, 'F');
+
+	nivel_gui_terminar();
+
+
+}
+*/
+int32_t handshakeConPlataforma(){
+	char *tiempo=temporal_get_string_time();
+			printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
+			puts(tiempo);
+			int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+			int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,"1");
+			printf("%d \n",ok);
+			enum tipo_paquete unMensaje;
+			char* elMensaje=NULL;
+			int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo ok del orquestador por el handshake
+			printf("la conexion se hizo ok %s\n",elMensaje);
+			printf("%d",respuesta);
+			free(elMensaje);
+			int32_t respuesta1= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo peticion de ubicacion de caja
+			printf("%d",respuesta1);
+			printf("requiero la caja de %s\n",elMensaje);
+			free(elMensaje);
+			int32_t ok1= enviarMensaje(socketEscucha, NIV_posCaja_PLA,"1,3");
+			printf("%d",ok1);
+			return socketEscucha;
+}
+
+void mensajesConPlataforma(int32_t socketEscucha) {
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
 	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+	if(respuesta){
+		switch (unMensaje) {
 
-}
+			case PLA_movimiento_NIV: {
+				break;
+			}
+			case PLA_personajeMuerto_NIV:{
+				break;
+			}
+			case PLA_solicitudRecurso_NIV:{
+				break;
+			}
+			case PLA_posCaja_NIV:{
+				break;
+			}
+			case NIV_handshake_ORQ:{
 
-void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje){
-	switch (tipoMensaje) {
-		case PLA_movimiento_NIV: {
-		break;
+				break;
+			}
+			default: break;
 		}
-		case PLA_personajeMuerto_NIV:{
-		break;
-		}
-		case PLA_solicitudRecurso_NIV:{
-		break;
-		}
-		case PLA_posCaja_NIV:{
-		break;
-		}
-		default: break;
-
 	}
 }
+void eliminarEstructuras(){
 
-
+}
+	/*
 
 void buscaPersonajeCercano(){
 
@@ -201,9 +248,10 @@ void movermeEnL(){
 
 
 void crearHiloInotify(){
-        r2 = pthread_create(&thr2,NULL,&hilo_inotify,NULL);
-		sprintf(buffer_log,"Se lanza el hilo para notificar cambios del quantum");
-		log_info(logger, buffer_log);
+	r2 = pthread_create(&thr2,NULL,&hilo_inotify,NULL);
+	sprintf(buffer_log,"Se lanza el hilo para notificar cambios del quantum");
+	log_info(logger, buffer_log);
+}
 
 int hilo_inotify(void) {
 	char buffer[BUF_LEN];
@@ -215,7 +263,7 @@ int hilo_inotify(void) {
 	int file_descriptor = inotify_init();
 	if (file_descriptor < 0) {
 		perror("inotify_init");
-	}
+}
 
 	// Creamos un monitor sobre un path indicando que eventos queremos escuchar
 	///home/utnso/workspace/inotify/src

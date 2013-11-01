@@ -50,15 +50,17 @@ typedef struct {
 	int retardo;
 }tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
 
-
+void eliminarEstructuras();
 void buscaPersonajeCercano();
+void mensajesConPlataforma(int32_t socketEscucha);
+void inicializarMapaNivel(t_list* listaRecursos);
 void moverseAlternado();
 void actualizarUltimoMovimiento();
 void crearseASiMismo();
 void movermeEnL();
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
-void handshakeConPlataforma(); // handshake inicial
+int32_t handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
 void crearHilosEnemigos();
 void crearHiloInterbloqueo();
