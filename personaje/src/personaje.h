@@ -1,3 +1,4 @@
+
 /*
  * personaje.h
  *
@@ -66,7 +67,6 @@ void avisarPlanNivelesConcluido();
 void terminarProceso();
 void personaje_destroy(t_personaje *self);
 int tengoTodosLosRecursos(int nivel);
-void solicitarTurno(int ordNivel);
 void recibirTurno();
 int tengoPosicionProximaCaja(int nivel);
 void solicitarYRecibirPosicionProximoRecurso(int nivel);
@@ -74,6 +74,8 @@ void realizarMovimientoHaciaCajaRecursos(int nivel);
 void enviarNuevaPosicion(int nivel);
 int estoyEnCajaRecursos(int nivel);
 void solicitarRecurso(int nivel);
+char* obtenerRecursosActualesPorNivel(int ordNivel);
+char* obtenerRecursosNecesariosPorNivel(int ordNivel);
 void avisarNivelConcluido(int nivel);
 void desconectarPlataforma();
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel);
