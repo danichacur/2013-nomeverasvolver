@@ -24,10 +24,15 @@
 #include <commons/config.h>
 #include <pthread.h>
 #include "nivel.h"
-//#include <tad_items.h>
+#include <commons/log.h>
+#include <tad_items.h>
+
+#include <stdlib.h>
+#include <curses.h>
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 
+int maxRandPos = 50;
 
 typedef struct {
 	char* nombre;
@@ -38,7 +43,6 @@ typedef struct {
 }tRecursosNivel;
 
 typedef struct {
-	t_list listaRecursosNivel;
 	char* nombre;
 	int quantum;
 	int recovery;
@@ -49,6 +53,47 @@ typedef struct {
 	char* direccionIPyPuerto;
 	int retardo;
 }tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
+
+
+typedef struct {
+		char * simbolo;
+        t_posicion * posicion;
+} t_personaje;
+
+t_posicion * posicion_create(){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  0;
+	posicion->posX =  0;
+
+	return posicion;
+}
+
+t_posicion * posicion_create_pos(int x, int y){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  x;
+	posicion->posY =  y;
+
+	return posicion;
+}
+
+t_posicion * posicion_create_pos_rand(){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  rand() % maxRandPos;
+	posicion->posX =  rand() % maxRandPos;
+
+	return posicion;
+}
+
+t_personaje * personaje_create(char * simbolo, t_posicion * posicion){
+	t_personaje * personaje = malloc(sizeof(t_personaje));
+	personaje->posicion = posicion;
+	personaje->simbolo = simbolo;
+
+	return personaje;
+}
 
 void eliminarEstructuras();
 void buscaPersonajeCercano();
@@ -66,6 +111,7 @@ void crearHilosEnemigos();
 void crearHiloInterbloqueo();
 void crearHiloInotify();
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
-
+ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
+t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 
 #endif /* NIVEL_H_ */

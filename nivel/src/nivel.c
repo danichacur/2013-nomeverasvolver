@@ -6,21 +6,12 @@
 #include <string.h>
 
 ////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
-#include <sockets/sockets.h>
-#include <sockets/mensajes.h>
-#include <sockets/estructuras.h>
-#include <commons/temporal.h>
-#include <collections/list.h>
-#include <commons/config.h>
-#include <pthread.h>
 #include "nivel.h"
-#include <commons/log.h>
-#include <tad_items.h>
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
-#define DIRECCION "192.168.0.60"   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
+#define DIRECCION "192.168.43.59"   //INADDR_ANY representa la direccion de cualquier interfaz conectada con la computadora
 #define BUFF_SIZE 1024
-#define RUTA "/home/utnso/Escritorio/config.cfg"
+#define RUTA "./config.cfg"
 #define PUERTO 4000
 #define CANT_NIVELES_MAXIMA 100
 
@@ -29,14 +20,19 @@ t_log* logger;
 int cantidadIntentosFallidos;
 t_list *listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
 t_list *listaCajas;
-t_list *listaDeNivelesFinalizados;
 bool listaRecursosVacia;
-
+char* nombreNivel;
+t_list* items;
+t_list * listaDePersonajes;
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
+
+
 int main (){
 	listaRecursosNivel=list_create();
+	items = list_create();
+	listaDePersonajes = list_create();
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
-	//inicializarMapaNivel(listaRecursosNivel);
+	inicializarMapaNivel(listaRecursosNivel);
 	int32_t socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
 	while(1){
 		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
@@ -58,11 +54,14 @@ int leerArchivoConfiguracion(){
 	t_config *config = config_create(RUTA);
 	printf("Voy a leer el nivel\n");
 	char *nombre= config_get_string_value(config, "Nombre");
+	nombreNivel=nombre;
 	printf("Voy a leer los atributos de  %s \n",nombre);
 	int quantum = config_get_int_value(config, "quantum");
 	printf("Paso el quantum %d \n",quantum);
+
 	int recovery = config_get_int_value(config, "Recovery");
 	printf("Paso el recovery %d \n",recovery);
+
 	int enemigos = config_get_int_value(config, "Enemigos");
 	printf("Paso los enemigos %d \n",enemigos);
 	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
@@ -108,122 +107,148 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 	printf("cantidad de elementos %d",cantElementos);
 	free(unaCaja);
 }
-/*
+
 void inicializarMapaNivel(t_list* listaRecursos){
-    t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
+    /*t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
 	int rows, cols; // TAMAÑO DEL MAPA
 
-	int x = 1;
-	int y = 1;
-	int ex1 = 10, ey1 = 14;
-	int ex2 = 20, ey2 = 3;
-	tRecursosNivel *unaCaja= list_get(listaRecursos, 0);
-	while(unaCaja!=NULL){
-		unaCaja->posX
-		unaCaja->nombre
-		unaCaja->simbolo
-		unaCaja->instancias
-		unaCaja->posX
-		unaCaja->posY
-
-	}
 	nivel_gui_inicializar();
 	nivel_gui_get_area_nivel(&rows, &cols);
-	CrearPersonaje(items, '#', x, y);
-
-	CrearEnemigo(items, '1', ex1, ey1);
-	CrearEnemigo(items, '2', ex2, ey2);
-
-	CrearCaja(items, 'H', 26, 10, 5);
-	CrearCaja(items, 'M', 8, 15, 3);
-	CrearCaja(items, 'F', 19, 9, 2);
-
-	nivel_gui_dibujar(items, "Test Chamber 04");
-
-	MoverPersonaje(items, '1', ex1, ey1 );
-	MoverPersonaje(items, '2', ex2, ey2 );
-
-	MoverPersonaje(items, '#', x, y);
-
-	if (   ((p == 26) && (q == 10)) || ((x == 26) && (y == 10)) ) {
-		restarRecurso(items, 'H');
+	tRecursosNivel *unaCaja= list_get(listaRecursos, 0);
+	while(unaCaja!=NULL){
+		char* simbolo=unaCaja->simbolo;
+		char* instancias=unaCaja->instancias;
+		char* posX=unaCaja->posX;
+		char* posY=unaCaja->posY;
+		int posXint=atoi(posX);
+		int posYint=atoi(posY);
+		int instanciasInt=atoi(instancias);
+		CrearCaja(items,*simbolo, posXint, posYint, instanciasInt);
 	}
-
-
-	if((p == x) && (q == y)) {
-		BorrarItem(items, '#'); //si chocan, borramos uno (!)
-	}
-
-	nivel_gui_dibujar(items, "Test Chamber 04");
-
-	BorrarItem(items, '#');
-	BorrarItem(items, '@');
-
-	BorrarItem(items, '1');
-	BorrarItem(items, '2');
-
-	BorrarItem(items, 'H');
-	BorrarItem(items, 'M');
-	BorrarItem(items, 'F');
-
-	nivel_gui_terminar();
-
-
-}
+	nivel_gui_dibujar(items,nombreNivel );
 */
+}
+
 int32_t handshakeConPlataforma(){
 	char *tiempo=temporal_get_string_time();
-			printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
-			puts(tiempo);
-			int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
-			int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,"1");
-			printf("%d \n",ok);
-			enum tipo_paquete unMensaje;
-			char* elMensaje=NULL;
-			int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo ok del orquestador por el handshake
-			printf("la conexion se hizo ok %s\n",elMensaje);
-			printf("%d",respuesta);
-			free(elMensaje);
-			int32_t respuesta1= recibirMensaje(socketEscucha, &unMensaje,&elMensaje); //recibo peticion de ubicacion de caja
-			printf("%d",respuesta1);
-			printf("requiero la caja de %s\n",elMensaje);
-			free(elMensaje);
-			int32_t ok1= enviarMensaje(socketEscucha, NIV_posCaja_PLA,"1,3");
-			printf("%d",ok1);
-			return socketEscucha;
+	printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
+	puts(tiempo);
+	int32_t socketEscucha= cliente_crearSocketDeConexion(DIRECCION,PUERTO);
+	int32_t ok= enviarMensaje(socketEscucha, NIV_handshake_ORQ,"1");
+	printf("%d \n",ok);
+	return socketEscucha;
 }
 
 void mensajesConPlataforma(int32_t socketEscucha) {
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
-	int32_t respuesta= recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-	if(respuesta){
+	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+	//if(respuesta){
 		switch (unMensaje) {
 
-			case PLA_movimiento_NIV: {
+			case PLA_movimiento_NIV: {//graficar y actualizar la lista
+				char ** mens = string_split(elMensaje,",");
+
+				ITEM_NIVEL * pers = buscarPersonajeLista(items, mens[0]);
+				pers->posx = atoi(mens[1]);
+				pers->posy = atoi(mens[2]);
+
+				t_personaje * personaje = buscarPersonajeListaPersonajes(listaDePersonajes, mens[0]);
+				personaje->posicion->posX = atoi(mens[1]);
+				personaje->posicion->posY = atoi(mens[2]);
+
+				//MoverPersonaje(t_list* items, elMensaje[0], , int y);
+				printf("el personaje se movio %s",elMensaje);
+				int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //hay q validar q se mueva dentro del mapa...
+				printf("%d",respuesta);
 				break;
 			}
 			case PLA_personajeMuerto_NIV:{
+				char id=elMensaje[0];
+				printf("el personaje %d murio",id);
+			//	BorrarItem(items,id);
 				break;
 			}
 			case PLA_solicitudRecurso_NIV:{
-				break;
-			}
-			case PLA_posCaja_NIV:{
-				break;
-			}
-			case NIV_handshake_ORQ:{
 
 				break;
 			}
-			default: break;
+			case PLA_nuevoPersonaje_NIV:{
+				t_posicion * posicion=posicion_create();
+				char * simbolo = malloc(strlen(elMensaje)+1);
+				strcpy(simbolo,elMensaje);
+				t_personaje * personaje = personaje_create(simbolo,posicion);
+				list_add(listaDePersonajes,personaje);
+
+				ITEM_NIVEL * item = malloc(sizeof(ITEM_NIVEL));
+				item->id = elMensaje[0];
+				item->item_type = PERSONAJE_ITEM_TYPE;
+				item->posx = 0;
+				item->posy = 0;
+				item->quantity = 0;
+				list_add(items,item);
+
+				printf("agregue un personaje nuevo a la lista");
+				break;
+						}
+			case PLA_posCaja_NIV:{
+
+				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,"1,3");
+				printf("envie posicion mensaje %d",mensaje);
+				break;
+			}
+			case OK1:{
+				printf("la conexion se hizo ok %s\n",elMensaje);
+				break;
+			}
+			default:
+				printf("%s \n","recibio cualquier cosa");
+				break;
 		}
-	}
+	//}
+		free(elMensaje);
+
 }
+
+ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){
+	ITEM_NIVEL * item;
+	ITEM_NIVEL * unItem;
+	bool encontrado = false;
+	int i=0;
+	while(i < list_size(lista) && !encontrado){
+		unItem = list_get(lista,i);
+		if(unItem->item_type == PERSONAJE_ITEM_TYPE)
+			if (unItem->id == simbolo[0]){
+				encontrado = true;
+				item = unItem;
+			}
+		i++;
+	}
+	return item;
+}
+
+t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){
+	t_personaje * personaje;
+	t_personaje * unPers;
+
+	bool encontrado = false;
+	int i=0;
+	while(i < list_size(lista) && !encontrado){
+		unPers = list_get(lista,i);
+		if (strcmp(unPers->simbolo,simbolo) == 0){
+			encontrado = true;
+			personaje = unPers;
+		}
+		i++;
+	}
+
+	return personaje;
+}
+/*
 void eliminarEstructuras(){
 
 }
-	/*
+
 
 void buscaPersonajeCercano(){
 
