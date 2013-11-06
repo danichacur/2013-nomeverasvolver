@@ -42,17 +42,18 @@ bool termino_plan;
 } t_pers_koopa;
 
 typedef struct{
-int32_t nivel;
-int32_t fd;
-} t_niveles_sistema;
-
-typedef struct{
 char personaje;
 int32_t fd;
 int32_t ingreso_al_sistema;
 char recurso_bloqueo;
 bool estoy_bloqueado;
+t_list *recursos_obtenidos;
 } t_pers_por_nivel;
+
+typedef struct{
+	char recurso;
+	int32_t cantidad;
+}t_recursos_obtenidos;
 
 typedef struct{
 bool es_personaje;
@@ -61,5 +62,7 @@ int32_t nivel;
 int32_t fd;
 } t_monitoreo;
 
+void supr_pers_de_estructuras (int32_t socket);
+void desbloquear_personajes(t_list *recursos_obtenidos, char* str_nivel);
 
 #endif /* ORQUESTADOR_H_ */

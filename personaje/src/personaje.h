@@ -1,3 +1,4 @@
+
 /*
  * personaje.h
  *
@@ -10,13 +11,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 /* Librerias de Commons */
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
-#include <sockets/sockets.h>
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
 #include <collections/list.h>
@@ -32,38 +33,67 @@ typedef struct {
 	char * ipOrquestador;
 	int16_t puertoOrquestador;
 	t_list *recursosNecesariosPorNivel;
+	char * remain;
 	t_list *recursosActualesPorNivel;
-
-
+	t_list *posicionesPorNivel;
+	t_list *ultimosMovimientosPorNivel;
 } t_personaje;
 
+typedef struct {
+	char * nomNivel;
+	t_posicion * posicionCaja;
+} t_nivelProximaCaja;
+
+typedef struct {
+	char * nomNivel;
+	int32_t fdNivel;
+} t_descriptorPorNivel;
+
+enum tipoMuertes{
+	MUERTE_POR_ENEMIGO,
+	MUERTE_POR_INTERBLOQUEO,
+};
 
 void levantarArchivoConfiguracion();
 static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas,t_list * nivelesOrdenados,
-										t_list * recursosPorNivel, char * ipOrquestador,int16_t puertoOrquestador);
+										t_list * recursosPorNivel, t_list * listaDeNivelesConRecursosActualesVacios,
+										char * ipOrquestador,int16_t puertoOrquestador, char* remain, t_list * posicionesPorNivel,
+										t_list * ultimosMovimientosPorNivel);
 /*static void personaje_destroy(t_personaje *self);*/
-void* conectarAlNivel(void* nivel);
+void* conectarAlNivel(int* nivel);
 void conectarAlOrquestador();
 //int todosNivelesFinalizados();
 void avisarPlanNivelesConcluido();
 void terminarProceso();
 void personaje_destroy(t_personaje *self);
-int tengoTodosLosRecursos(int * nivel);
+int tengoTodosLosRecursos(int nivel);
 void recibirTurno();
-int tengoPosicionProximaCaja(int * nivel);
-void solicitarPosicionProximoRecurso(int * nivel);
-void realizarMovimientoHaciaCajaRecursos(int * nivel);
-void enviarNuevaPosicion(int * nivel);
-int estoyEnCajaRecursos(int * nivel);
-void solicitarRecurso(int * nivel);
-void avisarNivelConcluido(int * nivel);
+int tengoPosicionProximaCaja(int nivel);
+void solicitarYRecibirPosicionProximoRecurso(int nivel);
+void realizarMovimientoHaciaCajaRecursos(int nivel);
+void enviarNuevaPosicion(int nivel);
+int estoyEnCajaRecursos(int nivel);
+void solicitarRecurso(int nivel);
+char* obtenerRecursosActualesPorNivel(int ordNivel);
+char* obtenerRecursosNecesariosPorNivel(int ordNivel);
+void avisarNivelConcluido(int nivel);
 void desconectarPlataforma();
-void tratamientoDeMuerte(int * motivoMuerte,int* nivel);
+void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel);
 int meQuedanVidas();
 void descontarUnaVida();
-void desconectarmeDePlataforma(int * nivel);
-void conectarAPlataforma(int * nivel);
+void desconectarmeDePlataforma(int nivel);
+void conectarAPlataforma(int nivel);
 void interrumpirTodosPlanesDeNiveles();
 void finalizarTodoElProcesoPersonaje();
+char * obtenerNombreNivelDesdeOrden(int ordNivel);
+char * obtenerNumeroNivel(char * nomNivel);
+void enviarHandshake(int ordNivel);
+void recibirHandshake(int ordNivel);
+void enviaSolicitudConexionANivel(int ordNivel);
+void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensajeRecibido, int ordNivel);
+int32_t obtenerFDPlanificador(int ordNivel);
+char *estoyEnLineaRectaALaCaja(int ordNivel);
+void moverpersonajeEn(char * orientacion, int ordNivel);
+char * obtenerProximoRecursosNecesario(int ordNivel);
 
 #endif /* PERSONAJE_H_ */

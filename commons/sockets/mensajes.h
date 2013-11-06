@@ -18,27 +18,31 @@ enum tipo_paquete{
 	ORQ_handshake_NIV,
 	PER_conexionNivel_ORQ,
 	PER_finPlanDeNiveles_ORQ,
-	PER_dameUnTurno_PLA,
-	PLA_turnoConcedido_PER,
 	PER_posCajaRecurso_PLA,
-	PLA_posCajaRecurso_PER,
 	PER_movimiento_PLA,
-	PLA_movimiento_PER,
 	PER_recurso_PLA,
-	PLA_rtaRecurso_PER,
 	PER_nivelFinalizado_PLA,
 	PER_meMori_PLA,
+	PLA_turnoConcedido_PER,
+	PLA_posCajaRecurso_PER,
+	PLA_movimiento_PER,
+	PLA_rtaRecurso_PER,
 	PLA_teMatamos_PER,
 	PLA_posCaja_NIV,
-	NIV_posCaja_PLA,
 	PLA_movimiento_NIV,
-	NIV_movimiento_PLA,
+	PLA_personajeMuerto_NIV,
+	PLA_nivelFinalizado_NIV,
 	PLA_solicitudRecurso_NIV,
+	PLA_personajeDesconectado_NIV,
+	NIV_posCaja_PLA,
+	NIV_movimiento_PLA,
 	NIV_recursoConcedido_PLA,
 	NIV_cambiosConfiguracion_PLA,
 	NIV_enemigosAsesinaron_PLA,
 	NIV_perMuereInterbloqueo_PLA,
-	OK
+	OK1,		//OK esta en la biblioteca ncurses que se usa para la gui del nivel, la toma como duplicada
+	NIV_datosPlanificacion_PLA,
+	PLA_nuevoPersonaje_NIV,
 };
 
 
@@ -48,7 +52,7 @@ struct t_cabecera {
 } __attribute__ ((__packed__));
 
 
-char *nombre_del_enum_paquete(enum tipo_paquete tipo);
+char *obtenerNombreEnum(enum tipo_paquete tipo);
 
 
 #endif /* MENSAJES_H_ */
