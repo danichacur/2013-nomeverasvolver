@@ -1,5 +1,22 @@
 #include <stdint.h>
 #include <fuse.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> // aca esta memset
+#include <pthread.h>
+#include <stdbool.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+
+/* Librerias de Commons */
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/string.h>
+#include <collections/list.h>
+
 
 //Constantes
 
@@ -8,6 +25,7 @@
 #define GFILENAMELENGTH 71
 #define GHEADERBLOCKS 1
 #define BLKINDIRECT 1000
+#define BLOCK_SIZE 4096
 
 //Estructuras
 
@@ -31,6 +49,15 @@ typedef struct grasa_file_t { // un cuarto de bloque (256 bytes)
 	ptrGBloque blk_indirect[BLKINDIRECT];
 } GFile;
 
+typedef struct grasa_adm_t { // Estructura Administracion Grasa
+	GHeader admHeader;
+	unsigned char admbitmap[1024];
+	GFile admTnodo[1024];
+	//Bloque datos
+} GAdm;
+
+//Variable Global estructura FS Grasa
+GAdm *GAdmin;
 
 //Prototipos
 
