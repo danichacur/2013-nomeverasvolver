@@ -659,7 +659,11 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
 		}else{
-			string_append(mensajeRecibido, mensaje);
+			if (tipoMensaje == PLA_rtaRecurso_PER && mensaje == "1"){
+				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
+				tratamientoDeMuerte(MUERTE_POR_INTERBLOQUEO, ordNivel);
+			}else
+				string_append(mensajeRecibido, mensaje);
 		}
 	}
 }
