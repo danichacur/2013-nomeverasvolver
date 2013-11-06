@@ -45,6 +45,7 @@ enum tipo_paquete{
 	PLA_nuevoPersonaje_NIV,
 	NIV_recursosPersonajesBloqueados_PLA,
 	PLA_recursosPersonajesBloqueados_NIV,
+	PLA_actualizarRecursos_NIV,
 };
 
 

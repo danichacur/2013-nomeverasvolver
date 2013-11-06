@@ -89,9 +89,9 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 			if (aux->fd > fdmax) { // actualizar el máximo
 				fdmax = aux->fd;
 			}
-			if (aux->es_personaje){
-			char valor[1];
-			valor[0]= aux->simbolo;
+			if (aux->es_personaje) {
+				char valor[1];
+				valor[0] = aux->simbolo;
 				enviarMensaje(nivel->fd, PLA_nuevoPersonaje_NIV, valor);
 			}
 		}
@@ -114,7 +114,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					//eliminarlo de las estructuras
 					if (i == fd_personaje_actual) {
 						//si lo estaba planificando tengo que liberar los recursos que tenía igual y asignarlos.
-						desbloquear_personajes(personaje->recursos_obtenidos, str_nivel);
+						desbloquear_personajes(personaje->recursos_obtenidos,
+								str_nivel);
 					}
 					supr_pers_de_estructuras(i);
 					//eliminarlo de las estructuras
@@ -137,19 +138,21 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					if (i == fd_personaje_actual) {
 						if (tipoMensaje == PER_posCajaRecurso_PLA) { //no consume quantum
 							//pasamanos al nivel, sin procesar nada
-							printf("envio al nivel solicitud pos caja %s", mensaje);
+							printf("envio al nivel solicitud pos caja %s",
+									mensaje);
 							enviarMensaje(nivel->fd, PLA_posCaja_NIV, mensaje);
 							free(mensaje);
 							recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
 							printf("Llego el tipo de paquete: %s .\n",
 									obtenerNombreEnum(tipoMensaje));
 							printf("Llego este mensaje: %s .\n", mensaje);
-							if (tipoMensaje == NIV_posCaja_PLA){
+							if (tipoMensaje == NIV_posCaja_PLA) {
 								//aca cuando le manda el mensaje asi como esta, le llega con un simbolo raro al personaje fixme
-								printf("envio al personaje pos caja %s\n", mensaje);
+								printf("envio al personaje pos caja %s\n",
+										mensaje);
 								enviarMensaje(i, PLA_posCajaRecurso_PER,
 										mensaje);
-							}else
+							} else
 								supr_pers_de_estructuras(i);
 						}
 						recibirMensaje(i, &tipoMensaje, &mensaje);
@@ -179,12 +182,12 @@ t_pers_por_nivel *planificar(char * str_nivel) {
 
 	printf("ahora le toca a %c moverse\n", aux->personaje);
 
-//	list_add(p_listos, aux);
+//        list_add(p_listos, aux);
 
 	return aux;
 }
 
-void tratamiento_muerte(int32_t socket, int32_t nivel_fd, char* mensaje,
+void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 		char* str_nivel) {
 
 	printf("le aviso al nivel que el personaje %c murio \n", mensaje[0]);
@@ -194,13 +197,14 @@ void tratamiento_muerte(int32_t socket, int32_t nivel_fd, char* mensaje,
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
 	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
-		return nuevo->fd == socket;
+		return nuevo->fd == socket_l;
 	}
 	t_pers_por_nivel *aux = list_remove_by_condition(p_listos,
 			(void*) _esta_personaje); //el primer elemento de la lista
 
 	printf("el personaje %c murio, se lo saca de este nivel %s", aux->personaje,
 			str_nivel);
+	supr_pers_de_estructuras(socket_l);
 	free(aux);
 
 }
@@ -220,10 +224,10 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 	case PER_movimiento_PLA: {
 		//pasamanos al nivel, sin procesar nada
 
-		char *prueba = calloc(3,sizeof(char));
+		char *prueba = calloc(3, sizeof(char));
 		prueba[0] = personaje->personaje;
 		prueba[1] = ',';
-		string_append(&prueba,mensaje);
+		string_append(&prueba, mensaje);
 		printf("el mensaje que mando es: %s \n", prueba);
 		printf("la longitud del mensaje que mando es: %d \n", strlen(prueba));
 
@@ -305,6 +309,12 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 	free(mensaje);
 }
 
+char * transformarListaCadena(t_list *recursosDisponibles) {
+	char *recursosNuevos = "F,1,T,6,M,12";
+	//todo
+	return recursosNuevos;
+}
+
 void planificador_analizar_mensaje(int32_t socket_r,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel) {
 	char *str_nivel = string_from_format("%d", nivel->nivel);
@@ -321,16 +331,17 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				(void*) _esta_personaje); //el primer elemento de la lista
 		printf("el personaje %c termino este nivel %d", aux->personaje,
 				nivel->nivel);
+		list_destroy(aux->recursos_obtenidos);
 		free(aux);
 
 		enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
-		/*		enum tipo_paquete t_mensaje;
+		/*                enum tipo_paquete t_mensaje;
 		 char* m_mensaje = NULL;
 		 recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
 		 */break;
 	}
 	case PER_meMori_PLA: {
-		tratamiento_muerte(socket_r, nivel->fd, mensaje, str_nivel); //todo
+		tratamiento_muerte(socket_r, nivel->fd, mensaje, str_nivel);
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
@@ -339,13 +350,80 @@ void planificador_analizar_mensaje(int32_t socket_r,
 	}
 	case NIV_enemigosAsesinaron_PLA: {
 
+		t_list *p_listos = dictionary_get(listos, str_nivel);
+
+		t_pers_por_nivel *aux;
+		int j, i = 0;
+		t_list *recursos = list_create();
+		while (mensaje[i] != '\0') {
+
+			int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+				return nuevo->personaje == mensaje[i];
+			}
+
+			aux = list_remove_by_condition(p_listos, (void*) _esta_personaje);
+			j = 0;
+			while (!list_is_empty(aux->recursos_obtenidos)) {
+				t_recursos_obtenidos* rec = list_remove(aux->recursos_obtenidos,
+						j);
+
+				int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
+					return nuevo->recurso == rec->recurso;
+				}
+				//busco si ese mismo recurso ya lo habia liberado alguno
+				t_recursos_obtenidos* recu = list_find(recursos,
+						(void*) _esta_recurso);
+				if (recu == NULL )
+					list_add(recursos, rec);
+				else {
+					recu->cantidad += rec->cantidad;
+					free(rec);
+				}
+
+				j++;
+			}
+			enviarMensaje(aux->fd, PLA_teMatamos_PER, "0");
+			list_destroy(aux->recursos_obtenidos);
+			free(aux);
+			i++;
+		}
+
+		t_list *recursosDisponibles = desbloquear_personajes(recursos,
+				str_nivel);
+		char *recursosNuevos = transformarListaCadena(recursosDisponibles);
+		enviarMensaje(nivel->fd, PLA_actualizarRecursos_NIV, recursosNuevos);
+
+		list_destroy(recursosDisponibles);
+
 		break;
 	}
 	case NIV_perMuereInterbloqueo_PLA: {
 
+		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+
+		int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+			return nuevo->personaje == mensaje[0];
+		}
+
+		t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
+				(void*) _esta_personaje);
+		t_list *recursosDisponibles = desbloquear_personajes(
+				aux->recursos_obtenidos, str_nivel);
+
+		char *recursosNuevos = transformarListaCadena(recursosDisponibles);
+		enviarMensaje(nivel->fd, PLA_actualizarRecursos_NIV, recursosNuevos);
+
+		enviarMensaje(aux->fd, PLA_rtaRecurso_PER, "1");
+
+		list_destroy(recursosDisponibles);
+		list_destroy(aux->recursos_obtenidos);
+		free(aux);
 		break;
 	}
+	case NIV_recursosPersonajesBloqueados_PLA: {
 
+		break;
+	}
 	default:
 		printf("mensaje erroneo");
 		supr_pers_de_estructuras(socket_r);

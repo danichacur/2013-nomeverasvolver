@@ -54,23 +54,62 @@ t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel,
 	return nuevo;
 }
 
-void desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel){
+t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel) {
 
-	//t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+	t_list *recursos_libres = list_create();
+	t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+	t_list *p_listos = dictionary_get(listos, str_nivel);
 
-	//todo
+	if (list_is_empty(p_bloqueados) || (p_bloqueados == NULL )) {
+		printf("DesbloquearPersonajes: No habia personajes que desbloquear");
+	} else {
+		int j = 0;
+		while (!list_is_empty(recursos_obtenidos)) {
 
+			t_recursos_obtenidos* rec = list_remove(recursos_obtenidos, j);
+
+			int32_t bloqueadoXrecursos(t_pers_por_nivel *valor) {
+				return valor->recurso_bloqueo == rec->recurso;
+			}
+
+			t_pers_por_nivel* per = list_find(p_bloqueados,
+					(void*) bloqueadoXrecursos);
+			if (per == NULL ){
+				printf("DesbloquearPersonajes: No habia personajes que desbloquear con el recurso %c \n", rec->recurso);//todo terminar la funcion
+				list_add(recursos_libres, rec);
+			}else {
+				//desbloquear al personaje! =) y buscar algun otro
+				printf("DesbloquearPersonajes: se desbloquea a %c \n", per->personaje);//todo terminar la funcion
+				per->estoy_bloqueado = false;
+				rec->cantidad --;
+				list_add(p_listos, per);
+
+				if (rec->cantidad == 0){
+					free(rec);
+					break;
+				}else{
+					list_add(recursos_obtenidos, rec);
+					j--; //fixme probar bien esto!
+				}
+
+			}
+			j++;
+
+		}
+
+	}
+	return recursos_libres;
 }
 
-void supr_pers_de_estructuras(int32_t socket) {
+void supr_pers_de_estructuras(int32_t sockett) {
 	//si se desconecta un nivel, automaticamente se caen los personajes que estaban conectados
 	//si se cae un personaje, el mensaje le llega al planificador directamente
 
 	int32_t _esta_enSistema(t_monitoreo *valor) {
-		return valor->fd == socket;
+		return valor->fd == sockett;
 	}
 	int32_t _esta_enListas(t_pers_por_nivel *valor) {
-		return valor->fd == socket;
+		return valor->fd == sockett;
 	}
 	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema,
 			(void*) _esta_enSistema);
@@ -79,7 +118,7 @@ void supr_pers_de_estructuras(int32_t socket) {
 	if (aux == NULL ) {
 		//se cayo un nivel
 		int32_t _esta_enNiveles(t_niveles_sistema *valor) {
-			return valor->fd == socket;
+			return valor->fd == sockett;
 		}
 		t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
 				(void*) _esta_enNiveles);
@@ -135,7 +174,7 @@ void supr_pers_de_estructuras(int32_t socket) {
 		free(aux1);
 		t_pers_por_nivel * aux2 = list_remove_by_condition(p_bloqueados,
 				(void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos,str_nivel);
+		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
 		free(aux2);
 		aux2 = list_remove_by_condition(p_anormales, (void*) _esta_enListas);
 		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
