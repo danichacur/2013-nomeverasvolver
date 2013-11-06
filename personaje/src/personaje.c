@@ -7,7 +7,7 @@
 
 #include "personaje.h"
 
-#include <sockets/sockets.h>
+
 
 
 #define FIRST_PART_PATH "./"
@@ -48,7 +48,7 @@ int main(){
 	//TODO borrar esto, es para las pruebas.
 	listaDeNumeroCajaPorNivel = list_create();
 
-	CON_CONEXION = false;
+	CON_CONEXION = true;
 	horizontal = "H";
 	vertical = "V";
 	cadenaVacia = "";
@@ -86,6 +86,7 @@ void* conectarAlNivel(int* nroNivel){
 	// aca mágicamente obtengo el fd del Planificador
 
 	while(1){
+
 		recibirTurno();
 
 		if(!tengoPosicionProximaCaja(ordNivel))
@@ -465,6 +466,12 @@ void enviarNuevaPosicion(int ordNivel){
 		//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
 		enviarMensaje(fdOrquestador, PER_movimiento_PLA, posicionToString(posicion));
 	log_info(logger, "Personaje %s (%s) (nivel: %s) envió su posicion %s al Planificador", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), posicionToString(posicion));
+
+	char * mensaje;
+
+	recibirUnMensaje(fdOrquestador, PLA_movimiento_PER, &mensaje, ordNivel);
+	if(!strcmp(mensaje,"1"))
+		log_info(logger, "Personaje %s (%s) (nivel: %s) se fue del mapa. Se rompió todo", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
 }
 
 int estoyEnCajaRecursos(int ordNivel){
