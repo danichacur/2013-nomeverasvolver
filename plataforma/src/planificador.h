@@ -17,4 +17,5 @@ int32_t fd;
 
 void *hilo_planificador(t_niveles_sistema *nivel);
 
+
 #endif /* PLANIFICADOR_H_ */

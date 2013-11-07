@@ -64,5 +64,7 @@ int32_t fd;
 
 void supr_pers_de_estructuras (int32_t socket);
 t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel);
+void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel);
+void destruir_personaje(t_pers_por_nivel *personaje);
 
 #endif /* ORQUESTADOR_H_ */

@@ -10,15 +10,19 @@
 #define DIRECCION INADDR_ANY //INADDR_ANY representa la direccion de cualquier
 //interfaz conectada con la computadora
 
-#define IP "192.168.0.47"
-#define PUERTO 4000
 #define PATH_CONFIG_ORQ "../orq.conf"
 
 t_dictionary *listos;
 t_dictionary *bloqueados;
-t_dictionary *anormales;
+//t_dictionary *anormales;
 t_dictionary *monitoreo;
 
+pthread_mutex_t *mutex_listos;
+pthread_mutex_t *mutex_bloqueados;
+pthread_mutex_t *mutex_monitoreo;
+pthread_mutex_t *mutex_personajes_para_koopa;
+
+int32_t puerto;
 t_config *config;
 t_log* logger;
 t_list *personajes_para_koopa; // es para lanzar koopa
@@ -42,6 +46,20 @@ t_pers_por_nivel *crear_personaje(char personaje, int32_t fd) {
 	nuevo->estoy_bloqueado = false;
 	nuevo->recursos_obtenidos = list_create();
 	return nuevo;
+}
+
+void destruir_personaje(t_pers_por_nivel *personaje) {
+
+	int j = 0;
+	while (!list_is_empty(personaje->recursos_obtenidos)) {
+
+		t_recursos_obtenidos* rec = list_remove(personaje->recursos_obtenidos,
+				j);
+		free(rec);
+		j++;
+	}
+	free(personaje);
+
 }
 
 t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel,
@@ -72,22 +90,32 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel) {
 				return valor->recurso_bloqueo == rec->recurso;
 			}
 
-			t_pers_por_nivel* per = list_find(p_bloqueados,
+			pthread_mutex_lock(mutex_bloqueados);
+			t_pers_por_nivel* per = list_remove_by_condition(p_bloqueados,
 					(void*) bloqueadoXrecursos);
-			if (per == NULL ){
-				printf("DesbloquearPersonajes: No habia personajes que desbloquear con el recurso %c \n", rec->recurso);//todo terminar la funcion
-				list_add(recursos_libres, rec);
-			}else {
-				//desbloquear al personaje! =) y buscar algun otro
-				printf("DesbloquearPersonajes: se desbloquea a %c \n", per->personaje);//todo terminar la funcion
-				per->estoy_bloqueado = false;
-				rec->cantidad --;
-				list_add(p_listos, per);
+			pthread_mutex_unlock(mutex_bloqueados);
 
-				if (rec->cantidad == 0){
+			if (per == NULL ) {
+				printf(
+						"DesbloquearPersonajes: No habia personajes que desbloquear con el recurso %c \n",
+						rec->recurso);
+				list_add(recursos_libres, rec);
+			} else {
+				//desbloquear al personaje! =) y buscar algun otro
+				printf("DesbloquearPersonajes: se desbloquea a %c \n",
+						per->personaje);
+				per->estoy_bloqueado = false;
+				rec->cantidad--;
+				pthread_mutex_lock(mutex_listos);
+				list_add(p_listos, per);
+				pthread_mutex_unlock(mutex_listos);
+
+				printf("sale %c de bloqueados y pasa a la lista de listos \n", per->personaje);
+
+				if (rec->cantidad == 0) {
 					free(rec);
 					break;
-				}else{
+				} else {
 					list_add(recursos_obtenidos, rec);
 					j--; //fixme probar bien esto!
 				}
@@ -116,77 +144,104 @@ void supr_pers_de_estructuras(int32_t sockett) {
 	char *str_nivel;
 
 	if (aux == NULL ) {
-		//se cayo un nivel
-		int32_t _esta_enNiveles(t_niveles_sistema *valor) {
-			return valor->fd == sockett;
-		}
-		t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
-				(void*) _esta_enNiveles);
+		/*//se cayo un nivel
+		 int32_t _esta_enNiveles(t_niveles_sistema *valor) {
+		 return valor->fd == sockett;
+		 }
+		 t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
+		 (void*) _esta_enNiveles);
 
-		str_nivel = string_from_format("%d", aux3->nivel);
+		 str_nivel = string_from_format("%d", aux3->nivel);
 
-		t_list *l_listos = dictionary_remove(listos, str_nivel);
-		t_list *l_bloqueados = dictionary_remove(bloqueados, str_nivel);
-		t_list *l_anormales = dictionary_remove(anormales, str_nivel);
-		t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
+		 t_list *l_listos = dictionary_remove(listos, str_nivel);
+		 t_list *l_bloqueados = dictionary_remove(bloqueados, str_nivel);
+		 t_list *l_anormales = dictionary_remove(anormales, str_nivel);
+		 t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
 
-		int m;
-		t_pers_por_nivel *elemento = NULL;
-		t_monitoreo *elem = NULL;
-		for (m = 0; !list_is_empty(l_listos); m++) {
-			elemento = list_remove(l_listos, m);
-			free(elemento);
-		}
-		list_destroy(l_listos);
-		for (m = 0; !list_is_empty(l_bloqueados); m++) {
-			elemento = list_remove(l_bloqueados, m);
-			free(elemento);
-		}
-		list_destroy(l_bloqueados);
-		for (m = 0; !list_is_empty(l_anormales); m++) {
-			elemento = list_remove(l_anormales, m);
-			free(elemento);
-		}
-		list_destroy(l_anormales);
-		for (m = 0; !list_is_empty(l_monitoreo); m++) {
-			elem = list_remove(l_monitoreo, m);
-			free(elem);
-		}
-		list_destroy(l_monitoreo);
+		 int m;
+		 t_pers_por_nivel *elemento = NULL;
+		 t_monitoreo *elem = NULL;
+		 for (m = 0; !list_is_empty(l_listos); m++) {
+		 elemento = list_remove(l_listos, m);
+		 free(elemento);
+		 }
+		 list_destroy(l_listos);
+		 for (m = 0; !list_is_empty(l_bloqueados); m++) {
+		 elemento = list_remove(l_bloqueados, m);
+		 free(elemento);
+		 }
+		 list_destroy(l_bloqueados);
+		 for (m = 0; !list_is_empty(l_anormales); m++) {
+		 elemento = list_remove(l_anormales, m);
+		 free(elemento);
+		 }
+		 list_destroy(l_anormales);
+		 for (m = 0; !list_is_empty(l_monitoreo); m++) {
+		 elem = list_remove(l_monitoreo, m);
+		 free(elem);
+		 }
+		 list_destroy(l_monitoreo);
 
-		free(aux3);
+		 free(aux3);
+		 */
 	} else {
 		//era un personaje lo que se desconecto
 		int32_t _esta_enKoopa(t_pers_koopa *valor) {
 			return valor->personaje == aux->simbolo;
 		}
+
+		pthread_mutex_lock(mutex_personajes_para_koopa);
 		t_monitoreo *aux1 = list_remove_by_condition(personajes_para_koopa,
 				(void*) _esta_enKoopa);
+		pthread_mutex_unlock(mutex_personajes_para_koopa);
 		free(aux1);
+
+		int32_t _buscar_nivel(t_niveles_sistema *valor) {
+			return valor->nivel == aux->nivel;
+		}
+		t_niveles_sistema * nivel_es = list_find(niveles_del_sistema,
+				(void *) _buscar_nivel);
+
 		str_nivel = string_from_format("%d", aux->nivel);
 		t_list *p_listos = dictionary_get(listos, str_nivel);
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
-		t_list *p_anormales = dictionary_get(anormales, str_nivel);
+		//t_list *p_anormales = dictionary_get(anormales, str_nivel);
 		t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
-		//todo - poner un semaforo aca!
+
+		pthread_mutex_lock(mutex_monitoreo);
 		aux1 = list_remove_by_condition(p_monitoreo, (void*) _esta_enSistema);
-		//todo - poner un semaforo aca!
+		pthread_mutex_unlock(mutex_monitoreo);
 		free(aux1);
+
+		pthread_mutex_lock(mutex_bloqueados);
 		t_pers_por_nivel * aux2 = list_remove_by_condition(p_bloqueados,
 				(void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
-		free(aux2);
-		aux2 = list_remove_by_condition(p_anormales, (void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
-		free(aux2);
-		aux2 = list_remove_by_condition(p_listos, (void*) _esta_enListas);
-		desbloquear_personajes(aux2->recursos_obtenidos, str_nivel);
-		free(aux2);
+		pthread_mutex_unlock(mutex_bloqueados);
+		if (aux2 == NULL ) {
+			//si no estaba en bloqueados
 
-		//por cada nivel en el que estaba jugando deberia avisarle al nivel!
-		//esto lo recibe cada planificador
-		//todo enviarMensaje(aux->fd, PLA_personajeDesconectado_NIV, mensaje);
-		//por cada nivel en el que estaba jugando deberia avisarle al nivel!
+		//	aux2 = list_remove_by_condition(p_anormales,
+		//			(void*) _esta_enListas);
+
+			//if (aux2 == NULL ) {
+				//si no estaba en anormales
+				pthread_mutex_lock(mutex_listos);
+				aux2 = list_remove_by_condition(p_listos,
+						(void*) _esta_enListas);
+				pthread_mutex_unlock(mutex_listos);
+				if (aux2 == NULL ) {
+					//si no estaba en listos, se estaba planificando en el momento.. lolaa
+					//fixme no hay tratamiento para eso
+					printf(
+							"personaje muerto se estaba planificando. Rompe todo!!!");
+				}
+			//}
+		}
+		if (aux2 != NULL ) {
+			proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd,
+					str_nivel);
+			free(aux2);
+		}
 	}
 	free(aux);
 }
@@ -197,16 +252,21 @@ void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 int main() {
 
 	//inicialización
-	//config = config_create(PATH_CONFIG_ORQ);
-	//char *PATH_LOG = config_get_string_value(config, "PATH_LOG_ORQ");
-	//logger = log_create(PATH_LOG, "ORQUESTADOR", true, LOG_LEVEL_INFO);
+	config = config_create(PATH_CONFIG_ORQ);
+	char *PATH_LOG = config_get_string_value(config, "PATH_LOG_ORQ");
+	logger = log_create(PATH_LOG, "ORQUESTADOR", true, LOG_LEVEL_INFO);
+	puerto = config_get_int_value(config, "PUERTO");
 	personajes_del_sistema = list_create();
 	niveles_del_sistema = list_create();
 	personajes_para_koopa = list_create();
 	listos = dictionary_create();
 	bloqueados = dictionary_create();
-	anormales = dictionary_create();
+	//anormales = dictionary_create();
 	monitoreo = dictionary_create();
+	pthread_mutex_init(mutex_listos, NULL);
+	pthread_mutex_init(mutex_bloqueados, NULL);
+	pthread_mutex_init(mutex_monitoreo, NULL);
+	pthread_mutex_init(mutex_personajes_para_koopa, NULL);
 	//inicialización
 
 	fd_set master; // conjunto maestro de descriptores de fichero
@@ -220,7 +280,7 @@ int main() {
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 
-	socketEscucha = crearSocketDeConexion(DIRECCION, PUERTO);
+	socketEscucha = crearSocketDeConexion(DIRECCION, puerto);
 
 	// añadir socketEscucha al conjunto maestro
 	FD_SET(socketEscucha, &master);
@@ -301,12 +361,12 @@ void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 
 		t_list *p_listos = list_create();
 		t_list *p_bloqueados = list_create();
-		t_list *p_muertos = list_create();
+		//t_list *p_muertos = list_create();
 		t_list *p_monitor = list_create();
 
 		dictionary_put(listos, mensaje, p_listos);
 		dictionary_put(bloqueados, mensaje, p_bloqueados);
-		dictionary_put(anormales, mensaje, p_muertos);
+		//dictionary_put(anormales, mensaje, p_muertos);
 		dictionary_put(monitoreo, mensaje, p_monitor);
 
 		t_niveles_sistema *nuevo = malloc(sizeof(t_niveles_sistema));
@@ -325,9 +385,9 @@ void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 		t_list *pe_monitor = dictionary_get(monitoreo, mensaje);
 		t_monitoreo *item = per_monitor_crear(false, 'M', atoi(mensaje),
 				socket);
-		//todo - poner un semaforo aca!
+		pthread_mutex_lock(mutex_monitoreo);
 		list_add(pe_monitor, item);
-		//todo - poner un semaforo aca!
+		pthread_mutex_unlock(mutex_monitoreo);
 		// delegar la conexión al hilo del nivel correspondiente
 
 		enviarMensaje(socket, ORQ_handshake_NIV, "0");
@@ -349,17 +409,17 @@ void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 		t_list *p_monitor = dictionary_get(monitoreo, mensaje);
 		t_monitoreo *item = per_monitor_crear(true, 'M', nivel, socket);
 		memcpy(item, aux, sizeof(t_monitoreo)); //fixme ver bien esto
-		//todo - poner un semaforo aca!
+		pthread_mutex_lock(mutex_monitoreo);
 		list_add(p_monitor, item);
-		//todo - poner un semaforo aca!
+		pthread_mutex_unlock(mutex_monitoreo);
 		// delegar la conexión al hilo del nivel correspondiente
 
 		//agregar a la lista de listos del nivel
 		t_list *p_listos = dictionary_get(listos, mensaje);
 		t_pers_por_nivel *item2 = crear_personaje(aux->simbolo, aux->fd);
-		//todo - poner un semaforo aca!
+		pthread_mutex_lock(mutex_listos);
 		list_add(p_listos, item2);
-		//todo - poner un semaforo aca!
+		pthread_mutex_unlock(mutex_listos);
 		//agregar a la lista de listos del nivel
 
 		break;
@@ -374,21 +434,23 @@ void orquestador_analizar_mensaje(int32_t socket, enum tipo_paquete tipoMensaje,
 		}
 		if (list_is_empty(personajes_para_koopa)) {
 			t_pers_koopa * item = per_koopa_crear(personaje);
+			pthread_mutex_lock(mutex_personajes_para_koopa);
 			list_add(personajes_para_koopa, item);
+			pthread_mutex_unlock(mutex_personajes_para_koopa);
 		} else {
 			if (list_find(personajes_para_koopa,
 					(void*) _esta_personaje) == NULL) {
 				t_pers_koopa * item = per_koopa_crear(personaje);
+				pthread_mutex_lock(mutex_personajes_para_koopa);
 				list_add(personajes_para_koopa, item);
+				pthread_mutex_unlock(mutex_personajes_para_koopa);
 			}
 		}
 		//estructura: personajes_para_koopa
 
 		//estructura: personajes_del_sistema
 		t_monitoreo *item = per_monitor_crear(true, personaje, 0, socket);
-		//todo - poner un semaforo aca!
 		list_add(personajes_del_sistema, item);
-		//todo - poner un semaforo aca!
 		//estructura: personajes_del_sistema
 
 		enviarMensaje(socket, ORQ_handshake_PER, "0");
