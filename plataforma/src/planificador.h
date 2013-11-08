@@ -13,6 +13,9 @@
 typedef struct{
 int32_t nivel;
 int32_t fd;
+char *algol;
+int32_t quantum;
+int32_t retardo;
 } t_niveles_sistema;
 
 void *hilo_planificador(t_niveles_sistema *nivel);
