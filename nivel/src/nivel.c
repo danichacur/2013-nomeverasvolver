@@ -1,56 +1,53 @@
-////////////////////////////////////////////////////BIBLIOTECAS ESTANDAR////////////////////////////////////////////////////
-#include <stdio.h>
-#include <stdlib.h>
-#include <curses.h>
-#include <unistd.h>
-#include <string.h>
 
-////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
+////////////////////////////////////////////////////HEADER////////////////////////////////////////////////////
 #include "nivel.h"
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 #define DIRECCION "192.168.1.115"
 #define PUERTO 5000
+
 #define BUFF_SIZE 1024
 #define RUTA "./config.cfg"
 #define CANT_NIVELES_MAXIMA 100
 #define BUF_LEN 1024
 
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES GLOBALES////////////////////////////////////////////////////
-t_log* logger;
-int cantidadIntentosFallidos;
-t_list *listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
-t_list *listaCajas;
-bool listaRecursosVacia;
-char* nombre;
-t_list* items;
-t_list * listaDePersonajes;
-t_config *config;
-char *direccionIPyPuerto;
-int32_t socketDeEscucha;
-int quantum;
-char* algoritmo;
 int retardo;
-pthread_t hilo1;
+int cantidadIntentosFallidos;
+int quantum;
 int retardoSegundos;
+char * nombre;
+char * direccionIPyPuerto;
+char * algoritmo;
+t_list * listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
+t_list * listaCajas;
+t_list * items;
+t_list * listaDePersonajes;
+t_config * config;
+t_log * logger;
+int32_t socketDeEscucha;
+pthread_t hilo1;
+pthread_mutex_t *mutex_mensajes;
+
+bool listaRecursosVacia;
+char * buffer_log;
+
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
-
-
 int main (){
-	config = config_create(RUTA);
-	listaRecursosNivel=list_create();
-	items = list_create();
-	listaDePersonajes = list_create();
+	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
+	listaRecursosNivel=list_create(); //CREO LA LISTA DE RECURSOS POR NIVEL
+	items = list_create(); // CREO LA LISTA DE ITEMS
+	listaDePersonajes = list_create(); // CREO LA LISTA DE PERSONAJES (NO VA)
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	// crearHiloInotify();
-	 inicializarMapaNivel(listaRecursosNivel);
+	inicializarMapaNivel(listaRecursosNivel);
 	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
 	while(1){
 		if(socketDeEscucha!=-1){
 		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
 		}else{
-			printf("hubo un error al crear el socket, finaliza la ejecucion \n");
+			log_info(logger, "Hubo un error al leer el socket y el programa finalizara su ejecucion");
 			break;
 		}
 
@@ -63,57 +60,59 @@ int main (){
 ////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
 int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
+	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
+	logger = log_create(PATH_LOG, "NIVEL", true, LOG_LEVEL_INFO); //CREO EL ARCHIVO DE LOG
+	log_info(logger, "Voy a leer mi archivo de configuracion");
 
-	printf("Voy a leer el nivel \n");
+
 	nombre= config_get_string_value(config, "Nombre");
-	printf("Voy a leer los atributos de  %s \n",nombre);
+	log_info(logger, "Encontramos los atributos de %s",nombre);
 
 	quantum = config_get_int_value(config, "quantum");
-	printf("Paso el quantum %d \n",quantum);
+	log_info(logger, "El quantum para %s es de %d ut",nombre,quantum);
 
 	int recovery = config_get_int_value(config, "Recovery");
-	printf("Paso el recovery %d \n",recovery);
+	log_info(logger, "El recovery para %s es de %d ut",nombre,recovery);
 
 	int enemigos = config_get_int_value(config, "Enemigos");
-	printf("Paso los enemigos %d \n",enemigos);
+	log_info(logger, "La cantidad de enemigos de %s es %d",nombre,enemigos);
 
 	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
-	printf("Paso el tiempo de deadlock %ld \n",tiempoDeadlock);
+	log_info(logger, "El tiempo de espera para ejecucion del hilo de deadlock para %s es de %d ut",nombre,tiempoDeadlock);
 
 	long sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
-	printf("Paso el sleep %ld \n",sleepEnemigos);
+	log_info(logger, "El tiempo de espera para mover los enemigos para %s es de %d ut",nombre,sleepEnemigos);
 
 	algoritmo=config_get_string_value(config,"algoritmo");
-	printf("Paso el algoritmo %s \n",algoritmo);
+	log_info(logger, "El %s se planificara con algoritmo %s",nombre,algoritmo);
 
 	direccionIPyPuerto = config_get_string_value(config, "Plataforma");
-	printf("Paso el puerto e IP %s \n",direccionIPyPuerto);
+	log_info(logger, "El %s se conectara con la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
+
 
 	retardoSegundos = config_get_int_value(config, "retardo");
-	printf("Paso el retardo %d \n",retardoSegundos);
-	int retardo=retardoSegundos*1000;
-	printf("Imprimo el retardo en milisegundos %d \n",retardo);
+	log_info(logger, "El retardo para el  %s es de %d segundos",nombre,retardoSegundos);
+	//int retardo=retardoSegundos*1000;
+
 
 	// LEO LAS CAJAS DEL NIVEL //
 	char litCaja[6]="Caja1\0";
 
-	printf("Literal = [%s]\n",litCaja);
 	bool ret = config_has_property(config, litCaja);
-	printf("Encontre la %s = %d \n",litCaja,ret);
-	printf("Voy a leer las cajas \n");
 
-		while (ret == true){
-			printf("Encontre la %s = %d \n",litCaja,ret);
-			char **caja = config_get_array_value(config, litCaja);
-			printf("detalles de la caja %s %s %s %s %s \n",caja[0], caja[1],caja[2],caja[3],caja[4]);
-			crearCaja(caja);
-			printf("Creé una caja \n");
-			litCaja[4]++;
-			printf("Le sumo uno al numero de la caja \n");
-			ret = config_has_property(config, litCaja);
-		}
+	while (ret!=true){ //POR SI EMPIEZA EN UNA CAJA DISTINTA DE 1
+		litCaja[4]++;
+	}
 
-		printf("el nivel es %d \n",nombre[5]); //CORREGIR, LO DA EN ASCII
+	while (ret == true){
+		char **caja = config_get_array_value(config, litCaja);
+		crearCaja(caja);
+		litCaja[4]++;
+		log_info(logger, "El %s tiene %s cuyo simbolo es %s tiene %s instancias y su posicion x e y son %s %s",nombre,caja[0], caja[1],caja[2],caja[3],caja[4]);
+		ret = config_has_property(config, litCaja);
+	}
+
+		//printf("el nivel es %d \n",atoi((char)nombre[5])); //CORREGIR, LO DA EN ASCII
 
 	return EXIT_SUCCESS;
 }
@@ -127,18 +126,28 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 	unaCaja->posY=caja[4];
 
 	int cantElementos= list_add(listaRecursosNivel,unaCaja);
-	printf("cantidad de elementos %d \n",cantElementos);
-
+	log_info(logger, "La cantidad de cajas del %s es ahora %d",nombre,cantElementos+1);
 	free(unaCaja);
 }
 
 void inicializarMapaNivel(t_list* listaRecursos){
+	/*
     t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
 	int rows, cols; // TAMAÑO DEL MAPA
 	int i=0;
 
-	//nivel_gui_inicializar();
-	//nivel_gui_get_area_nivel(&rows, &cols);
+	int ok=nivel_gui_inicializar();
+		if(ok!=0){
+
+			log_info(logger, "El mapa de %s no ha podido dibujarse",nombre);
+
+		}else{
+
+			log_info(logger, "El mapa de %s se ha dibujado",nombre);
+		}
+
+	nivel_gui_get_area_nivel(&rows, &cols);
+	log_info(logger, "El mapa de %s se ha dibujado, tiene %s filas por %s columnas",nombre,rows,cols);
 	tRecursosNivel *unaCaja= list_get(listaRecursos, i);
 
 	while(unaCaja!=NULL){
@@ -150,32 +159,52 @@ void inicializarMapaNivel(t_list* listaRecursos){
 		int posYint=atoi(posY);
 		int instanciasInt=atoi(instancias);
 
-		//CrearCaja(items,*simbolo, posXint, posYint, instanciasInt);
+		CrearCaja(items,*simbolo, posXint, posYint, instanciasInt);
 		i++;
 	}
-	//nivel_gui_dibujar(items,nombre);
-
+	log_info(logger, "Se procede a graficar los elementos en el mapa creado",nombre,rows,cols);
+	nivel_gui_dibujar(items,nombre);
+*/
 }
 
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
-	char *tiempo=temporal_get_string_time();
+//	pthread_mutex_lock(mutex_mensajes);
+
+	log_info(logger, "El %s se conectara a la plataforma en %s ",nombre,direccionIPyPuerto);
+	char * tiempo=temporal_get_string_time();
 	char ** IPyPuerto = string_split(direccionIPyPuerto,":");
-	char* IP=IPyPuerto[0];
+	char * IP=IPyPuerto[0];
+	char * buffer;
 	int32_t puerto= atoi(IPyPuerto[1]);
 
-	printf("ahora un nivel va a conectarse a la plataforma a las %s \n",tiempo);
 	puts(tiempo);
 	socketDeEscucha= cliente_crearSocketDeConexion(IP,puerto);
-	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,"1");
-	printf("%d \n",ok);
+	sprintf(buffer,"%d,%s,%d,%d,%s",nombre[4],algoritmo,quantum,retardo);
+	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
 
-	char buffer[1024];
-	sprintf(buffer,"%d,%d,%s",quantum,retardo,algoritmo);
-	int32_t respuesta=enviarMensaje(socketDeEscucha,NIV_cambiosConfiguracion_PLA,buffer);
-	printf("%d",respuesta);
+	if(socketDeEscucha>-1){
+	log_info(logger, "El %s se conecto a la plataforma en %s ",nombre,direccionIPyPuerto);
+		if(ok==0){
+			log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
+			char buffer[1024];
+			sprintf(buffer,"%d,%d,%s",quantum,retardo,algoritmo);
+			int32_t respuesta=enviarMensaje(socketDeEscucha,NIV_cambiosConfiguracion_PLA,buffer);
+			printf("%d",respuesta);
+
+			log_info(logger, "Se envio a la plataforma quantum %d retardo %d y algoritmo %s ",quantum,retardo,algoritmo);
+
+
+			return socketDeEscucha;
+		}
+	} else {
+
+		log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
+
+		}
 
 	return socketDeEscucha;
 
+//	pthread_mutex_unlock(mutex_mensajes);
 }
 
 void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POSTERIOR RESPUESTA DE MENSAJES DEL ORQUESTADOR
@@ -201,13 +230,16 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				//MoverPersonaje(items, elMensaje[0],pers->posx ,pers->posy);
 				printf("el personaje se movio %s",elMensaje);
 
+				log_info(logger, "El personaje %s se movio a %d %d ",mens[0],pers->posx,pers->posy);
+
 				int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //hay q validar q se mueva dentro del mapa...
 				printf("%d \n",respuesta);
 
 				} else {
 
 					int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
-					printf("movimiento invalido, el personaje no se movio %d",respuesta);
+					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);
+
 				}
 
 				break;
@@ -216,7 +248,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char id=elMensaje[0];
 
 				//BorrarItem(items,id);
-				printf("el personaje %d murio \n",id);
+				log_info(logger, "El personaje %s ha muerto ",elMensaje[0]);
 
 				break;
 			}
@@ -229,7 +261,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				//CrearPersonaje(items,elMensaje[0],0,0);
 				free(item);
 				free(simbolo);
-				printf("agregué un personaje nuevo a la lista");
+
+				log_info(logger, "El nuevo personaje %s se dibujo en el mapa",simbolo);
+
 				break;
 
 			}
@@ -242,7 +276,14 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, string_from_format("%d",caja->posy));
 
 				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos);
-				printf("envie posicion mensaje %d \n",mensaje);
+
+				if(mensaje){
+					log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
+
+				} else {
+					log_info(logger, "El envio de posicion del recurso ha fallado ");
+
+				}
 				free(pos);
 				break;
 			}
@@ -334,10 +375,11 @@ void eliminarEstructuras(){ //TERMINAR
 
 
 void crearHiloInotify(){
-	//int r1 = pthread_create(&hilo1,NULL,(void*)&hilo_inotify,NULL);
-	//printf("%d \n",r1);
-	//sprintf(buffer_log,"Se lanza el hilo para notificar cambios del quantum");
-	//log_info(logger, buffer_log);
+	int r1 = pthread_create(&hilo1,NULL,(void*)&hilo_inotify,NULL);
+	printf("%d \n",r1);
+	log_info(logger, "Se lanza un hilo para detectar cambios de quantum, retado y algoritmo");
+
+
 }
 
 // FUNCIONES DEL TP MIO CUATRI PASADO Y DEL TP DE PABLO, ADAPTAR Y CORREGIR

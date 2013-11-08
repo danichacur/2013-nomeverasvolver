@@ -24,6 +24,7 @@
 #include <commons/config.h>
 #include <pthread.h>
 #include "nivel.h"
+#include <nivel.h>
 #include <commons/log.h>
 #include <tad_items.h>
 #include <sys/inotify.h>
@@ -101,16 +102,11 @@ void eliminarEstructuras();
 void buscaPersonajeCercano();
 void mensajesConPlataforma(int32_t socketEscucha);
 void inicializarMapaNivel(t_list* listaRecursos);
-void moverseAlternado();
-void actualizarUltimoMovimiento();
 void crearseASiMismo();
-void movermeEnL();
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
 int32_t handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
-void crearHilosEnemigos();
-void crearHiloInterbloqueo();
 void crearHiloInotify();
 int hilo_inotify(void);
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
