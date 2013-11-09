@@ -14,9 +14,9 @@ extern t_dictionary *listos;
 //extern t_dictionary *anormales;
 extern t_dictionary *monitoreo;
 
-extern pthread_mutex_t *mutex_listos;
-extern pthread_mutex_t *mutex_bloqueados;
-extern pthread_mutex_t *mutex_monitoreo;
+extern pthread_mutex_t mutex_listos;
+extern pthread_mutex_t mutex_bloqueados;
+extern pthread_mutex_t mutex_monitoreo;
 
 t_config *config;
 t_log* logger;
@@ -24,15 +24,25 @@ t_log* logger;
 void planificador_analizar_mensaje(int32_t socket,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel);
 void analizar_mensaje_rta(t_pers_por_nivel *personaje,
-		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel, int32_t *quantum);
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
+		int32_t *quantum);
 t_pers_por_nivel *planificar(t_niveles_sistema * str_nivel);
+
+int32_t sumar_valores(char *mensaje){
+
+	char** n_mensaje = string_split(mensaje, ",");
+	int32_t valor = atoi(n_mensaje[0]) + atoi(n_mensaje[1]);
+
+	return valor;
+}
+
 
 void *hilo_planificador(t_niveles_sistema *nivel) {
 //log_info(logger,
 	int32_t miNivel = nivel->nivel;
 	int32_t miFd = nivel->fd;
-	log_info(logger,"hola, soy el planificador del nivel %d , mi fd es %d ", miNivel,
-			miFd);
+	log_info(logger, "hola, soy el planificador del nivel %d , mi fd es %d ",
+			miNivel, miFd);
 	//inicialización
 	logger = log_create(PATH_LOG_PLA, "PLANIFICADOR", true, LOG_LEVEL_INFO);
 	//inicialización
@@ -52,9 +62,9 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
-	pthread_mutex_lock(mutex_monitoreo);
+	pthread_mutex_lock(&mutex_monitoreo);
 	t_monitoreo *aux = list_remove(p_monitoreo, 0); //el primer elemento de la lista
-	pthread_mutex_unlock(mutex_monitoreo);
+	pthread_mutex_unlock(&mutex_monitoreo);
 	FD_SET(aux->fd, &master);
 	fdmax = aux->fd;
 	free(aux);
@@ -85,9 +95,9 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 		//voy metiendo aca los personajes para monitorear
 		int j = 0;
 		while (!list_is_empty(p_monitoreo)) {
-			pthread_mutex_lock(mutex_monitoreo);
+			pthread_mutex_lock(&mutex_monitoreo);
 			aux = list_remove(p_monitoreo, j);
-			pthread_mutex_unlock(mutex_monitoreo);
+			pthread_mutex_unlock(&mutex_monitoreo);
 			j++;
 			FD_SET(aux->fd, &master); // añadir al conjunto maestro
 			if (aux->fd > fdmax) { // actualizar el máximo
@@ -134,37 +144,42 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 				} else {
 					// tenemos datos del cliente del socket i!
-					log_info(logger,"Llego el tipo de paquete: %s .",
+					log_info(logger, "Llego el tipo de paquete: %s .",
 							obtenerNombreEnum(tipoMensaje));
-					log_info(logger,"Llego este mensaje: %s .", mensaje);
-					log_info(logger,"se esperaba la respuesta de %d .",
+					log_info(logger, "Llego este mensaje: %s .", mensaje);
+					log_info(logger, "se esperaba la respuesta de %d .",
 							fd_personaje_actual);
-					log_info(logger,"se recibió el mensaje de %d .", i);
+					log_info(logger, "se recibió el mensaje de %d .", i);
 
 					if (i == fd_personaje_actual) {
 						if (tipoMensaje == PER_posCajaRecurso_PLA) { //no consume quantum
 							//pasamanos al nivel, sin procesar nada
-							log_info(logger,"envio al nivel solicitud pos caja %s",
+							log_info(logger,
+									"envio al nivel solicitud pos caja %s",
 									mensaje);
 							enviarMensaje(nivel->fd, PLA_posCaja_NIV, mensaje);
 							free(mensaje);
 							recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
-							log_info(logger,"Llego el tipo de paquete: %s .",
+							log_info(logger, "Llego el tipo de paquete: %s .",
 									obtenerNombreEnum(tipoMensaje));
-							log_info(logger,"Llego este mensaje: %s .", mensaje);
+							log_info(logger, "Llego este mensaje: %s .",
+									mensaje);
 							if (tipoMensaje == NIV_posCaja_PLA) {
 
-								log_info(logger,"envio al personaje pos caja %s",
+								log_info(logger,
+										"envio al personaje pos caja %s",
 										mensaje);
 								enviarMensaje(i, PLA_posCajaRecurso_PER,
 										mensaje);
+								personaje->pos_recurso = sumar_valores(mensaje);
+
 							} else
 								supr_pers_de_estructuras(i);
 						}
 						recibirMensaje(i, &tipoMensaje, &mensaje);
-						log_info(logger,"Llego el tipo de paquete: %s .",
+						log_info(logger, "Llego el tipo de paquete: %s .",
 								obtenerNombreEnum(tipoMensaje));
-						log_info(logger,"Llego este mensaje: %s .", mensaje);
+						log_info(logger, "Llego este mensaje: %s .", mensaje);
 
 						analizar_mensaje_rta(personaje, tipoMensaje, mensaje,
 								nivel, &quantum);
@@ -186,27 +201,35 @@ t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 	t_pers_por_nivel *aux;
 
-	if (strcmp(nivel->algol, "RR")) {
-		pthread_mutex_lock(mutex_listos);
-		aux = list_remove(p_listos, 0); //el primer elemento de la lista
-		pthread_mutex_unlock(mutex_listos);
+	if (!strcmp(nivel->algol, "RR")) {
 
-	} else {
+		//encontrar el de menor distancia al recurso
+		bool _menor_distancia(t_pers_por_nivel *cerca,
+				t_pers_por_nivel *menos_cerca) {
+			int primero = abs(cerca->pos_recurso - cerca->pos_inicial);
+			int segundo = abs(
+					menos_cerca->pos_recurso - menos_cerca->pos_inicial);
 
-		//todo: encontrar el de menor distancia al recurso
-		aux = list_remove(p_listos, 0);
+			return primero < segundo;
+		}
 
+		list_sort(p_listos, (void*) _menor_distancia);
 	}
 
-	log_info(logger,"ahora le toca a %c moverse", aux->personaje);
+	pthread_mutex_lock(&mutex_listos);
+	aux = list_remove(p_listos, 0); //el primer elemento de la lista
+	pthread_mutex_unlock(&mutex_listos);
+
+	log_info(logger, "ahora le toca a %c moverse", aux->personaje);
 	return aux;
 }
 
 void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 		char* str_nivel) {
 
-	log_info(logger,"le aviso al nivel que el personaje %c murio ", mensaje[0]);
-	log_info(logger,"yo planificador debería liberar recursos? SI ");
+	log_info(logger, "le aviso al nivel que el personaje %c murio ",
+			mensaje[0]);
+	log_info(logger, "yo planificador debería liberar recursos? SI ");
 	enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, mensaje);
 
 	t_list *p_listos = dictionary_get(listos, str_nivel);
@@ -214,12 +237,12 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 		return nuevo->fd == socket_l;
 	}
-	pthread_mutex_lock(mutex_listos);
+	pthread_mutex_lock(&mutex_listos);
 	t_pers_por_nivel *aux = list_remove_by_condition(p_listos,
 			(void*) _esta_personaje); //el primer elemento de la lista
-	pthread_mutex_unlock(mutex_listos);
-	log_info(logger,"el personaje %c murio, se lo saca de este nivel %s", aux->personaje,
-			str_nivel);
+	pthread_mutex_unlock(&mutex_listos);
+	log_info(logger, "el personaje %c murio, se lo saca de este nivel %s",
+			aux->personaje, str_nivel);
 	supr_pers_de_estructuras(socket_l);
 	free(aux);
 
@@ -241,12 +264,15 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 	case PER_movimiento_PLA: {
 		//pasamanos al nivel, sin procesar nada
 
+		personaje->pos_inicial = sumar_valores(mensaje);
+
 		char *prueba = calloc(3, sizeof(char));
 		prueba[0] = personaje->personaje;
 		prueba[1] = ',';
 		string_append(&prueba, mensaje);
-		log_info(logger,"el mensaje que mando es: %s ", prueba);
-		log_info(logger,"la longitud del mensaje que mando es: %d ", strlen(prueba));
+		log_info(logger, "el mensaje que mando es: %s ", prueba);
+		log_info(logger, "la longitud del mensaje que mando es: %d ",
+				strlen(prueba));
 
 		enviarMensaje(nivel->fd, PLA_movimiento_NIV, prueba);
 		free(prueba);
@@ -258,21 +284,21 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 			if (strcmp(nivel->algol, "RR")) {
 				(*quantum)--;
 				if ((*quantum) != 0) {
-					pthread_mutex_lock(mutex_listos);
+					pthread_mutex_lock(&mutex_listos);
 					//lo pone primero asi despues sigue el mismo planificandose
 					list_add_in_index(p_listos, 0, personaje);
-					pthread_mutex_unlock(mutex_listos);
+					pthread_mutex_unlock(&mutex_listos);
 				} else {
 					//lo pone al final
-					pthread_mutex_lock(mutex_listos);
+					pthread_mutex_lock(&mutex_listos);
 					list_add(p_listos, personaje);
-					pthread_mutex_unlock(mutex_listos);
+					pthread_mutex_unlock(&mutex_listos);
 					(*quantum) = nivel->quantum;
 				}
 			} else {
-				pthread_mutex_lock(mutex_listos);
+				pthread_mutex_lock(&mutex_listos);
 				list_add(p_listos, personaje);
-				pthread_mutex_unlock(mutex_listos);
+				pthread_mutex_unlock(&mutex_listos);
 			}
 		} else
 			supr_pers_de_estructuras(personaje->fd);
@@ -285,10 +311,13 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		t_list *p_listos = dictionary_get(listos, str_nivel);
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
-		log_info(logger,"se bloquea a %c por pedir un recurso", personaje->personaje);
-		pthread_mutex_lock(mutex_bloqueados);
+		personaje->pos_inicial = personaje->pos_recurso;
+
+		log_info(logger, "se bloquea a %c por pedir un recurso",
+				personaje->personaje);
+		pthread_mutex_lock(&mutex_bloqueados);
 		list_add(p_bloqueados, personaje);
-		pthread_mutex_unlock(mutex_bloqueados);
+		pthread_mutex_unlock(&mutex_bloqueados);
 
 		char recurso = mensaje[0];
 		int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
@@ -301,16 +330,17 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 			if (atoi(m_mensaje) == 0) { //recurso concedido
 
 				//
-				pthread_mutex_lock(mutex_bloqueados);
+				pthread_mutex_lock(&mutex_bloqueados);
 				t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
 						(void*) _esta_personaje);
-				pthread_mutex_unlock(mutex_bloqueados);
-				log_info(logger,"se desbloquea a %c por haber obtenido su recurso",
+				pthread_mutex_unlock(&mutex_bloqueados);
+				log_info(logger,
+						"se desbloquea a %c por haber obtenido su recurso",
 						aux->personaje);
 
 				t_recursos_obtenidos *rec = malloc(
 						sizeof(t_recursos_obtenidos));
-				pthread_mutex_lock(mutex_listos);
+				pthread_mutex_lock(&mutex_listos);
 				if (list_is_empty(aux->recursos_obtenidos)) {
 					rec->recurso = recurso;
 					rec->cantidad = 1;
@@ -326,7 +356,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 						rec->cantidad++;
 				}
 				list_add(p_listos, aux);
-				pthread_mutex_unlock(mutex_listos);
+				pthread_mutex_unlock(&mutex_listos);
 				//
 
 				enviarMensaje(aux->fd, PLA_rtaRecurso_PER, m_mensaje);
@@ -349,7 +379,8 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		break;
 	}
 	default:
-		log_info(logger,"el personaje %c se desconecto ", personaje->personaje);
+		log_info(logger, "el personaje %c se desconecto ",
+				personaje->personaje);
 		supr_pers_de_estructuras(personaje->fd);
 		break;
 	}
@@ -367,14 +398,14 @@ char * transformarListaCadena(t_list *recursosDisponibles) {
 		if (i != 0)
 			string_append(&recursosNuevos, ",");
 		string_append(&recursosNuevos, recu);
-		log_info(logger,"cadena en proceso %s", recursosNuevos);
+		log_info(logger, "cadena en proceso %s", recursosNuevos);
 		cant = string_from_format("%d", valor->cantidad);
 		string_append(&recursosNuevos, ",");
 		string_append(&recursosNuevos, cant);
-		log_info(logger,"cadena en proceso %s", recursosNuevos);
+		log_info(logger, "cadena en proceso %s", recursosNuevos);
 		i++;
 	}
-	log_info(logger,"cadena final %s", recursosNuevos);
+	log_info(logger, "cadena final %s", recursosNuevos);
 	return recursosNuevos;
 }
 
@@ -397,7 +428,7 @@ char * transformarListaCadena_interbloq(t_list *personajesDisponibles) {
 			string_append(&personajesInterb, ";");
 		string_append(&personajesInterb, pers);
 		string_append(&personajesInterb, ",");
-		log_info(logger,"cadena en proceso %s", personajesInterb);
+		log_info(logger, "cadena en proceso %s", personajesInterb);
 
 		int m = 0;
 		t_recursos_obtenidos *recursos = list_get(valor->recursos_obtenidos, m);
@@ -412,10 +443,10 @@ char * transformarListaCadena_interbloq(t_list *personajesDisponibles) {
 		}
 		recu = string_from_format("%c", valor->recurso_bloqueo);
 		string_append(&personajesInterb, recu);
-		log_info(logger,"cadena en proceso %s", personajesInterb);
+		log_info(logger, "cadena en proceso %s", personajesInterb);
 		i++;
 	}
-	log_info(logger,"cadena final %s", personajesInterb);
+	log_info(logger, "cadena final %s", personajesInterb);
 	return personajesInterb;
 }
 
@@ -446,15 +477,15 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 			return nuevo->fd == socket_r;
 		}
-		pthread_mutex_lock(mutex_listos);
+		pthread_mutex_lock(&mutex_listos);
 		t_pers_por_nivel *aux = list_remove_by_condition(p_listos,
 				(void*) _esta_personaje); //el primer elemento de la lista
 
-		log_info(logger,"el personaje %c termino este nivel %d", aux->personaje,
-				nivel->nivel);
+		log_info(logger, "el personaje %c termino este nivel %d",
+				aux->personaje, nivel->nivel);
 		list_destroy(aux->recursos_obtenidos);
 		free(aux);
-		pthread_mutex_unlock(mutex_listos);
+		pthread_mutex_unlock(&mutex_listos);
 		enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
 		/*                enum tipo_paquete t_mensaje;
 		 char* m_mensaje = NULL;
@@ -466,6 +497,11 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
+		//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+		char** n_mensaje = string_split(mensaje, ",");
+		nivel->algol = n_mensaje[0];
+		nivel->quantum = atoi(n_mensaje[1]);
+		nivel->retardo = atoi(n_mensaje[2]);
 
 		break;
 	}
@@ -482,9 +518,9 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				return nuevo->personaje == mensaje[i];
 			}
 
-			pthread_mutex_lock(mutex_listos);
+			pthread_mutex_lock(&mutex_listos);
 			aux = list_remove_by_condition(p_listos, (void*) _esta_personaje);
-			pthread_mutex_unlock(mutex_listos);
+			pthread_mutex_unlock(&mutex_listos);
 			log_info(logger,
 					"se saca a %c de la lista de listos por haber muerto interbloqueado",
 					aux->personaje);
@@ -532,10 +568,10 @@ void planificador_analizar_mensaje(int32_t socket_r,
 			return nuevo->personaje == mensaje[0];
 		}
 
-		pthread_mutex_lock(mutex_bloqueados);
+		pthread_mutex_lock(&mutex_bloqueados);
 		t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
 				(void*) _esta_personaje);
-		pthread_mutex_unlock(mutex_bloqueados);
+		pthread_mutex_unlock(&mutex_bloqueados);
 		proceso_desbloqueo(aux->recursos_obtenidos, nivel->fd, str_nivel);
 
 		/*t_list *recursosDisponibles = desbloquear_personajes(
@@ -570,7 +606,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		break;
 	}
 	default:
-		log_info(logger,"mensaje erroneo");
+		log_info(logger, "mensaje erroneo");
 		supr_pers_de_estructuras(socket_r);
 		break;
 	}

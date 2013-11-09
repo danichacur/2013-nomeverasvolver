@@ -44,7 +44,8 @@ bool termino_plan;
 typedef struct{
 char personaje;
 int32_t fd;
-int32_t ingreso_al_sistema;
+int32_t pos_inicial;
+int32_t pos_recurso;
 char recurso_bloqueo;
 bool estoy_bloqueado;
 t_list *recursos_obtenidos;
