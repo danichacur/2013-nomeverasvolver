@@ -324,8 +324,9 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
 			return nuevo->recurso == recurso;
 		}
-
-		enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, mensaje);
+		char * pers= string_from_format("%c",personaje->personaje);
+		string_append_(&pers,mensaje);
+		enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, pers);
 		recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
 		if (t_mensaje == NIV_recursoConcedido_PLA) {
 			if (atoi(m_mensaje) == 0) { //recurso concedido

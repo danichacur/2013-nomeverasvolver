@@ -492,8 +492,25 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		 (void*) _esta_pendiente);
 		 if (list_is_empty(pendientes))*/
 		//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
-		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron))
+		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron)) {
 			log_info(logger, "lanzar_koopa();");
+
+			int32_t pid = fork();
+			if (pid == 0) { //si es el hijo
+				char * const paramList[] = { "donde esta koopa",
+						"donde se mapeo el disco", "el programa bash" };
+				execv("donde esta koopa", paramList);
+				exit(0);
+			} else { //si es el padre
+				int retorno = 0;
+				wait(&retorno);
+				log_info(logger, "La ejecucion de koopa retorno el valor %d, el pid del proceso era %d",
+						retorno,pid);
+				if(retorno==pid)
+				log_info(logger, "Ambos valores son iguales. FIN DEL JUEGO");
+				exit(0);
+			}
+		}
 		//list_destroy(pendientes);
 		//pregunto si ya terminaron todos
 		break;

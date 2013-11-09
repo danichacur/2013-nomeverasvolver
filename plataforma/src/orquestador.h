@@ -35,6 +35,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* Esto es para esperar la señal de koopa */
+#include <sys/wait.h>
 
 typedef struct{
 char personaje;
