@@ -377,9 +377,9 @@ void avisarAlNivel(t_enemigo * enemigo){
 
 	//if (PRUEBA_CON_CONEXION)
 	if(false){
-		pthread_mutex_lock(mx_fd);
+		pthread_mutex_lock(&mx_fd);
 		enviarMensaje(fdPlanificador, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
-		pthread_mutex_unlock(mx_fd);
+		pthread_mutex_unlock(&mx_fd);
 	}
 
 
@@ -392,9 +392,9 @@ void avisarAlNivel(t_enemigo * enemigo){
 			t_personaje * pers = list_get(listaDePersonajes,i);
 			if (persAtacado->simbolo == pers->simbolo){
 				encontrado = true;
-				pthread_mutex_lock(mx_lista_personajes);
+				pthread_mutex_lock(&mx_lista_personajes);
 				list_remove(listaDePersonajes,i);
-				pthread_mutex_unlock(mx_lista_personajes);
+				pthread_mutex_unlock(&mx_lista_personajes);
 
 				//TODO Tengo que sacar el elemento de la lista de items. ponerme el semáforo.
 			}
