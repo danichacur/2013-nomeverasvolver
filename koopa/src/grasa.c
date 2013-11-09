@@ -8,8 +8,9 @@
  ============================================================================
  */
 
-#include <grasa.h>
+#include "grasa.h"
 
+/*
 static struct fuse_operations fuse_oper = {
 		.open = grasa_open,
 		.getattr = grasa_getattr,
@@ -25,19 +26,33 @@ static struct fuse_operations fuse_oper = {
 		.create = grasa_create,
 		.rename = grasa_rename
 };
+*/
+
 
 int main(void) {
 
-    int retstat = 0;
-    struct stat fileStat;
-    int fd;
+	int fd;
+	struct stat sbuf;
 
-    //prueba
-    char* path = "/home/utnso/disk.bin";
+	//prueba
+    char* path = "/home/utnso/Escritorio/disk.bin";
 
     fd = open(path,O_RDONLY);
 
-    GAdmin = mmap(0, fileStat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (fd == -1){
+     printf("Open Failed!\n");
+    }
+
+    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
+    	printf("stat Failed!\n");
+    }
+
+    GAdmin = (GAdm*) mmap(0,sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+    if (GAdmin == MAP_FAILED){
+     printf("map Failed!\n");
+    }
+
 
     puts("Header");
     printf("Contenido: %s\n",GAdmin->admHeader.grasa);
@@ -45,9 +60,18 @@ int main(void) {
     printf("Bloque inicio: %u\n",GAdmin->admHeader.blk_bitmap);
     printf("Tamaño: %u\n",GAdmin->admHeader.size_bitmap);
 
-    printf("BitMap size: %s\n", GAdmin->admbitmap);
+    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
+    GTNodo = GAdmin->admTnodo;
 
-    return retstat;
+    printf("Bitmap-pos: %u\n",bitarray_get_max_bit(GBitmap));
+    printf("nombre: %s\n",GTNodo[6].fname);
+    printf("dirblock: %u\n",GTNodo[6].parent_dir_block);
+    printf("estado: %u\n",GTNodo[6].state);
+    printf("tamanio: %u\n",GTNodo[6].file_size);
+    printf("blq 5: %s\n",GTNodo[5].fname);
+
+    return EXIT_SUCCESS;
+    //return fuse_main(argc, argv, &fuse_oper,NULL)
 
 }
 
@@ -65,6 +89,9 @@ int main(void) {
  * 	@RETURN
  * 		O archivo/directorio fue encontrado. -ENOENT archivo/directorio no encontrado
  */
+
+
+/*
 static int grasa_getattr(const char *path, struct stat *stbuf) {
 	int res = 0;
 
@@ -116,3 +143,35 @@ int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fu
 
     return retstat;
 }
+*/
+
+//Obtengo la información del tamaño del archivo y los punteros a los bloques de datos
+
+GFile* obtenerNodo(char *path){
+
+	int i;
+	char *Filename;
+	GFile *NodoBuscado;
+
+	Filename = basename(path);
+
+	 for (i = 0; i < 1024; i++){
+	      if (strcmp(GTNodo[i]->fname,Filename) == 0){
+	    	 NodoBuscado = GTNodo;
+	    	 printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
+	    	 return NodoBuscado;
+	      }
+	   }
+
+
+	return -1;
+
+}
+
+//Para que te devuelva el número de bloque lineal donde está bloque "i" de datos del archivo.
+
+uint32_t bloque obtenerNroBloque(nodo, i);
+
+
+
+
