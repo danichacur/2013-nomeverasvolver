@@ -61,6 +61,8 @@ typedef struct {
 typedef struct {
 		char * simbolo;
         t_posicion * posicion;
+        t_list * recursosActuales;
+        char * recursoBloqueante;
 } t_personaje;
 
 t_posicion * posicion_create(){
@@ -111,6 +113,8 @@ void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
 void crearHiloInotify();
 int hilo_inotify(void);
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
+bool determinarRecursoDisponible(char * recursoSolicitado);
+void actualizarItems();
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
 t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);

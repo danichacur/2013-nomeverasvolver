@@ -29,6 +29,8 @@ int32_t socketDeEscucha;
 pthread_t hilo1;
 pthread_mutex_t *mutex_mensajes;
 
+t_list * listaPersonajesRecursos;
+
 bool listaRecursosVacia;
 char * buffer_log;
 
@@ -38,6 +40,7 @@ int main (){
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
 	listaRecursosNivel=list_create(); //CREO LA LISTA DE RECURSOS POR NIVEL
 	items = list_create(); // CREO LA LISTA DE ITEMS
+	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
 	listaDePersonajes = list_create(); // CREO LA LISTA DE PERSONAJES (NO VA)
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	// crearHiloInotify();
@@ -244,7 +247,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				} else {
 
-					int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
+					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
 					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);
 
 				}
@@ -252,7 +255,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				break;
 			}
 			case PLA_personajeMuerto_NIV:{
-				char id=elMensaje[0];
+				//char id=elMensaje[0];
 
 				//BorrarItem(items,id);
 				log_info(logger, "El personaje %s ha muerto ",elMensaje[0]);
@@ -266,6 +269,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				strcpy(simbolo,elMensaje);
 
 				//CrearPersonaje(items,elMensaje[0],0,0);
+
+				t_personaje * personaje = malloc(sizeof(t_personaje));
+				personaje->simbolo = string_substring_until(elMensaje,1);
+				personaje->recursosActuales = list_create();
+				personaje->simbolo = string_new();
+
 				free(item);
 				free(simbolo);
 
@@ -274,7 +283,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				break;
 
 			}
-			case PLA_solicitudRecurso_NIV:{ // DEBERIA SER SOLICITUD POSICION RECURSO
+			case PLA_posCaja_NIV:{ // DEBERIA SER SOLICITUD POSICION RECURSO
 				char * pos = string_new();
 				ITEM_NIVEL * caja = buscarRecursoEnLista(items, elMensaje);
 
@@ -293,6 +302,31 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				}
 				free(pos);
 				break;
+
+			}case PLA_solicitudRecurso_NIV:{ // LE CONTESTO SI EL RECURSOS ESTA DISPONIBLE
+				// El mensaje de ejemplo es : "@,H"
+
+				char * rta;
+				bool hayRecurso = determinarRecursoDisponible (string_substring_from(elMensaje, 2));
+				if (hayRecurso)
+					rta = "0";
+				else
+					rta = "1";
+
+				actualizarItems();
+
+				enviarMensaje(socketEscucha, NIV_recursoConcedido_PLA,rta);
+
+				t_personaje * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
+				if(hayRecurso){
+					list_add(pers->recursosActuales, string_substring_from(elMensaje, 2));
+					pers->recursoBloqueante = string_new();
+				}else{
+					pers->recursoBloqueante = string_substring_from(elMensaje, 2);
+				}
+
+
+				break;
 			}
 			case OK1:{ //REVISAR y/o BORRAR
 				printf("la conexion se hizo ok %s \n",elMensaje);
@@ -308,8 +342,15 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 }
 
 bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje){ //TERMINAR
+	return true;
+}
 
-return true;
+bool determinarRecursoDisponible(char * recursoSolicitado){
+	return true;
+}
+
+void actualizarItems(){
+
 }
 
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY UN RECURSO PEDIDO Y LO DEVUELVE
