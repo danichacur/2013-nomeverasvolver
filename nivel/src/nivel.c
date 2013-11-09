@@ -87,11 +87,11 @@ int leerArchivoConfiguracion(){
 	log_info(logger, "El %s se planificara con algoritmo %s",nombre,algoritmo);
 
 	direccionIPyPuerto = config_get_string_value(config, "Plataforma");
-	log_info(logger, "El %s se conectara con la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
+	log_info(logger, "El %s tiene la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
 
 
-	retardoSegundos = config_get_int_value(config, "retardo");
-	log_info(logger, "El retardo para el  %s es de %d segundos",nombre,retardoSegundos);
+	retardo = config_get_int_value(config, "retardo");
+	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardoSegundos);
 	//int retardo=retardoSegundos*1000;
 
 
@@ -112,7 +112,6 @@ int leerArchivoConfiguracion(){
 		ret = config_has_property(config, litCaja);
 	}
 
-		//printf("el nivel es %d \n",atoi((char)nombre[5])); //CORREGIR, LO DA EN ASCII
 
 	return EXIT_SUCCESS;
 }
@@ -171,15 +170,22 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 //	pthread_mutex_lock(mutex_mensajes);
 
 	log_info(logger, "El %s se conectara a la plataforma en %s ",nombre,direccionIPyPuerto);
-	char * tiempo=temporal_get_string_time();
 	char ** IPyPuerto = string_split(direccionIPyPuerto,":");
+	char ** numeroNombreNivel = string_split(nombre,"l");
+	int32_t numeroNivel=atoi(numeroNombreNivel[1]);
 	char * IP=IPyPuerto[0];
-	char * buffer;
+
+	printf("numero nivel %d \n",numeroNivel);
+
+
+
+
+	char * buffer=malloc(sizeof(char*));
 	int32_t puerto= atoi(IPyPuerto[1]);
 
-	puts(tiempo);
+
 	socketDeEscucha= cliente_crearSocketDeConexion(IP,puerto);
-	sprintf(buffer,"%d,%s,%d,%d,%s",nombre[4],algoritmo,quantum,retardo);
+	sprintf(buffer,"%d,%s,%d,%d",numeroNivel,algoritmo,quantum,retardo);
 	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
 
 	if(socketDeEscucha>-1){
@@ -201,7 +207,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 		log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
 
 		}
-
+	free(buffer);
 	return socketDeEscucha;
 
 //	pthread_mutex_unlock(mutex_mensajes);
@@ -228,6 +234,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pers->posy = atoi(mens[2]);
 
 				//MoverPersonaje(items, elMensaje[0],pers->posx ,pers->posy);
+
 				printf("el personaje se movio %s",elMensaje);
 
 				log_info(logger, "El personaje %s se movio a %d %d ",mens[0],pers->posx,pers->posy);
@@ -295,7 +302,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				printf("%s \n","recibio cualquier cosa");
 				break;
 			}
-
+		//nivel_gui_dibujar(items,nombre);
 		free(elMensaje);
 
 }
