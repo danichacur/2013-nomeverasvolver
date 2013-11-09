@@ -56,6 +56,8 @@ int main(){
 
 	levantarArchivoConfiguracion();
 
+	capturarSeniales(); // TODO
+
 	int ordenNivel;
 	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++)
 		pthread_create(&tabla_thr[ordenNivel], NULL, (void*)&conectarAlNivel, (int*)ordenNivel);
@@ -131,8 +133,8 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 
 	if(meQuedanVidas() == EXIT_SUCCESS){
 		descontarUnaVida();
-		desconectarmeDePlataforma(ordNivel);
-		conectarAPlataforma(ordNivel);
+		//desconectarmeDePlataforma(ordNivel); TODO
+		//conectarAPlataforma(ordNivel); TODO
 	}else{
 		char* respuesta = NULL;
 
@@ -550,7 +552,7 @@ void avisarNivelConcluido(int nivel){
 }
 
 void desconectarPlataforma(){
-	// TODO
+	close(fdOrquestador);
 }
 
 int meQuedanVidas(){
@@ -561,19 +563,23 @@ void descontarUnaVida(){
 	personaje->cantVidas = personaje->cantVidas - 1;
 }
 
-void desconectarmeDePlataforma(int nivel){
-	// TODO
-}
-
-void conectarAPlataforma(int nivel){
-	// TODO ?
-}
-
 void interrumpirTodosPlanesDeNiveles(){
-	// TODO
+	int ordenNivel;
+	int32_t idHilo;
+	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++){
+		idHilo = tabla_thr[ordenNivel];
+
+		int v = pthread_cancel(idHilo);
+		if (v == 0){
+			log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
+		}else
+			log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
+	}
 }
+
 void finalizarTodoElProcesoPersonaje(){
-	// TODO
+	log_info(logger, "Personaje %s (%s) finaliza totalmente.", personaje->nombre, personaje->simbolo);
+	kill(getpid(), SIGKILL);
 }
 
 char * obtenerNombreNivelDesdeOrden(int ordNivel){
@@ -725,4 +731,8 @@ char * obtenerProximoRecursosNecesario(int ordNivel){
 	char * proximoRecurso = list_get(list_get(personaje->recursosNecesariosPorNivel,ordNivel), cantRecursosObtenidos);
 
 	return proximoRecurso;
+}
+
+void capturarSeniales(){
+
 }
