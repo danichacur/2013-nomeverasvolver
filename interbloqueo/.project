@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>nivel</name>
+	<name>interbloqueo</name>
 	<comment></comment>
 	<projects>
 		<project>commons</project>
-		<project>nivel-gui-library</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

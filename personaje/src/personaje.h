@@ -20,6 +20,7 @@
 #include <commons/string.h>
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
+#include <sockets/sockets.h>
 #include <collections/list.h>
 #include <pthread.h>
 #include <unistd.h>

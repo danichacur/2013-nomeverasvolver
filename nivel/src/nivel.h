@@ -20,13 +20,15 @@
 #include <sockets/mensajes.h>
 #include <sockets/estructuras.h>
 #include <commons/temporal.h>
+#include <commons/string.h>
 #include <collections/list.h>
 #include <commons/config.h>
 #include <pthread.h>
 #include "nivel.h"
+#include <nivel.h>
 #include <commons/log.h>
 #include <tad_items.h>
-
+#include <sys/inotify.h>
 #include <stdlib.h>
 #include <curses.h>
 
@@ -45,13 +47,14 @@ typedef struct {
 typedef struct {
 	char* nombre;
 	int quantum;
+	int retardo;
+	char* tipoAlgoritmo;
 	int recovery;
 	int enemigos;
 	long tiempoDeadlock;
 	long sleepEnemigos;
-	char* tipoAlgoritmo;
 	char* direccionIPyPuerto;
-	int retardo;
+
 }tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
 
 
@@ -94,23 +97,21 @@ t_personaje * personaje_create(char * simbolo, t_posicion * posicion){
 
 	return personaje;
 }
-
+bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje);
+int hilo_inotify(void);
 void eliminarEstructuras();
 void buscaPersonajeCercano();
 void mensajesConPlataforma(int32_t socketEscucha);
 void inicializarMapaNivel(t_list* listaRecursos);
-void moverseAlternado();
-void actualizarUltimoMovimiento();
 void crearseASiMismo();
-void movermeEnL();
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
 int32_t handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
-void crearHilosEnemigos();
-void crearHiloInterbloqueo();
 void crearHiloInotify();
+int hilo_inotify(void);
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
+ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
 t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 

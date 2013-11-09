@@ -6,7 +6,7 @@
  */
 
 
-#define cant_paquetes 29
+#define cant_paquetes 31
 
 #include "mensajes.h"
 
@@ -45,7 +45,9 @@ static char *enum_packets_names[cant_paquetes] = {
 
 
 		"OK1", //OK esta en la biblioteca ncurses que se usa para la gui del nivel, la toma como duplicada
-		"NIV_datosPlanificacion_PLA"
+		"NIV_datosPlanificacion_PLA",
+		"NIV_recursosPersonajesBloqueados_PLA",
+		"PLA_recursosPersonajesBloqueados_NIV"
 };
 
 

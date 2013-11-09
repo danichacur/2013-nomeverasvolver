@@ -13,11 +13,19 @@ int sleepEnemigos;
 //#define PRUEBA_CON_CONEXION false
 //#define IMPRIMIR_INFO_ENEMIGO true
 
+////////////SEMAFOROS
+pthread_mutex_t mx_fd;
+pthread_mutex_t mx_lista_personajes;
+pthread_mutex_t mx_lista_items;
+
 int main(){
 	horizontal = "H";
 	vertical = "V";
 	cadenaVacia = "";
 	sleepEnemigos = 1;
+	pthread_mutex_init(&mx_fd,NULL);
+	pthread_mutex_init(&mx_lista_personajes,NULL);
+	pthread_mutex_init(&mx_lista_items,NULL);
 
 	listaRecursosNivel = list_create();
 	listaDeEnemigos = list_create();
@@ -368,8 +376,12 @@ void avisarAlNivel(t_enemigo * enemigo){
 
 
 	//if (PRUEBA_CON_CONEXION)
-	if(false)
+	if(false){
+		pthread_mutex_lock(mx_fd);
 		enviarMensaje(fdPlanificador, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
+		pthread_mutex_unlock(mx_fd);
+	}
+
 
 	//TODO tengo que sacar los personajes de la lista de personajes?
 	while(list_size(listaPersonajesAtacados) > 0){
@@ -380,7 +392,11 @@ void avisarAlNivel(t_enemigo * enemigo){
 			t_personaje * pers = list_get(listaDePersonajes,i);
 			if (persAtacado->simbolo == pers->simbolo){
 				encontrado = true;
+				pthread_mutex_lock(mx_lista_personajes);
 				list_remove(listaDePersonajes,i);
+				pthread_mutex_unlock(mx_lista_personajes);
+
+				//TODO Tengo que sacar el elemento de la lista de items. ponerme el semáforo.
 			}
 			i++;
 		}

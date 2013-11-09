@@ -43,6 +43,9 @@ enum tipo_paquete{
 	OK1,		//OK esta en la biblioteca ncurses que se usa para la gui del nivel, la toma como duplicada
 	NIV_datosPlanificacion_PLA,
 	PLA_nuevoPersonaje_NIV,
+	NIV_recursosPersonajesBloqueados_PLA,
+	PLA_recursosPersonajesBloqueados_NIV,
+	PLA_actualizarRecursos_NIV,
 };
 
 
