@@ -386,21 +386,21 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
 		list_add(niveles_del_sistema, nuevo);
 
-		log_info(logger,
-				"Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d ",
-				nivel, sockett);
-		pthread_t pla;
-		pthread_create(&pla, NULL, (void *) hilo_planificador, nuevo);
-
 		//DELEGAR TMB EL SOCKET AL PLANIFICADOR:
 		// delegar la conexión al hilo del nivel correspondiente
-		t_list *pe_monitor = dictionary_get(monitoreo, mensaje);
+		t_list *pe_monitor = dictionary_get(monitoreo, n_mensaje[0]);
 		t_monitoreo *item = per_monitor_crear(false, 'M', atoi(n_mensaje[0]),
 				sockett);
 		pthread_mutex_lock(&mutex_monitoreo);
 		list_add(pe_monitor, item);
 		pthread_mutex_unlock(&mutex_monitoreo);
 		// delegar la conexión al hilo del nivel correspondiente
+
+		log_info(logger,
+				"Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d ",
+				nivel, sockett);
+		pthread_t pla;
+		pthread_create(&pla, NULL, (void *) hilo_planificador, nuevo);
 
 		enviarMensaje(sockett, ORQ_handshake_NIV, "0");
 
@@ -420,7 +420,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		aux->nivel = nivel; //actualiza el nivel a donde se conecta el personaje
 		t_list *p_monitor = dictionary_get(monitoreo, mensaje);
 		t_monitoreo *item = per_monitor_crear(true, 'M', nivel, sockett);
-		memcpy(item, aux, sizeof(t_monitoreo)); //fixme ver bien esto
+		memcpy(item, aux, sizeof(t_monitoreo));
 		pthread_mutex_lock(&mutex_monitoreo);
 		list_add(p_monitor, item);
 		pthread_mutex_unlock(&mutex_monitoreo);

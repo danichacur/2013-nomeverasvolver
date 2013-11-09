@@ -41,12 +41,12 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 //log_info(logger,
 	int32_t miNivel = nivel->nivel;
 	int32_t miFd = nivel->fd;
-	log_info(logger, "hola, soy el planificador del nivel %d , mi fd es %d ",
-			miNivel, miFd);
+
 	//inicialización
 	logger = log_create(PATH_LOG_PLA, "PLANIFICADOR", true, LOG_LEVEL_INFO);
 	//inicialización
-
+	log_info(logger, "hola, soy el planificador del nivel %d , mi fd es %d ",
+			miNivel, miFd);
 	fd_set master; // conjunto maestro de descriptores de fichero
 	fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
 	int fdmax; // número máximo de descriptores de fichero
@@ -54,7 +54,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	FD_ZERO(&master); // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 	struct timeval tv;
-	//el select espera 10 segundos //fixme ver si no es mucho 10 seg
+	//el select espera 10 segundos // ver si no es mucho 10 seg
 	//tv.tv_sec = 10; //nivel->retardo/1000; //segundos
 	tv.tv_usec = nivel->retardo * 1000; //microsegundos
 	//voy metiendo aca los personajes para monitorear
@@ -138,6 +138,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 					close(i); // ¡Hasta luego!
 					FD_CLR(i, &master); // eliminar del conjunto maestro
+					break;
 
 					if (i == fd_personaje_actual)
 						break;
@@ -201,7 +202,7 @@ t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 	t_pers_por_nivel *aux;
 
-	if (!strcmp(nivel->algol, "RR")) {
+	if (!string_equals_ignore_case(nivel->algol, "RR")) {
 
 		//encontrar el de menor distancia al recurso
 		bool _menor_distancia(t_pers_por_nivel *cerca,
@@ -281,7 +282,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 			enviarMensaje(personaje->fd, PLA_movimiento_PER, m_mensaje);
 			t_list *p_listos = dictionary_get(listos, str_nivel);
 
-			if (strcmp(nivel->algol, "RR")) {
+			if (string_equals_ignore_case(nivel->algol, "RR")) {
 				(*quantum)--;
 				if ((*quantum) != 0) {
 					pthread_mutex_lock(&mutex_listos);
@@ -372,7 +373,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		} else
 			supr_pers_de_estructuras(personaje->fd);
 
-		if (strcmp(nivel->algol, "RR")) {
+		if (string_equals_ignore_case(nivel->algol, "RR")) {
 			(*quantum) = nivel->quantum;
 		}
 		free(m_mensaje);
