@@ -372,7 +372,7 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 	ITEM_NIVEL * item;
 	ITEM_NIVEL * unItem;                      //QUE PASA SI EL RECURSO NO EXISTE?? QUE DEVOLVERIA ITEM?
 	bool encontrado = false;
-	char simboloNulo[1]="0";
+
 	int i=0;
 	while(i < list_size(lista) && !encontrado){
 
@@ -386,7 +386,6 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 			}
 		i++;
 		}
-		item->id=simboloNulo[0];        //lo devuelvo con id 0
 	return item;
 }
 
