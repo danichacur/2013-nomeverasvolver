@@ -1,83 +1,119 @@
+#include "enemigo.h"
+
+
+
+//esta lista de enemigos la agrego para que el nivel los conozca y obtenga sus posiciones para graficarlos
+extern t_list * items;
+
+t_list * listaRecursosNivel;
+t_list * listaDeEnemigos; //TODO, hacer el create_list
+t_list * listaDePersonajes;
+char * horizontal;
+char * vertical;
+char * cadenaVacia;
+int sleepEnemigos;
+
+//#define PRUEBA_CON_CONEXION false
+//#define IMPRIMIR_INFO_ENEMIGO true
+
+////////////SEMAFOROS
+pthread_mutex_t mx_fd;
+pthread_mutex_t mx_lista_personajes;
+pthread_mutex_t mx_lista_items;
 /*
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////   nivel.h    //////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef struct {
-        t_posicion * posicion;
-        char * ultimoMovimiento;
-        int cantTurnosEnL;
-        char * orientacion1;
-        int orientacion2;
-} t_enemigo;
-
-typedef struct {
-		char * simbolo;
-        t_posicion * posicion;
-} t_personaje;
+int main(){
 
 
-t_enemigo * enemigo_create(){
-	t_enemigo * enemigo = malloc(sizeof(t_enemigo));
+	listaRecursosNivel = list_create();
+	listaDeEnemigos = list_create();
+	listaDePersonajes = list_create();
 
-	enemigo->posicion = malloc(sizeof(t_posicion));
-	enemigo->posicion->posX =  rand() % topeMaximoMapa;
-	enemigo->posicion->posX =  rand() % topeMaximoMapa;
+	/////AGREGO PERSONAJES
+	t_personaje * personaje = personaje_create((char *) "@", posicion_create_pos(3,2));
+	list_add(listaDePersonajes, personaje);
 
-	enemigo->ultimoMovimiento = "V";
-	enemigo->cantTurnosEnL = 0;
-	enemigo->orientacion1 = "";
-	enemigo->orientacion2 = 0;
+	t_personaje * personaje2 = personaje_create((char *) "%", posicion_create_pos(6,3));
+	list_add(listaDePersonajes, personaje2);
 
-	return enemigo;
+	t_personaje * personaje3 = personaje_create((char *) "#", posicion_create_pos(5,1));
+	list_add(listaDePersonajes, personaje3);
+
+	t_personaje * personaje4 = personaje_create((char *) "$", posicion_create_pos(7,4));
+	list_add(listaDePersonajes, personaje4);
+
+	/////AGREGO CAJAS
+	tRecursosNivel * recurso = recurso_create((char*) "hongos", (char*)"H", 3, 3, 1);
+	list_add(listaRecursosNivel,recurso);
+
+	//tRecursosNivel * recurso2 = recurso_create((char*) "monedas", (char*)"M", 3, 4, 2); //este caso con las cajas tan pegadas me rompe
+	//list_add(listaRecursosNivel,recurso2);
+
+	tRecursosNivel * recurso3 = recurso_create((char*) "flores", (char*)"F", 3, 6, 3);
+	list_add(listaRecursosNivel,recurso3);
+
+	tRecursosNivel * recurso4 = recurso_create((char*) "caracoles", (char*)"C", 3, 5, 5);
+	list_add(listaRecursosNivel,recurso4);
+
+	tRecursosNivel * recurso5 = recurso_create((char*) "dolares", (char*)"D", 3, 7, 6);
+	list_add(listaRecursosNivel,recurso5);
+
+	enemigo();
+
+
+	//libero la memoria
+	while(!list_is_empty(listaDePersonajes)){
+		free(list_remove(listaDePersonajes,0));
+	}
+	while(!list_is_empty(listaRecursosNivel)){
+		free(list_remove(listaRecursosNivel,0));
+	}
+
+	return 1; //EXIT_SUCCESS
 }
-
-
-t_enemigo * crearseASiMismo();
-bool hayPersonajeAtacable();
-t_personaje * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo);
-char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje * personaje);
-void moverEnemigoEn(t_enemigo * enemigo, t_personaje * personaje, char * orientacion);
-void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orientacion2);
-t_personaje * buscaPersonajeCercano(t_enemigo * enemigo);
-int distanciaAPersonaje(t_enemigo * enemigo, t_personaje * personaje);
-t_list * buscarPersonajesAtacables();
-bool personajeEstaEnCaja(t_personaje * personaje, int posX, int posY);
-bool estoyArribaPersonaje(t_enemigo * enemigo, t_personaje * personaje);
-void avisarAlNivel(t_personaje * personajeAtacado);
-void movermeEnL(t_enemigo * enemigo);
+*/
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////   nivel.c    //////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-int topeMaximoMapa = 50;
+
 #include <stdbool.h>
 
 
-//esta lista de enemigos la agrego para que el nivel los conozca y obtenga sus posiciones para graficarlos
-t_list * listaDeEnemigos; //TODO, hacer el create_list
-t_list * listaDePersonajes;
-char * horizontal = "H";
-char * vertical = "V";
 
 
 void enemigo(){
+
+	horizontal = "H";
+	vertical = "V";
+	cadenaVacia = "";
+	sleepEnemigos = 1;
+	pthread_mutex_init(&mx_fd,NULL);
+	pthread_mutex_init(&mx_lista_personajes,NULL);
+	pthread_mutex_init(&mx_lista_items,NULL);
+
 	t_enemigo * enemigo = crearseASiMismo(); //random, verifica que no se cree en el (0,0)
-	t_personaje * personajeCercano;
+
+	//if(IMPRIMIR_INFO_ENEMIGO)
+		printf("Posicion inicial del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+
+
 	while(1){ //cada x tiempo, configurado por archivo de configuracion
-		//sleep(sleepEnemigos);
+		sleep(sleepEnemigos);
 
 		if(hayPersonajeAtacable()){
-			personajeCercano = moverseHaciaElPersonajeDeFormaAlternada(enemigo);
+			moverseHaciaElPersonajeDeFormaAlternada(enemigo);
 
-			if(estoyArribaPersonaje(enemigo,personajeCercano)){
-				avisarAlNivel(personajeCercano);
+			if(estoyArribaDeAlgunPersonaje(enemigo)){
+				avisarAlNivel(enemigo);
+				//break; //TODO borrar esto, es para la prueba.
 			}
 		}else{
 			movermeEnL(enemigo);
 		}
 	}
+
+	free(enemigo);
 }
 
 t_enemigo * crearseASiMismo(){
@@ -95,19 +131,24 @@ t_enemigo * crearseASiMismo(){
 
 bool hayPersonajeAtacable(){
 	bool hay = false;
+	t_list * lista = buscarPersonajesAtacables();
 
-	if (list_size(buscarPersonajesAtacables())>0)
+	if (list_size(lista)>0)
 		hay = true;
 
+	list_clean(lista);
 	return hay;
 }
 
 t_personaje * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
 	t_personaje * personaje = buscaPersonajeCercano(enemigo);
+	//if(IMPRIMIR_INFO_ENEMIGO)
+		printf("Buscando al personaje mas cercano.. Es %s \n", personaje->simbolo);
+
 
 	char * condicion = estoyEnLineaRectaAlPersonaje(enemigo, personaje); // 'H','V' o ''
 
-	if(condicion == string_new()) //si no estoy en linea recta a la caja,
+	if(condicion == cadenaVacia) //si no estoy en linea recta a la caja,
 		if(enemigo->ultimoMovimiento == horizontal)
 			moverEnemigoEn(enemigo, personaje, vertical);
 		else if(enemigo->ultimoMovimiento == vertical)
@@ -124,20 +165,20 @@ char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje * personaje
 	t_posicion * posicionActual = enemigo->posicion;
 	t_posicion * posicionBuscada = personaje->posicion;
 
-	char * condicion = string_new();
+	char * condicion = cadenaVacia;
 
 	if(posicionActual->posX == posicionBuscada->posX){
-		condicion = "H";
+		condicion = vertical;
 
 	}else if(posicionActual->posY == posicionBuscada->posY)
-		condicion = "V";
+		condicion = horizontal;
 
 	return condicion;
 }
 
 
 void moverEnemigoEn(t_enemigo * enemigo, t_personaje * personaje, char * orientacion){
-		//TODO no estaría esquivando la caja
+		/* //TODO no estaría esquivando la caja
 
 	if(orientacion == horizontal)
 		if(enemigo->posicion->posX > personaje->posicion->posX)
@@ -149,19 +190,102 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje * personaje, char * orienta
 			enemigo->posicion->posY = enemigo->posicion->posY - 1;
 		else
 			enemigo->posicion->posY = enemigo->posicion->posY + 1;
+	}*/
+
+
+	if(orientacion == horizontal)
+		if(enemigo->posicion->posX > personaje->posicion->posX)
+			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY)){
+				orientacion = vertical;
+				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			}else
+				enemigo->posicion->posX = enemigo->posicion->posX - 1;
+		else
+			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY)){
+				orientacion = vertical;
+				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			}else
+				enemigo->posicion->posX = enemigo->posicion->posX + 1;
+	else if(orientacion == vertical){
+		if(enemigo->posicion->posY > personaje->posicion->posY)
+			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1)){
+				orientacion = horizontal;
+				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			}else
+				enemigo->posicion->posY = enemigo->posicion->posY - 1;
+		else
+			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
+				orientacion = horizontal;
+				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			}else
+				enemigo->posicion->posY = enemigo->posicion->posY + 1;
 	}
+
+
+	//if(IMPRIMIR_INFO_ENEMIGO)
+		printf("Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+
+
 	//TODO alcanza con esto o tengo q usar una funcion list_replace?
 	enemigo->ultimoMovimiento = orientacion;
 }
 
 void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orientacion2){
-	//TODO no estaría esquivando la caja
+	/*//TODO no estaría esquivando la caja
 
 	if(orientacion1 == horizontal)
 		enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
 	else if(orientacion1 == vertical)
 		enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
+	*/
 
+	if(orientacion1 == horizontal)
+		if(hayCaja(enemigo->posicion->posX + orientacion2, enemigo->posicion->posY)){
+			enemigo->cantTurnosEnL = -1;
+			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
+		}else
+			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
+	else if(orientacion1 == vertical){
+		if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
+			enemigo->cantTurnosEnL = -1;
+			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
+		}else
+			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
+	}
+	//if(IMPRIMIR_INFO_ENEMIGO)
+			printf("Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+
+}
+
+bool hayCaja(int x, int y){
+	int i = 0;
+	bool hay = false;
+	tRecursosNivel * recurso;
+	while(i< list_size(listaRecursosNivel) && !hay){
+		recurso = list_get(listaRecursosNivel, i);
+		if (recurso->posX == x && recurso->posY == y)
+			hay = true;
+		i++;
+	}
+
+	return hay;
+}
+
+int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje * personaje){
+	int valor;
+	if (orientacion == vertical){
+		if(enemigo->posicion->posY > personaje->posicion->posY)
+			valor = -1;
+		else
+			valor = 1;
+	}else if(orientacion == horizontal){
+		if(enemigo->posicion->posX > personaje->posicion->posX)
+			valor = -1;
+		else
+			valor = 1;
+	}
+
+	return valor;
 }
 
 t_personaje * buscaPersonajeCercano(t_enemigo * enemigo){
@@ -179,15 +303,15 @@ t_personaje * buscaPersonajeCercano(t_enemigo * enemigo){
 			personajeCercano = list_get(listaPersonajesAtacables,i);
 	}
 
+	list_clean(listaPersonajesAtacables);
+
 	return personajeCercano;
 }
 
 int distanciaAPersonaje(t_enemigo * enemigo, t_personaje * personaje){
 	int distancia;
-	//TODO buscar fórmula de valorAbsoluto
-	distancia = 2;
-	//distancia = valorAbsoluto(enemigo->posicion->posX - personaje->posicion->posX) +
-	//		valorAbsoluto(enemigo->posicion->posY - personaje->posicion->posY);
+	distancia = abs(enemigo->posicion->posX - personaje->posicion->posX) +
+			abs(enemigo->posicion->posY - personaje->posicion->posY);
 	return distancia;
 }
 
@@ -198,56 +322,139 @@ t_list * buscarPersonajesAtacables(){
 	t_personaje * personaje;
 	tRecursosNivel * caja;
 	bool encontrado;
-
+	t_list * listaPersonajesAtacablesUbicaciones;
 	t_list * lista = list_create();
 
-	int cantPersonajesEnNivel = list_size(listaDePersonajes);
+	listaPersonajesAtacablesUbicaciones = obtenerListaPersonajesAtacables();
+
+	int cantPersonajesEnNivel = list_size(listaPersonajesAtacablesUbicaciones);
 	int cantCajas = list_size(listaRecursosNivel);
 
 	if (cantPersonajesEnNivel > 0){
 		for(i=0;i<cantPersonajesEnNivel;i++){
-			personaje = list_get(listaDePersonajes,i);
+			personaje = list_get(listaPersonajesAtacablesUbicaciones,i);
 
 			encontrado = false;
 			j=0;
 			while (j<cantCajas && !encontrado){
 				caja = list_get(listaRecursosNivel, j);
 
-				if (!personajeEstaEnCaja(personaje, atoi(caja->posX), atoi(caja->posY))){
-					list_add(lista,personaje);
+				if (personajeEstaEnCaja(personaje, caja->posX, caja->posY))
 					encontrado = true;
-				}
 				j++;
 			}
+
+			if(!encontrado)
+				list_add(lista,personaje);
+
 		}
 	}
 
 	return lista;
 }
 
+t_list * obtenerListaPersonajesAtacables(){
+	t_list * personajes = list_create();
+	int i;
+	for(i=0 ; i < list_size(items) ; i++){
+		ITEM_NIVEL * elemento;
+		elemento = list_get(items,i);
+		if (elemento->item_type == PERSONAJE_ITEM_TYPE){
+			t_posicion * pos = posicion_create_pos(elemento->posx, elemento->posy);
+			t_personaje * personaje = personaje_create_pos(charToString(elemento->id), pos);
+			list_add(personajes, personaje);
+		}
+	}
+
+	return personajes;
+}
+
 bool personajeEstaEnCaja(t_personaje * personaje, int posX, int posY){
 	return (personaje->posicion->posX == posX && personaje->posicion->posY == posY);
 }
 
-bool estoyArribaPersonaje(t_enemigo * enemigo, t_personaje * personaje){
-	bool estoy = false;
-	if (enemigo->posicion->posX == personaje->posicion->posX &&
-			enemigo->posicion->posY == personaje->posicion->posY)
-		estoy = true;
-	return estoy;
+bool estoyArribaDeAlgunPersonaje(t_enemigo * enemigo){
+	t_list * lista = obtenerListaDePersonajesAbajoDeEnemigo(enemigo);
+	int cantidad = list_size(lista);
+
+	list_clean(lista);
+	//free(lista); // TODO se libera t0do????
+	return (cantidad > 0);
 }
 
-void avisarAlNivel(t_personaje * personajeAtacado){
+void avisarAlNivel(t_enemigo * enemigo){
 	//TODO ver como consigo el fd del Planificador
 	int32_t fdPlanificador = 1;
 
-	char * mensaje = string_new();
-	string_append(&mensaje, personajeAtacado->simbolo);
-	enviarMensaje(fdPlanificador, NIV_enemigosAsesinaron_PLA, mensaje);
+	int i;
+	ITEM_NIVEL * personaje;
+	t_list * listaPersonajesAtacados = obtenerListaDePersonajesAbajoDeEnemigo(enemigo);
+	char * simbolosPersonajesAtacados = string_new();
+	for(i=0 ; i < list_size(listaPersonajesAtacados) ; i++){
+		personaje = list_get(listaPersonajesAtacados,i);
+		string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
+	}
+
+	//if(IMPRIMIR_INFO_ENEMIGO)
+		printf("El enemigo atacó a los personajes: %s \n", simbolosPersonajesAtacados);
+
+
+	//if (PRUEBA_CON_CONEXION)
+	if(false){
+		pthread_mutex_lock(&mx_fd);
+		enviarMensaje(fdPlanificador, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
+		pthread_mutex_unlock(&mx_fd);
+	}
+
+
+	//TODO tengo que sacar los personajes de la lista de personajes?
+	while(list_size(listaPersonajesAtacados) > 0){
+		t_personaje * persAtacado = list_get(listaPersonajesAtacados,0);
+		int i = 0;
+		bool encontrado = false;
+		while(i<list_size(items) && !encontrado){
+			ITEM_NIVEL * elem = list_get(items,i);
+			if (elem->item_type == PERSONAJE_ITEM_TYPE)
+				if (strcmp(persAtacado->simbolo, charToString(elem->id)) == 0){
+					encontrado = true;
+					pthread_mutex_lock(&mx_lista_personajes);
+					list_remove(items,i);
+					//TODO ver si no hay que actulizar el mapa
+					pthread_mutex_unlock(&mx_lista_personajes);
+				}
+			i++;
+		}
+		list_remove(listaPersonajesAtacados,0);
+	}
+
+	free(simbolosPersonajesAtacados);
+	list_clean(listaPersonajesAtacados); //TODO, con esto libero todos los elementos de la lista o tengo q recorrerla e ir liberando?
 
 }
 
+t_list * obtenerListaDePersonajesAbajoDeEnemigo(t_enemigo * enemigo){
+
+	int i = 0;
+	ITEM_NIVEL * elem;
+	t_list * lista = list_create();
+
+	while(i<list_size(items)){
+		elem = list_get(items, i);
+		if(elem->item_type == PERSONAJE_ITEM_TYPE)
+			if (enemigo->posicion->posX == elem->posx && enemigo->posicion->posY == elem->posy)
+				list_add(lista, elem);
+
+		i++;
+	}
+
+	return lista;
+}
+
 void movermeEnL(t_enemigo * enemigo){
+	//if(IMPRIMIR_INFO_ENEMIGO)
+		printf("No hay personajes para atacar. Moviendo en L \n");
+
+
 	char * orientacion;
 	int orientacion2;
 	if (enemigo->cantTurnosEnL == 0){ //signiifica que es el primer movimiento y tiene que obtener una direccion aleatoria
@@ -265,9 +472,12 @@ void movermeEnL(t_enemigo * enemigo){
 
 
 		moverEnemigoEnDireccion(enemigo, orientacion, orientacion2);
-		enemigo->cantTurnosEnL = 1;
-		enemigo->orientacion1 = orientacion;
-		enemigo->orientacion2 = orientacion2;
+		if(enemigo->cantTurnosEnL > -1){ // si tiene -1 es porque se topó con una caja, y debe arracar la L de vuelta
+			enemigo->cantTurnosEnL = 1;
+			enemigo->orientacion1 = orientacion;
+			enemigo->orientacion2 = orientacion2;
+		}else
+			enemigo->cantTurnosEnL = 0;
 	}else{
 		if(enemigo->cantTurnosEnL == 1)
 			moverEnemigoEnDireccion(enemigo, enemigo->orientacion1, enemigo->orientacion2);
@@ -278,13 +488,13 @@ void movermeEnL(t_enemigo * enemigo){
 				moverEnemigoEnDireccion(enemigo, horizontal, enemigo->orientacion2);
 		}
 
-		enemigo->cantTurnosEnL = enemigo->cantTurnosEnL + 1;
+		if(enemigo->cantTurnosEnL > -1) // si tiene -1 es porque se topó con una caja, y debe arracar la L de vuelta
+			enemigo->cantTurnosEnL = enemigo->cantTurnosEnL + 1;
 
-		if(enemigo->cantTurnosEnL == 4)
+		if(enemigo->cantTurnosEnL == 3 || enemigo->cantTurnosEnL == -1)
 			enemigo->cantTurnosEnL = 0;
 	}
 
 }
 
 
-*/

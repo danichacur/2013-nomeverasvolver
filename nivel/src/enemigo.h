@@ -5,16 +5,10 @@
  *      Author: utnso
  */
 
+
+
 #ifndef ENEMIGO_H_
 #define ENEMIGO_H_
-
-typedef struct {
-	char* nombre;
-	char* simbolo;
-	int instancias;
-	int posX;
-	int posY;
-}tRecursosNivel;
 
 void enemigo();
 
@@ -28,8 +22,7 @@ void enemigo();
 #include <collections/list.h>
 #include <commons/config.h>
 #include <pthread.h>
-
-int maxRandPos = 50;
+#include "nivel.h"
 
 typedef struct {
         t_posicion * posicion;
@@ -39,37 +32,7 @@ typedef struct {
         int orientacion2;
 } t_enemigo;
 
-typedef struct {
-		char * simbolo;
-        t_posicion * posicion;
-} t_personaje;
 
-t_posicion * posicion_create(){
-
-	t_posicion * posicion = malloc(sizeof(t_posicion));
-	posicion->posX =  0;
-	posicion->posX =  0;
-
-	return posicion;
-}
-
-t_posicion * posicion_create_pos(int x, int y){
-
-	t_posicion * posicion = malloc(sizeof(t_posicion));
-	posicion->posX =  x;
-	posicion->posY =  y;
-
-	return posicion;
-}
-
-t_posicion * posicion_create_pos_rand(){
-
-	t_posicion * posicion = malloc(sizeof(t_posicion));
-	posicion->posX =  rand() % maxRandPos;
-	posicion->posX =  rand() % maxRandPos;
-
-	return posicion;
-}
 
 t_enemigo * enemigo_create(){
 	t_enemigo * enemigo = malloc(sizeof(t_enemigo));
@@ -85,17 +48,6 @@ t_enemigo * enemigo_create(){
 	return enemigo;
 }
 
-t_personaje * personaje_create(char * simbolo, t_posicion * posicion){
-	t_personaje * personaje = malloc(sizeof(t_personaje));
-	personaje->posicion = posicion;
-	personaje->simbolo = simbolo;
-
-	return personaje;
-}
-
-//static void personaje_delete(t_personaje * personaje){
-//	free(personaje);
-//}
 
 tRecursosNivel * recurso_create(char * nombre, char * simbolo, int instancias, int posX, int posY ){
 	tRecursosNivel * recurso = malloc(sizeof(tRecursosNivel));
@@ -106,6 +58,14 @@ tRecursosNivel * recurso_create(char * nombre, char * simbolo, int instancias, i
 	recurso->posY = posY;
 
 	return recurso;
+}
+
+t_personaje * personaje_create_pos(char * simbolo, t_posicion * posicion ){
+	t_personaje * personaje = malloc(sizeof(t_personaje));
+	personaje->posicion = posicion;
+	personaje->simbolo = simbolo;
+
+	return personaje;
 }
 
 t_enemigo * crearseASiMismo();
@@ -119,6 +79,7 @@ int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_person
 t_personaje * buscaPersonajeCercano(t_enemigo * enemigo);
 int distanciaAPersonaje(t_enemigo * enemigo, t_personaje * personaje);
 t_list * buscarPersonajesAtacables();
+t_list * obtenerListaPersonajesAtacables();
 bool personajeEstaEnCaja(t_personaje * personaje, int posX, int posY);
 bool estoyArribaDeAlgunPersonaje(t_enemigo * enemigo);
 void avisarAlNivel(t_enemigo * enemigo);

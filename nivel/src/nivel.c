@@ -1,7 +1,7 @@
 
 ////////////////////////////////////////////////////HEADER////////////////////////////////////////////////////
 #include "nivel.h"
-
+#include "interbloqueo.h"
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 #define DIRECCION "192.168.1.115"
 #define PUERTO 5000
@@ -48,6 +48,8 @@ int main (){
 	//crearHiloInotify();
 	inicializarMapaNivel(listaRecursosNivel);
 	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+	crearHiloInterbloqueo();
+
 	while(1){
 		if(socketDeEscucha!=-1){
 		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
@@ -126,9 +128,9 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 	tRecursosNivel *unaCaja=malloc(sizeof(tRecursosNivel));
 	unaCaja->nombre=caja[0];
 	unaCaja->simbolo=caja[1];
-	unaCaja->instancias=caja[2];
-	unaCaja->posX=caja[3];
-	unaCaja->posY=caja[4];
+	unaCaja->instancias=atoi(caja[2]);
+	unaCaja->posX=atoi(caja[3]);
+	unaCaja->posY=atoi(caja[4]);
 
 	int cantElementos= list_add(listaRecursosNivel,unaCaja);
 	log_info(logger, "La cantidad de cajas del %s es ahora %d",nombre,cantElementos+1);
@@ -158,14 +160,7 @@ void inicializarMapaNivel(t_list* listaRecursos){
 
 	while(unaCaja!=NULL){
 		char* simbolo=unaCaja->simbolo;
-		char* instancias=unaCaja->instancias;
-		char* posX=unaCaja->posX;
-		char* posY=unaCaja->posY;
-		int posXint=atoi(posX);
-		int posYint=atoi(posY);
-		int instanciasInt=atoi(instancias);
-
-		CrearCaja(items,*simbolo, posXint, posYint, instanciasInt);
+		CrearCaja(items,*simbolo, unaCaja->posX, unaCaja->posY, unaCaja->instancias);
 		i++;
 	}
 	log_info(logger, "Se procede a graficar los elementos en el mapa creado",nombre,rows,cols);
@@ -546,7 +541,10 @@ int inotify(void) {
 }
 
 
-
+void crearHiloInterbloqueo(){
+	pthread_t id;
+	pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
+}
 
 
 

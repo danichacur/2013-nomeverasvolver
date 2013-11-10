@@ -316,15 +316,17 @@ t_list * buscarPersonajesAtacables(){
 	t_personaje * personaje;
 	tRecursosNivel * caja;
 	bool encontrado;
-
+	t_list * listaPersonajesAtacablesUbicaciones;
 	t_list * lista = list_create();
 
-	int cantPersonajesEnNivel = list_size(listaDePersonajes);
+	listaPersonajesAtacablesUbicaciones = obtenerListaPersonajesAtacables();
+
+	int cantPersonajesEnNivel = list_size(listaPersonajesAtacablesUbicaciones);
 	int cantCajas = list_size(listaRecursosNivel);
 
 	if (cantPersonajesEnNivel > 0){
 		for(i=0;i<cantPersonajesEnNivel;i++){
-			personaje = list_get(listaDePersonajes,i);
+			personaje = list_get(listaPersonajesAtacablesUbicaciones,i);
 
 			encontrado = false;
 			j=0;
@@ -343,6 +345,20 @@ t_list * buscarPersonajesAtacables(){
 	}
 
 	return lista;
+}
+
+t_list * obtenerListaPersonajesAtacables(){
+	t_list personajes = list_create();
+	int i;
+	for(i=0 ; i < list_size(items) ; i++){
+		ITEM_NIVEL * elemento = list_get(items,i);
+		if (elemento->item_type == PERSONAJE_ITEM_TYPE){
+			t_personaje * personaje = personaje_create(elemento->id, posicion_create_pos(elemento->posX, elemento->posY));
+			list_add(personajes, personaje);
+		}
+	}
+
+	return personajes;
 }
 
 bool personajeEstaEnCaja(t_personaje * personaje, int posX, int posY){
