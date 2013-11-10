@@ -28,14 +28,13 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		int32_t *quantum);
 t_pers_por_nivel *planificar(t_niveles_sistema * str_nivel);
 
-int32_t sumar_valores(char *mensaje){
+int32_t sumar_valores(char *mensaje) {
 
 	char** n_mensaje = string_split(mensaje, ",");
 	int32_t valor = atoi(n_mensaje[0]) + atoi(n_mensaje[1]);
 
 	return valor;
 }
-
 
 void *hilo_planificador(t_niveles_sistema *nivel) {
 //log_info(logger,
@@ -176,8 +175,9 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 							} else
 								supr_pers_de_estructuras(i);
+
+							recibirMensaje(i, &tipoMensaje, &mensaje);
 						}
-						recibirMensaje(i, &tipoMensaje, &mensaje);
 						log_info(logger, "Llego el tipo de paquete: %s .",
 								obtenerNombreEnum(tipoMensaje));
 						log_info(logger, "Llego este mensaje: %s .", mensaje);
@@ -256,6 +256,9 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 	enum tipo_paquete t_mensaje;
 	char* m_mensaje = NULL;
 
+	t_list *p_listos = dictionary_get(listos, str_nivel);
+	t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+
 	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 		return nuevo->fd == personaje->fd;
 	}
@@ -266,6 +269,9 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		//pasamanos al nivel, sin procesar nada
 
 		personaje->pos_inicial = sumar_valores(mensaje);
+
+		enum tipo_paquete k_mensaje;
+		char* j_mensaje = NULL;
 
 		char *prueba = calloc(3, sizeof(char));
 		prueba[0] = personaje->personaje;
@@ -280,116 +286,130 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
 		if (t_mensaje == NIV_movimiento_PLA) {
 			enviarMensaje(personaje->fd, PLA_movimiento_PER, m_mensaje);
-			t_list *p_listos = dictionary_get(listos, str_nivel);
+			recibirMensaje(personaje->fd, &k_mensaje, &j_mensaje);
 
-			if (string_equals_ignore_case(nivel->algol, "RR")) {
-				(*quantum)--;
-				if ((*quantum) != 0) {
-					pthread_mutex_lock(&mutex_listos);
-					//lo pone primero asi despues sigue el mismo planificandose
-					list_add_in_index(p_listos, 0, personaje);
-					pthread_mutex_unlock(&mutex_listos);
-				} else {
-					//lo pone al final
-					pthread_mutex_lock(&mutex_listos);
-					list_add(p_listos, personaje);
-					pthread_mutex_unlock(&mutex_listos);
-					(*quantum) = nivel->quantum;
+			log_info(logger, "Llego el tipo de paquete: %s .",
+					obtenerNombreEnum(k_mensaje));
+			log_info(logger, "Llego este mensaje: %s .", j_mensaje);
+
+			if (k_mensaje == PER_recurso_PLA) {
+
+				if (!string_equals_ignore_case(j_mensaje, "0")) {
+					//pasamanos al nivel, lo paso de listos a bloqueados
+
+					personaje->pos_inicial = personaje->pos_recurso;
+
+					log_info(logger, "se bloquea a %c por pedir un recurso",
+							personaje->personaje);
+					pthread_mutex_lock(&mutex_bloqueados);
+					list_add(p_bloqueados, personaje);
+					pthread_mutex_unlock(&mutex_bloqueados);
+
+					char recurso = mensaje[0];
+					int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
+						return nuevo->recurso == recurso;
+					}
+					char * pers = string_from_format("%c",
+							personaje->personaje);
+					string_append(&pers, ",");
+					string_append(&pers, mensaje);
+					enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, pers);
+					recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
+					if (t_mensaje == NIV_recursoConcedido_PLA) {
+						if (atoi(m_mensaje) == 0) { //recurso concedido
+
+							//
+							pthread_mutex_lock(&mutex_bloqueados);
+							t_pers_por_nivel *aux = list_remove_by_condition(
+									p_bloqueados, (void*) _esta_personaje);
+							pthread_mutex_unlock(&mutex_bloqueados);
+							log_info(logger,
+									"se desbloquea a %c por haber obtenido su recurso",
+									aux->personaje);
+
+							t_recursos_obtenidos *rec = malloc(
+									sizeof(t_recursos_obtenidos));
+							pthread_mutex_lock(&mutex_listos);
+							if (list_is_empty(aux->recursos_obtenidos)) {
+								rec->recurso = recurso;
+								rec->cantidad = 1;
+								list_add(aux->recursos_obtenidos, rec);
+							} else {
+								rec = list_find(aux->recursos_obtenidos,
+										(void*) _esta_recurso);
+								if (rec == NULL ) {
+									rec->recurso = recurso;
+									rec->cantidad = 1;
+									list_add(aux->recursos_obtenidos, rec);
+								} else
+									rec->cantidad++;
+							}
+							list_add(p_listos, aux);
+							pthread_mutex_unlock(&mutex_listos);
+							//
+
+							enviarMensaje(aux->fd, PLA_rtaRecurso_PER,
+									m_mensaje);
+
+						} else {
+							log_info(logger,
+									"el personaje %c sigue bloqueado porque no le dieron el recurso",
+									personaje->personaje);
+							personaje->recurso_bloqueo = recurso;
+							personaje->estoy_bloqueado = true;
+						}
+
+					} else {
+						supr_pers_de_estructuras(personaje->fd);
+						break;
+					}
+
+					if (string_equals_ignore_case(nivel->algol, "RR")) {
+						(*quantum) = nivel->quantum;
+					}
 				}
-			} else {
-				pthread_mutex_lock(&mutex_listos);
-				list_add(p_listos, personaje);
-				pthread_mutex_unlock(&mutex_listos);
-			}
-		} else
-			supr_pers_de_estructuras(personaje->fd);
 
-		free(m_mensaje);
-		break;
-	}
-	case PER_recurso_PLA: {
-		//pasamanos al nivel, lo paso de listos a bloqueados
-		t_list *p_listos = dictionary_get(listos, str_nivel);
-		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
-
-		personaje->pos_inicial = personaje->pos_recurso;
-
-		log_info(logger, "se bloquea a %c por pedir un recurso",
-				personaje->personaje);
-		pthread_mutex_lock(&mutex_bloqueados);
-		list_add(p_bloqueados, personaje);
-		pthread_mutex_unlock(&mutex_bloqueados);
-
-		char recurso = mensaje[0];
-		int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
-			return nuevo->recurso == recurso;
-		}
-		char * pers= string_from_format("%c",personaje->personaje);
-		string_append_(&pers,mensaje);
-		enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, pers);
-		recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
-		if (t_mensaje == NIV_recursoConcedido_PLA) {
-			if (atoi(m_mensaje) == 0) { //recurso concedido
-
-				//
-				pthread_mutex_lock(&mutex_bloqueados);
-				t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
-						(void*) _esta_personaje);
-				pthread_mutex_unlock(&mutex_bloqueados);
-				log_info(logger,
-						"se desbloquea a %c por haber obtenido su recurso",
-						aux->personaje);
-
-				t_recursos_obtenidos *rec = malloc(
-						sizeof(t_recursos_obtenidos));
-				pthread_mutex_lock(&mutex_listos);
-				if (list_is_empty(aux->recursos_obtenidos)) {
-					rec->recurso = recurso;
-					rec->cantidad = 1;
-					list_add(aux->recursos_obtenidos, rec);
-				} else {
-					rec = list_find(aux->recursos_obtenidos,
-							(void*) _esta_recurso);
-					if (rec == NULL ) {
-						rec->recurso = recurso;
-						rec->cantidad = 1;
-						list_add(aux->recursos_obtenidos, rec);
-					} else
-						rec->cantidad++;
+				else {
+					if (string_equals_ignore_case(nivel->algol, "RR")) {
+						(*quantum)--;
+						if ((*quantum) != 0) {
+							pthread_mutex_lock(&mutex_listos);
+							//lo pone primero asi despues sigue el mismo planificandose
+							list_add_in_index(p_listos, 0, personaje);
+							pthread_mutex_unlock(&mutex_listos);
+						} else {
+							//lo pone al final
+							pthread_mutex_lock(&mutex_listos);
+							list_add(p_listos, personaje);
+							pthread_mutex_unlock(&mutex_listos);
+							(*quantum) = nivel->quantum;
+						}
+					} else {
+						pthread_mutex_lock(&mutex_listos);
+						list_add(p_listos, personaje);
+						pthread_mutex_unlock(&mutex_listos);
+					}
 				}
-				list_add(p_listos, aux);
-				pthread_mutex_unlock(&mutex_listos);
-				//
+			} else
+				supr_pers_de_estructuras(personaje->fd);
 
-				enviarMensaje(aux->fd, PLA_rtaRecurso_PER, m_mensaje);
+			free(m_mensaje);
+			free(j_mensaje);
 
-			} else {
-				log_info(logger,
-						"el personaje %c sigue bloqueado porque no le dieron el recurso",
-						personaje->personaje);
-				personaje->recurso_bloqueo = recurso;
-				personaje->estoy_bloqueado = true;
-			}
-
-		} else
-			supr_pers_de_estructuras(personaje->fd);
-
-		if (string_equals_ignore_case(nivel->algol, "RR")) {
-			(*quantum) = nivel->quantum;
+			break;
 		}
-		free(m_mensaje);
-		break;
+		default:
+		{
+			log_info(logger, "el personaje %c se desconecto ",
+					personaje->personaje);
+			supr_pers_de_estructuras(personaje->fd);
+			break;
+		}
 	}
-	default:
-		log_info(logger, "el personaje %c se desconecto ",
-				personaje->personaje);
-		supr_pers_de_estructuras(personaje->fd);
-		break;
 	}
-
 	free(mensaje);
-}
 
+}
 char * transformarListaCadena(t_list *recursosDisponibles) {
 	char *recursosNuevos = string_new(); //"F,1,T,6,M,12";
 	char *recu, *cant;
@@ -612,5 +632,6 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		supr_pers_de_estructuras(socket_r);
 		break;
 	}
+
 	free(mensaje);
 }
