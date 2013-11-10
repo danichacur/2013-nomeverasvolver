@@ -172,11 +172,11 @@ static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 
 //Obtengo el nodo
 
-GFile* obtenerNodo(char *path){
+GFile obtenerNodo(char *path){
 
 	int i;
 	char *Filename,*dir1,*dir2;
-	GFile *NodoBuscado = NULL;
+	GFile NodoBuscado;
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -187,11 +187,11 @@ GFile* obtenerNodo(char *path){
 	dir2 = basename(dir2);
 
 	//Si tengo un solo nivel de directorio, directorio raiz
-	if (dir1 == "/"){
+	if (strcmp(dir1, "/") == 0){
 		for (i = 0; i < 1024; i++){
-			if (strcmp(GTNodo[i]->fname,Filename) == 0){
+			if (strcmp(GTNodo[i].fname,Filename) == 0){
 				NodoBuscado = GTNodo[i];
-				printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
+				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.fname);
 				return NodoBuscado;
 			}
 		}
@@ -199,15 +199,17 @@ GFile* obtenerNodo(char *path){
 	else{
 		//Si tengo dos niveles de directorios
 		for (i = 0; i < 1024; i++){
-			if ((strcmp(GTNodo[i]->fname,Filename) == 0)&&(strcmp(GTNodo[GTNodo[i]->parent_dir_block]->fname,dir2) == 0)){
+			if ((strcmp(GTNodo[i].fname,Filename) == 0)&&(strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0)){
 				NodoBuscado = GTNodo[i];
-				printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
+				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.fname);
 				return NodoBuscado;
 			}
 		}
 	}
 
-	return -1;
+	//Si ni se ecuentra nodo e devuelve 3 en state, validar este retorno.
+	NodoBuscado.state = 3;
+	return NodoBuscado;
 
 }
 

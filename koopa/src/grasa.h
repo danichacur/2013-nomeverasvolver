@@ -42,7 +42,7 @@ typedef struct grasa_header_t { // un bloque
 
 typedef struct grasa_file_t { // un cuarto de bloque (256 bytes)
 	uint8_t state; // 0: borrado, 1: archivo, 2: directorio
-	unsigned char fname[GFILENAMELENGTH];
+	char fname[GFILENAMELENGTH];
 	uint32_t parent_dir_block;
 	uint32_t file_size;
 	uint64_t c_date;
