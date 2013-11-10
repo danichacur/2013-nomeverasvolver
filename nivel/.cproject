@@ -32,7 +32,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/commons}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.pic.1646048434" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" value="true" valueType="boolean"/>
-								<option id="gnu.c.compiler.option.include.files.1248568435" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files" valueType="includeFiles"/>
+								<option id="gnu.c.compiler.option.include.files.1248568435" name="Include files (-include)" superClass="gnu.c.compiler.option.include.files"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.148257797" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1310570575" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
@@ -147,10 +147,10 @@
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1392783507;cdt.managedbuild.config.gnu.exe.debug.1392783507.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1741177091;cdt.managedbuild.tool.gnu.c.compiler.input.148257797">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1125852746;cdt.managedbuild.config.gnu.exe.release.1125852746.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.520135457;cdt.managedbuild.tool.gnu.c.compiler.input.1290036184">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.release.1125852746;cdt.managedbuild.config.gnu.exe.release.1125852746.;cdt.managedbuild.tool.gnu.c.compiler.exe.release.520135457;cdt.managedbuild.tool.gnu.c.compiler.input.1290036184">
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1392783507;cdt.managedbuild.config.gnu.exe.debug.1392783507.;cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1741177091;cdt.managedbuild.tool.gnu.c.compiler.input.148257797">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>

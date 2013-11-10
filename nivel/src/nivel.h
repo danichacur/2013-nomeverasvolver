@@ -24,7 +24,6 @@
 #include <collections/list.h>
 #include <commons/config.h>
 #include <pthread.h>
-#include "nivel.h"
 #include <nivel.h>
 #include <commons/log.h>
 #include <tad_items.h>
@@ -110,11 +109,9 @@ void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
 int32_t handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
-void crearHiloInotify();
-int hilo_inotify(void);
+int inotify(void);
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
 bool determinarRecursoDisponible(char * recursoSolicitado);
-void actualizarItems();
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
 t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
