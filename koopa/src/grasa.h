@@ -53,9 +53,8 @@ typedef struct grasa_file_t { // un cuarto de bloque (256 bytes)
 // Estructura Administracion Grasa
 typedef struct grasa_adm_t {
 	GHeader admHeader;
-	char admbitmap[4096];
-	GFile admTnodo[1024];
-	//Bloque datos
+	char admbitmap[BLOCK_SIZE];
+	GFile admTnodo[GFILEBYTABLE];
 } GAdm;
 
 //Variable Global estructura FS Grasa
@@ -63,24 +62,27 @@ GAdm *GAdmin;
 GFile *GTNodo;
 t_bitarray *GBitmap;
 
+//Disco mapeado Global
+char * mapeo;
+
 //Prototipos
 //Funciones auxiliares
 GFile* obtenerNodo(char *path);
-uint32_t obtenerNroBloque(GFile* Nodo, uint32_t pos);
+ptrGBloque obtenerNroBloque(GFile* Nodo, uint32_t pos);
 
 /*fuse functions */
-/*
-static uint32_t grasa_getattr(const char *path, struct stat *statbuf);
-static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi); -
-static uint32_t grasa_open(const char *path, struct fuse_file_info *fi); -
-static uint32_t grasa_release(const char *path, struct fuse_file_info *fi);
-static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi); -
-static uint32_t grasa_flush(const char *path, struct fuse_file_info *fi);
-static uint32_t grasa_mkdir(const char *path, mode_t mode); -
-static uint32_t grasa_rmdir(const char *path); -
-static uint32_t grasa_unlink(const char *path); -
-static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi); -
-static uint32_t grasa_truncate(const char *path, off_t newsize); -
-static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi); -
-static uint32_t grasa_rename(const char *path, const char *newPath);
-*/
+
+//static uint32_t grasa_getattr(const char *path, struct stat *statbuf);
+static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi);
+static uint32_t grasa_open(const char *path, struct fuse_file_info *fi);
+//static uint32_t grasa_release(const char *path, struct fuse_file_info *fi);
+static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
+//static uint32_t grasa_flush(const char *path, struct fuse_file_info *fi);
+static uint32_t grasa_mkdir(const char *path, mode_t mode);
+static uint32_t grasa_rmdir(const char *path);
+static uint32_t grasa_unlink(const char *path);
+static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
+static uint32_t grasa_truncate(const char *path, off_t newsize);
+static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi);
+//static uint32_t grasa_rename(const char *path, const char *newPath);
+

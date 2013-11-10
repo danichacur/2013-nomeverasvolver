@@ -10,29 +10,50 @@
 
 #include "grasa.h"
 
-/*
+
 static struct fuse_operations fuse_oper = {
 		.open = grasa_open,
-		.getattr = grasa_getattr,
+		//.getattr = grasa_getattr,
 		.readdir  = grasa_readdir,
-		.release = grasa_release,
-		.flush = grasa_flush,
+		//.release = grasa_release,
+		//.flush = grasa_flush,
 		.read = grasa_read,
 		.mkdir = grasa_mkdir,
 		.rmdir = grasa_rmdir,
 		.unlink = grasa_unlink,
 		.write = grasa_write,
 		.truncate = grasa_truncate,
-		.create = grasa_create,
-		.rename = grasa_rename
+		.create = grasa_create
+		//.rename = grasa_rename
 };
-*/
 
 
-int main(void) {
+/*
+ * Esta es una estructura auxiliar utilizada para almacenar parametros
+ * que nosotros le pasemos por linea de comando a la funcion principal
+ * de FUSE
+ */
+struct t_runtime_options {
+	char* welcome_msg;
+} runtime_options;
+
+
+int main(int argc, char *argv[]) {
 
 	int fd;
 	struct stat sbuf;
+
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
+	// Limpio la estructura que va a contener los parametros
+	memset(&runtime_options, 0, sizeof(struct t_runtime_options));
+
+	// Esta funcion de FUSE lee los parametros recibidos y los intepreta
+	if (fuse_opt_parse(&args, &runtime_options, fuse_options, NULL) == -1){
+		/** error parsing options */
+		perror("Invalid arguments!");
+		return EXIT_FAILURE;
+	}
 
 	//prueba
     char* path = "/home/utnso/Escritorio/disk.bin";
@@ -47,95 +68,67 @@ int main(void) {
     	printf("stat Failed!\n");
     }
 
-    GAdmin = (GAdm*) mmap(0,sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    mapeo = mmap(0,sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
-    if (GAdmin == MAP_FAILED){
+    if (mapeo == MAP_FAILED){
      printf("map Failed!\n");
     }
 
-
-    puts("Header");
-    printf("Contenido: %s\n",GAdmin->admHeader.grasa);
-    printf("Version: %u\n",GAdmin->admHeader.version);
-    printf("Bloque inicio: %u\n",GAdmin->admHeader.blk_bitmap);
-    printf("Tamaño: %u\n",GAdmin->admHeader.size_bitmap);
-
-    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
+    GAdmin = (GAdm*) mapeo;
     GTNodo = GAdmin->admTnodo;
+    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
 
-    printf("Bitmap-pos: %u\n",bitarray_get_max_bit(GBitmap));
-    printf("nombre: %s\n",GTNodo[6].fname);
-    printf("dirblock: %u\n",GTNodo[6].parent_dir_block);
-    printf("estado: %u\n",GTNodo[6].state);
-    printf("tamanio: %u\n",GTNodo[6].file_size);
-    printf("blq 5: %s\n",GTNodo[5].fname);
+	// Esta es la funcion principal de FUSE, es la que se encarga
+	// de realizar el montaje, comuniscarse con el kernel, delegar
+    // en varios threads
+	return fuse_main(args.argc, args.argv, &fuse_oper, NULL);
+
 
     return EXIT_SUCCESS;
-    //return fuse_main(argc, argv, &fuse_oper,NULL)
 
 }
 
+/** keys for FUSE_OPT_ options */
+enum {
+	KEY_VERSION,
+	KEY_HELP,
+};
+
+
 /*
+ * Esta estructura es utilizada para decirle a la biblioteca de FUSE que
+ * parametro puede recibir y donde tiene que guardar el valor de estos
+ */
+static struct fuse_opt fuse_options[] = {
+		// Este es un parametro definido por nosotros
+		//CUSTOM_FUSE_OPT_KEY("--welcome-msg %s", welcome_msg, 0),
+
+		// Estos son parametros por defecto que ya tiene FUSE
+		FUSE_OPT_KEY("-V", KEY_VERSION),
+		FUSE_OPT_KEY("--version", KEY_VERSION),
+		FUSE_OPT_KEY("-h", KEY_HELP),
+		FUSE_OPT_KEY("--help", KEY_HELP),
+		FUSE_OPT_END,
+};
+
+/* - grasa_read -
  * @DESC
  *  Esta funciÃ³n va a ser llamada cuando a la biblioteca de FUSE le llege un pedido
- * para obtener la metadata de un archivo/directorio. Esto puede ser tamaÃ±o, tipo,
- * permisos, dueÃ±o, etc ...
+ * para obtener el contenido de un archivo
  *
  * @PARAMETROS
  * 		path - El path es relativo al punto de montaje y es la forma mediante la cual debemos
  * 		       encontrar el archivo o directorio que nos solicitan
- * 		stbuf - Esta esta estructura es la que debemos completar
+ * 		buf - Este es el buffer donde se va a guardar el contenido solicitado
+ * 		size - Nos indica cuanto tenemos que leer
+ * 		offset - A partir de que posicion del archivo tenemos que leer
  *
  * 	@RETURN
- * 		O archivo/directorio fue encontrado. -ENOENT archivo/directorio no encontrado
+ * 		Si se usa el parametro direct_io los valores de retorno son 0 si  elarchivo fue encontrado
+ * 		o -ENOENT si ocurrio un error. Si el parametro direct_io no esta presente se retorna
+ * 		la cantidad de bytes leidos o -ENOENT si ocurrio un error. ( Este comportamiento es igual
+ * 		para la funcion write )
  */
-
-
-/*
-static int grasa_getattr(const char *path, struct stat *stbuf) {
-	int res = 0;
-
-	//memset(stbuf, 0, sizeof(struct stat));
-
-	//Si path es igual a "/" nos estan pidiendo los atributos del punto de montaje
-
-	//if (strcmp(path, "/") == 0) {
-	//	stbuf->st_mode = S_IFDIR | 0755;
-	//	stbuf->st_nlink = 2;
-	//}
-
-	//a construir ... Revisa en la estructura que es.
-	//entryDir = dameDirEntry(path);
-
-
-	//a construir.... Verifico si es nulo
-	//if (entryDir == NULL){
-	//	log_error( pInfo->log, "thread-1", "%s : [%s]","No se encontro los atributos para el path",path);
-	//	return -ENOENT;
-	//}
-
-	//Si es un directorio, estado 2, sino es un archivo.
-	//construir dameNumCLuster, obtenerDirTables
-	// construir usando commons liberarListaDirEntry
-	//if( entryDir->state = 2){
-
-		//stbuf->st_mode = S_IFDIR | 0755;
-		//stbuf->st_size = pInfo->pboot_sector->byteXsector * pInfo->pboot_sector->sectorXcluster;
-		//lista = obtenerDirTables(dameNumCLuster(entryDir));
-		//cantHardLinks = lenghtList(lista);
-		//liberarListaDirEntry(lista);
-		//stbuf->st_nlink = cantHardLinks +2;
-
-	//}else {
-
-		//stbuf->st_mode = S_IFREG | 0755;
-		//stbuf->st_nlink = 1;
-		//stbuf->st_size = entryDir->size;
-
-	//}
-
-	return res;
-}
 
 int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
 {
@@ -143,26 +136,76 @@ int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fu
 
     return retstat;
 }
-*/
 
-//Obtengo la información del tamaño del archivo y los punteros a los bloques de datos
+/* - grasa_readdir
+ * @DESC
+ *  Esta funciÃ³n va a ser llamada cuando a la biblioteca de FUSE le llege un pedido
+ * para obtener la lista de archivos o directorios que se encuentra dentro de un directorio
+ *
+ * @PARAMETROS
+ * 		path - El path es relativo al punto de montaje y es la forma mediante la cual debemos
+ * 		       encontrar el archivo o directorio que nos solicitan
+ * 		buf - Este es un buffer donde se colocaran los nombres de los archivos y directorios
+ * 		      que esten dentro del directorio indicado por el path
+ * 		filler - Este es un puntero a una funciÃ³n, la cual sabe como guardar una cadena dentro
+ * 		         del campo buf
+ *
+ * 	@RETURN
+ * 		O directorio fue encontrado. -ENOENT directorio no encontrado
+ */
+static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+	(void) offset;
+	(void) fi;
+
+	if (strcmp(path, "/") != 0)
+		return -ENOENT;
+
+	// "." y ".." son entradas validas, la primera es una referencia al directorio donde estamos parados
+	// y la segunda indica el directorio padre
+	filler(buf, ".", NULL, 0);
+	filler(buf, "..", NULL, 0);
+	filler(buf, DEFAULT_FILE_NAME, NULL, 0);
+
+	return 0;
+}
+
+
+//Obtengo el nodo
 
 GFile* obtenerNodo(char *path){
 
 	int i;
-	char *Filename;
-	GFile *NodoBuscado;
+	char *Filename,*dir1,*dir2;
+	GFile *NodoBuscado = NULL;
 
-	Filename = basename(path);
+	Filename = basename(strdup(path));
+	dir1 = strdup(path);
+	dir1 = dirname(dir1);
+	dir1 = dirname(dir1);
+	dir2 = strdup(path);
+	dir2 = dirname(dir2);
+	dir2 = basename(dir2);
 
-	 for (i = 0; i < 1024; i++){
-	      if (strcmp(GTNodo[i]->fname,Filename) == 0){
-	    	 NodoBuscado = GTNodo;
-	    	 printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
-	    	 return NodoBuscado;
-	      }
-	   }
-
+	//Si tengo un solo nivel de directorio, directorio raiz
+	if (dir1 == "/"){
+		for (i = 0; i < 1024; i++){
+			if (strcmp(GTNodo[i]->fname,Filename) == 0){
+				NodoBuscado = GTNodo[i];
+				printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
+				return NodoBuscado;
+			}
+		}
+	}
+	else{
+		//Si tengo dos niveles de directorios
+		for (i = 0; i < 1024; i++){
+			if ((strcmp(GTNodo[i]->fname,Filename) == 0)&&(strcmp(GTNodo[GTNodo[i]->parent_dir_block]->fname,dir2) == 0)){
+				NodoBuscado = GTNodo[i];
+				printf("NodoBuscado,fname %s.\n",Filename,NodoBuscado->fname);
+				return NodoBuscado;
+			}
+		}
+	}
 
 	return -1;
 
@@ -170,8 +213,10 @@ GFile* obtenerNodo(char *path){
 
 //Para que te devuelva el número de bloque lineal donde está bloque "i" de datos del archivo.
 
-uint32_t bloque obtenerNroBloque(nodo, i);
+ptrGBloque obtenerNroBloque(nodo, i){
 
+	return 0;
 
+}
 
 
