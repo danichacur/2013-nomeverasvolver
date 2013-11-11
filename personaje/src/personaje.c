@@ -56,6 +56,8 @@ int main(){
 
 	levantarArchivoConfiguracion();
 
+	capturarSeniales(); // TODO
+
 	int ordenNivel;
 	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++)
 		pthread_create(&tabla_thr[ordenNivel], NULL, (void*)&conectarAlNivel, (int*)ordenNivel);
@@ -89,6 +91,9 @@ void* conectarAlNivel(int* nroNivel){
 
 		recibirTurno();
 
+		if(tengoTodosLosRecursos(ordNivel))
+			break;
+
 		if(!tengoPosicionProximaCaja(ordNivel))
 			solicitarYRecibirPosicionProximoRecurso(ordNivel);
 
@@ -104,10 +109,8 @@ void* conectarAlNivel(int* nroNivel){
 
 		if(estoyEnCajaRecursos(ordNivel))
 			solicitarRecurso(ordNivel);
-
-		if(tengoTodosLosRecursos(ordNivel))
-			break;
-
+		else
+			avisarQueNoEstoyEnCajaRecursos(ordNivel);
 	}
 
 	if(!hubo_error)
@@ -131,8 +134,8 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 
 	if(meQuedanVidas() == EXIT_SUCCESS){
 		descontarUnaVida();
-		desconectarmeDePlataforma(ordNivel);
-		conectarAPlataforma(ordNivel);
+		//desconectarmeDePlataforma(ordNivel); TODO
+		//conectarAPlataforma(ordNivel); TODO
 	}else{
 		char* respuesta = NULL;
 
@@ -516,6 +519,13 @@ void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando un
 	free(recursosNecesarios);
 }
 
+void avisarQueNoEstoyEnCajaRecursos(int nivel){
+	char * recursoNecesario = "0";
+		//log_info(logger, "Personaje %s (%s) (nivel: %s) avisa que no está en la caja", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+		if (CON_CONEXION)
+			enviarMensaje(fdOrquestador,PER_recurso_PLA,recursoNecesario);
+}
+
 char* obtenerRecursosActualesPorNivel(int ordNivel){
 	char * recursosActuales = string_new();
 	int i;
@@ -550,7 +560,7 @@ void avisarNivelConcluido(int nivel){
 }
 
 void desconectarPlataforma(){
-	// TODO
+	close(fdOrquestador);
 }
 
 int meQuedanVidas(){
@@ -561,19 +571,23 @@ void descontarUnaVida(){
 	personaje->cantVidas = personaje->cantVidas - 1;
 }
 
-void desconectarmeDePlataforma(int nivel){
-	// TODO
-}
-
-void conectarAPlataforma(int nivel){
-	// TODO ?
-}
-
 void interrumpirTodosPlanesDeNiveles(){
-	// TODO
+	int ordenNivel;
+	int32_t idHilo;
+	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++){
+		idHilo = tabla_thr[ordenNivel];
+
+		int v = pthread_cancel(idHilo);
+		if (v == 0){
+			log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
+		}else
+			log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
+	}
 }
+
 void finalizarTodoElProcesoPersonaje(){
-	// TODO
+	log_info(logger, "Personaje %s (%s) finaliza totalmente.", personaje->nombre, personaje->simbolo);
+	kill(getpid(), SIGKILL);
 }
 
 char * obtenerNombreNivelDesdeOrden(int ordNivel){
@@ -622,7 +636,7 @@ void recibirHandshake(int ordNivel){
 	free(nomNivel);
 }
 
-void enviaSolicitudConexionANivel(int ordNivel){
+void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volver a pedir el nivel mientras no esté conectado.
 	char* mensaje = string_new();
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
@@ -659,7 +673,7 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
 		}else{
-			if (tipoMensaje == PLA_rtaRecurso_PER && mensaje == "1"){
+			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") == 0){
 				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_INTERBLOQUEO, ordNivel);
 			}else
@@ -725,4 +739,8 @@ char * obtenerProximoRecursosNecesario(int ordNivel){
 	char * proximoRecurso = list_get(list_get(personaje->recursosNecesariosPorNivel,ordNivel), cantRecursosObtenidos);
 
 	return proximoRecurso;
+}
+
+void capturarSeniales(){
+
 }

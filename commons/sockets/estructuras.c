@@ -17,6 +17,40 @@ char * posicionToString(t_posicion * posicion){
 }
 
 
+char * charToString(char valor){
+	char * res = string_new();
+	string_append_with_format(&res, "%c", valor);
+	return res;
+}
+
+
+t_posicion * posicion_create(){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  0;
+	posicion->posX =  0;
+
+	return posicion;
+}
+
+t_posicion * posicion_create_pos(int x, int y){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  x;
+	posicion->posY =  y;
+
+	return posicion;
+}
+
+t_posicion * posicion_create_pos_rand(int maxRandPos){
+
+	t_posicion * posicion = malloc(sizeof(t_posicion));
+	posicion->posX =  rand() % maxRandPos;
+	posicion->posX =  rand() % maxRandPos;
+
+	return posicion;
+}
+
 /*
 static t_posicion * posicion_create(int posX, int posY){
 	t_posicion *new = malloc(sizeof(t_posicion));

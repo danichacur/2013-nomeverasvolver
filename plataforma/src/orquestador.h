@@ -35,6 +35,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* Esto es para esperar la señal de koopa */
+#include <sys/wait.h>
 
 typedef struct{
 char personaje;
@@ -64,7 +66,7 @@ int32_t fd;
 } t_monitoreo;
 
 void supr_pers_de_estructuras (int32_t socket);
-t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel);
+t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int32_t nivel_fd);
 void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel);
 void destruir_personaje(t_pers_por_nivel *personaje);
 

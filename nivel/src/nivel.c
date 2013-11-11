@@ -1,21 +1,18 @@
 
 ////////////////////////////////////////////////////HEADER////////////////////////////////////////////////////
 #include "nivel.h"
-
+#include "interbloqueo.h"
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
-#define DIRECCION "192.168.1.115"
-#define PUERTO 5000
 
-#define BUFF_SIZE 1024
 #define RUTA "./config.cfg"
-#define CANT_NIVELES_MAXIMA 100
 #define BUF_LEN 1024
 
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES GLOBALES////////////////////////////////////////////////////
 int retardo;
-int cantidadIntentosFallidos;
 int quantum;
 int retardoSegundos;
+int rows;
+int cols; // TAMAÑO DEL MAPA
 char * nombre;
 char * direccionIPyPuerto;
 char * algoritmo;
@@ -28,6 +25,7 @@ t_log * logger;
 int32_t socketDeEscucha;
 pthread_t hilo1;
 pthread_mutex_t *mutex_mensajes;
+t_list * listaPersonajesRecursos;
 
 bool listaRecursosVacia;
 char * buffer_log;
@@ -38,11 +36,14 @@ int main (){
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
 	listaRecursosNivel=list_create(); //CREO LA LISTA DE RECURSOS POR NIVEL
 	items = list_create(); // CREO LA LISTA DE ITEMS
+	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
 	listaDePersonajes = list_create(); // CREO LA LISTA DE PERSONAJES (NO VA)
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
-	// crearHiloInotify();
-	inicializarMapaNivel(listaRecursosNivel);
+	//crearHiloInotify();
+//	inicializarMapaNivel(listaRecursosNivel);
 	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+	//crearHiloInterbloqueo();
+
 	while(1){
 		if(socketDeEscucha!=-1){
 		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
@@ -117,20 +118,15 @@ int leerArchivoConfiguracion(){
 }
 
 void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE RECURSOS DEL NIVEL
-	tRecursosNivel *unaCaja=malloc(sizeof(tRecursosNivel));
-	unaCaja->nombre=caja[0];
-	unaCaja->simbolo=caja[1];
-	unaCaja->instancias=caja[2];
-	unaCaja->posX=caja[3];
-	unaCaja->posY=caja[4];
 
-	int cantElementos= list_add(listaRecursosNivel,unaCaja);
-	log_info(logger, "La cantidad de cajas del %s es ahora %d",nombre,cantElementos+1);
-	free(unaCaja);
+
+	CrearCaja(items, caja[1][0],atoi(caja[3]), atoi(caja[4]), atoi(caja[2]));
+	log_info(logger, "Se cre la caja de %s", caja[1]);
+
 }
 
 void inicializarMapaNivel(t_list* listaRecursos){
-	/*
+
     t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
 	int rows, cols; // TAMAÑO DEL MAPA
 	int i=0;
@@ -147,23 +143,17 @@ void inicializarMapaNivel(t_list* listaRecursos){
 
 	nivel_gui_get_area_nivel(&rows, &cols);
 	log_info(logger, "El mapa de %s se ha dibujado, tiene %s filas por %s columnas",nombre,rows,cols);
+
 	tRecursosNivel *unaCaja= list_get(listaRecursos, i);
 
 	while(unaCaja!=NULL){
 		char* simbolo=unaCaja->simbolo;
-		char* instancias=unaCaja->instancias;
-		char* posX=unaCaja->posX;
-		char* posY=unaCaja->posY;
-		int posXint=atoi(posX);
-		int posYint=atoi(posY);
-		int instanciasInt=atoi(instancias);
-
-		CrearCaja(items,*simbolo, posXint, posYint, instanciasInt);
+		CrearCaja(items,*simbolo, unaCaja->posX, unaCaja->posY, unaCaja->instancias);
 		i++;
 	}
 	log_info(logger, "Se procede a graficar los elementos en el mapa creado",nombre,rows,cols);
 	nivel_gui_dibujar(items,nombre);
-*/
+
 }
 
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
@@ -187,26 +177,27 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	socketDeEscucha= cliente_crearSocketDeConexion(IP,puerto);
 	sprintf(buffer,"%d,%s,%d,%d",numeroNivel,algoritmo,quantum,retardo);
 	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
+	enum tipo_paquete unMensaje;
+	char* elMensaje=NULL;
 
-	if(socketDeEscucha>-1){
-	log_info(logger, "El %s se conecto a la plataforma en %s ",nombre,direccionIPyPuerto);
-		if(ok==0){
-			log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
-			char buffer[1024];
-			sprintf(buffer,"%d,%d,%s",quantum,retardo,algoritmo);
-			int32_t respuesta=enviarMensaje(socketDeEscucha,NIV_cambiosConfiguracion_PLA,buffer);
-			printf("%d",respuesta);
+	recibirMensaje(socketDeEscucha,&unMensaje,&elMensaje);
+	if(unMensaje==ORQ_handshake_NIV){
+		if(socketDeEscucha>-1){
+			log_info(logger, "El %s se conecto a la plataforma en %s ",nombre,direccionIPyPuerto);
+			if(ok==0){
+				log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
 
-			log_info(logger, "Se envio a la plataforma quantum %d retardo %d y algoritmo %s ",quantum,retardo,algoritmo);
+				return socketDeEscucha;
+			}
+		}else
+			log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
 
+	}else {
 
-			return socketDeEscucha;
-		}
-	} else {
+			log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
 
-		log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
+	}
 
-		}
 	free(buffer);
 	return socketDeEscucha;
 
@@ -221,60 +212,63 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 		switch (unMensaje) {
 
-			case PLA_movimiento_NIV: {//graficar y actualizar la lista
+			case PLA_movimiento_NIV: {//graficar y actualizar la lista RECIBE "@,1,3"
 				char ** mens = string_split(elMensaje,",");
-				bool movValido;
+				//bool movValido;
 
-				ITEM_NIVEL * pers = buscarPersonajeLista(items, mens[0]);
-				movValido= validarMovimientoPersonaje(mens,pers);
+				//movValido= validarMovimientoPersonaje(mens,pers);
 
-				if (movValido==true){
+				//if (movValido==true){
 
-				pers->posx = atoi(mens[1]);
-				pers->posy = atoi(mens[2]);
-
-				//MoverPersonaje(items, elMensaje[0],pers->posx ,pers->posy);
+		    	MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2])); //hay q validar q se mueva dentro del mapa...
 
 				printf("el personaje se movio %s",elMensaje);
 
-				log_info(logger, "El personaje %s se movio a %d %d ",mens[0],pers->posx,pers->posy);
+				log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
 
-				int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //hay q validar q se mueva dentro del mapa...
+				int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
 				printf("%d \n",respuesta);
-
+				/*
 				} else {
 
-					int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
-					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);
+					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
+					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);//"1" SI ES INVALIDO
 
-				}
+				}*/
 
 				break;
 			}
-			case PLA_personajeMuerto_NIV:{
+			case PLA_personajeMuerto_NIV:{ //RECIBE "@"
 				char id=elMensaje[0];
 
-				//BorrarItem(items,id);
-				log_info(logger, "El personaje %s ha muerto ",elMensaje[0]);
-
+				BorrarItem(items,id);
+				log_info(logger, "El personaje %s ha muerto ",id);
+				// sacar de lista de personajes y sumar sus recursos a  disponibles
 				break;
 			}
-			case PLA_nuevoPersonaje_NIV:{
-				char * simbolo = malloc(strlen(elMensaje)+1);
-				ITEM_NIVEL * item = malloc(sizeof(ITEM_NIVEL));
+			case PLA_nuevoPersonaje_NIV:{ //RECIBE "@" LA POSICION DE INICIO SERA SIEMPRE 0,0 POR LO QUE NO LA RECIBE
 
+				char * simbolo = malloc(strlen(elMensaje)+1);
 				strcpy(simbolo,elMensaje);
 
-				//CrearPersonaje(items,elMensaje[0],0,0);
-				free(item);
-				free(simbolo);
+				CrearPersonaje(items,elMensaje[0],0,0);
+
+				//ACA CREO UNA LISTA DE PERSONAJES CON SUS RESPECTIVOS RECURSOS ASIGNADOS
+				t_personaje * personaje = malloc(sizeof(t_personaje));
+				personaje->simbolo = string_substring_until(elMensaje,1);
+				personaje->recursosActuales = list_create();
+				personaje->recursoBloqueante = string_new();
+				personaje->posicion = posicion_create_pos(0,0);
+
+				list_add(listaPersonajesRecursos,personaje);
 
 				log_info(logger, "El nuevo personaje %s se dibujo en el mapa",simbolo);
 
 				break;
 
 			}
-			case PLA_solicitudRecurso_NIV:{ // DEBERIA SER SOLICITUD POSICION RECURSO
+			case PLA_posCaja_NIV:{ // RECIBE "F" SI ESTA SOLICITANDO UNA FLOR, POR EJEMPLO
+
 				char * pos = string_new();
 				ITEM_NIVEL * caja = buscarRecursoEnLista(items, elMensaje);
 
@@ -282,9 +276,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, ",");
 				string_append(&pos, string_from_format("%d",caja->posy));
 
-				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos);
+				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 
-				if(mensaje){
+				if(mensaje==0){
 					log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
 
 				} else {
@@ -293,31 +287,80 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				}
 				free(pos);
 				break;
-			}
-			case OK1:{ //REVISAR y/o BORRAR
-				printf("la conexion se hizo ok %s \n",elMensaje);
+
+			}case PLA_solicitudRecurso_NIV:{ // LE CONTESTO SI EL RECURSOS ESTA DISPONIBLE
+				// El mensaje de ejemplo es : "@,H"
+
+				char * rta;
+				bool hayRecurso = determinarRecursoDisponible (string_substring_from(elMensaje, 2));
+				t_personaje * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
+
+				if (hayRecurso){
+					rta = "0";
+					list_add(pers->recursosActuales, string_substring_from(elMensaje, 2));
+					pers->recursoBloqueante = string_new();
+
+				}else{
+					pers->recursoBloqueante = string_substring_from(elMensaje, 2);
+					rta = "1";
+					restarRecurso(items,elMensaje[1]);
+				}
+
+				enviarMensaje(socketEscucha, NIV_recursoConcedido_PLA,rta);//"0" CONCEDIDO, "1" NO CONCEDIDO
+
 				break;
 			}
-			default:
+			//case PLA_personajesDesbloqueados_NIV:{//"@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
+			//	break;
+			//}
+			case PLA_actualizarRecursos_NIV:{ //"F,1;C,3;....." actualizo la lista de recursos sumandole esas cantidades
+
+				break;
+						}
+			{
+				default:
 				printf("%s \n","recibio cualquier cosa");
 				break;
 			}
+
 		//nivel_gui_dibujar(items,nombre);
 		free(elMensaje);
 
+		}
 }
 
-bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje){ //TERMINAR
 
-return true;
+bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje){ //TERMINAR
+	if(personaje->posx <= atoi(mensaje[1]) && personaje->posy <= atoi(mensaje[2])){
+		log_info(logger, "El personaje %s realizo un movimiento valido y se dibujara en el mapa",personaje->id);
+		return true;
+	}else{
+		log_info(logger, "El personaje %s realizo un movimiento invalido y no se dibujara en el mapa",personaje->id);
+		return false;
+	}
+
+}
+
+bool determinarRecursoDisponible(char * recursoSolicitado){
+	ITEM_NIVEL * item;
+
+	item=buscarRecursoEnLista(items,recursoSolicitado);
+	char id=item->id;
+	char * nulo="0";
+	if(id== nulo[0]) {
+		return false;
+		}else{
+			return true;
+	}
+
 }
 
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY UN RECURSO PEDIDO Y LO DEVUELVE
 	ITEM_NIVEL * item;
-	ITEM_NIVEL * unItem;
+	ITEM_NIVEL * unItem;                      //QUE PASA SI EL RECURSO NO EXISTE?? QUE DEVOLVERIA ITEM?
 	bool encontrado = false;
-	int i=0;
 
+	int i=0;
 	while(i < list_size(lista) && !encontrado){
 
 		unItem=list_get(lista,i);
@@ -330,7 +373,6 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 			}
 		i++;
 		}
-
 	return item;
 }
 
@@ -357,9 +399,17 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 }
 
 t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
-	t_personaje * personaje;
-	t_personaje * unPers;
 
+
+	int32_t _esta_el_personaje(t_personaje * personaje){
+
+		return string_equals_ignore_case(personaje->simbolo,simbolo);
+	}
+
+	t_personaje * unPers = list_find(lista, (void*) _esta_el_personaje);
+
+
+	/*
 	bool encontrado = false;
 	int i=0;
 	while(i < list_size(lista) && !encontrado){
@@ -372,130 +422,113 @@ t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //
 	}
 
 	return personaje;
+*/
+	return unPers;
 }
 
-void eliminarEstructuras(){ //TERMINAR
+void eliminarEstructuras() { //TERMINAR
+
 	config_destroy(config);
 
 }
 
 
-
-void crearHiloInotify(){
-	int r1 = pthread_create(&hilo1,NULL,(void*)&hilo_inotify,NULL);
-	printf("%d \n",r1);
-	log_info(logger, "Se lanza un hilo para detectar cambios de quantum, retado y algoritmo");
-
-
-}
-
 // FUNCIONES DEL TP MIO CUATRI PASADO Y DEL TP DE PABLO, ADAPTAR Y CORREGIR
-int hilo_inotify(void) {
-	char buffer[BUF_LEN];
-	int quantumAux;
-	int retardoAux;
-	char * algoritmoAux;
-	int ret;
-	int i;
-	int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
+/* int inotify(void) {
+        char buffer[BUF_LEN];
+        int quantumAux;
+        int retardoAux;
+        char * algoritmoAux;
+        int ret;
+        int i;
+        int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
 
-	if (file_descriptor < 0) {
-		perror("inotify_init");
-	}
+        if (file_descriptor < 0) {
+                perror("inotify_init");
+        }
 
-	// Creamos un monitor sobre un path indicando que eventos queremos escuchar
-	///home/utnso/workspace/inotify/src
-	int watch_descriptor = inotify_add_watch(file_descriptor, "./", IN_MODIFY | IN_CREATE | IN_DELETE);
+        // Creamos un monitor sobre un path indicando que eventos queremos escuchar
+        ///home/utnso/workspace/inotify/src
+        int watch_descriptor = inotify_add_watch(file_descriptor, "./", IN_MODIFY);
 
-	// El file descriptor creado por inotify, es el que recibe la información sobre los eventos ocurridos
-	// para leer esta información el descriptor se lee como si fuera un archivo comun y corriente pero
-	// la diferencia esta en que lo que leemos no es el contenido de un archivo sino la información
-	// referente a los eventos ocurridos
+        // El file descriptor creado por inotify, es el que recibe la información sobre los eventos ocurridos
+        // para leer esta información el descriptor se lee como si fuera un archivo comun y corriente pero
+        // la diferencia esta en que lo que leemos no es el contenido de un archivo sino la información
+        // referente a los eventos ocurridos
 
 
-	i = 0;
-	while (1) {
-		int length = read(file_descriptor, buffer, BUF_LEN);
-		printf("BUFFER = [%s]\n",buffer);
-		if (length < 0) {
-			perror("read");
-		}
-	printf("DESPUES DE LEER\n");
+        i = 0;
+        while (1) {
+                int length = read(file_descriptor, buffer, BUF_LEN);
+                printf("BUFFER = [%s]\n",buffer);
+                if (length < 0) {
+                        perror("read");
+                }
+        printf("DESPUES DE LEER\n");
 
-	int offset = 0;
+        int offset = 0;
 
-	// Luego del read buffer es un array de n posiciones donde cada posición contiene
-	// un eventos ( inotify_event ) junto con el nombre de este.
-	while (offset < length) {
+        // Luego del read buffer es un array de n posiciones donde cada posición contiene
+        // un eventos ( inotify_event ) junto con el nombre de este.
+        while (offset < length) {
 
-		// El buffer es de tipo array de char, o array de bytes. Esto es porque como los
-		// nombres pueden tener nombres mas cortos que 24 caracteres el tamaño va a ser menor
-		// a sizeof( struct inotify_event ) + 24.
-		struct inotify_event *event = (struct inotify_event *) &buffer[offset];
+                // El buffer es de tipo array de char, o array de bytes. Esto es porque como los
+                // nombres pueden tener nombres mas cortos que 24 caracteres el tamaño va a ser menor
+                // a sizeof( struct inotify_event ) + 24.
+                struct inotify_event *event = (struct inotify_event *) &buffer[offset];
 
-		// El campo "len" nos indica la longitud del tamaño del nombre
-		if (event->len) {
-			// Dentro de "mask" tenemos el evento que ocurrio y sobre donde ocurrio
-			// sea un archivo o un directorio
-			if (event->mask & IN_CREATE) {
-				if (event->mask & IN_ISDIR) {
-					printf("The directory %s was created.\n", event->name);
-				} else {
-					printf("The file %s was created.\n", event->name);
-				}
-			} else if (event->mask & IN_DELETE) {
-				if (event->mask & IN_ISDIR) {
-					printf("The directory %s was deleted.\n", event->name);
-				} else {
-					printf("The file %s was deleted.\n", event->name);
-				}
-			} else if (event->mask & IN_MODIFY) {
-				if (event->mask & IN_ISDIR) {
-					printf("The directory [%s] was modified.\n", event->name);
+                // El campo "len" nos indica la longitud del tamaño del nombre
+                if (event->len) {
+                        // Dentro de "mask" tenemos el evento que ocurrio y sobre donde ocurrio
+                        // sea un archivo o un directorio
+                        if (event->mask & IN_MODIFY) {
+                                if (ret == 0) {
+                                          if (i == 0){
+                                                        sleep(1);
+                                                        config_destroy(config);
+                                                        config = config_create(RUTA);
+                                                        ret = config_keys_amount(config);
+                                                        retardoAux = config_get_int_value(config, "retardo");
+                                                        quantumAux = config_get_int_value(config,"quantum");
+                                                        algoritmoAux=config_get_string_value(config,"algoritmo");
+                                                        printf("El nuevo quantum es: %d\n",quantum);
+                                                        printf("El nuevo retardo es: %d\n",retardoAux);
+                                                        //pthread_mutex_lock( &mutex3 );
+                                                        quantum=quantumAux;
+                                                        retardo=retardoAux;
+                                                        algoritmo=algoritmoAux;
+                                                    	sprintf(buffer,"%s,%d,%d",algoritmo,quantum,retardo);
+                                                    	enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
 
-				} else {
-					printf("The file [%s] was modified.\n", event->name);
-					ret = strcmp(event->name,RUTA);
-					if (ret == 0) {
-						if (i == 0){
-							sleep(1);
-							config_destroy(config);
-							config = config_create(RUTA);
-							ret = config_keys_amount(config);
-							retardoAux = config_get_int_value(config, "retardo");
-							quantumAux = config_get_int_value(config,"quantum");
-							algoritmoAux=config_get_string_value(config,"algoritmo");
-							printf("El nuevo quantum es: %d\n",quantum);
-							printf("El nuevo retardo es: %d\n",retardoAux);
-							//pthread_mutex_lock( &mutex3 );
-							quantum=quantumAux;
-							retardo=retardoAux;
-							algoritmo=algoritmoAux;
-							//pthread_mutex_unlock( &mutex3 );
-							i ++;
-						}
-						else i = 0;
-					}
-				}
-			}
-		}
-		else {
-			printf("NO DEBERIAS LLEGAR ACA!\n");
-			printf("event->len = %d",event->len);
-		}
-		offset += sizeof (struct inotify_event) + event->len;
-	}
-	}
+                                                        //pthread_mutex_unlock( &mutex3 );
+                                                        i ++;
+                                                }
+                                                else i = 0;
+                                        }
 
-	inotify_rm_watch(file_descriptor, watch_descriptor);
-	close(file_descriptor);
 
-	printf("SALGO DEL PROGRAMA\n");
+                }
+                else {
+                        printf("NO DEBERIAS LLEGAR ACA!\n");
+                        printf("event->len = %d",event->len);
+                }
+                offset += sizeof (struct inotify_event) + event->len;
+        }
+        }
 
-	return EXIT_SUCCESS;
+        inotify_rm_watch(file_descriptor, watch_descriptor);
+        close(file_descriptor);
+
+        printf("SALGO DEL PROGRAMA\n");
+
+        return EXIT_SUCCESS;
 }
 
-
+*/
+void crearHiloInterbloqueo(){
+	//pthread_t id;
+//	pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
+}
 
 
 

@@ -9,10 +9,19 @@
 
 int sleepInterbloqueo;
 bool recovery;
-t_list * listaDePersonajes;
+extern t_list * listaDePersonajes;
 int32_t fdPlanificador;
 
-int main(){ // funcion rutinaInterbloqueo
+t_personaje * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
+	t_personaje * new = malloc(sizeof(t_personaje));
+	new->simbolo = simbolo;
+	new->recursosActuales = recActuales;
+	new->recursoBloqueante = recBloqueante;
+
+	return new;
+}
+
+void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 
 	//TODO: HARDCODEADO
 	recovery = true;
@@ -40,11 +49,12 @@ int main(){ // funcion rutinaInterbloqueo
 			printf("%s", "No se detectaros interbloqueos \n");
 
 	}
+	pthread_exit(NULL);
 }
 
 t_list * obtenerPersonajesInterbloqueados(){
 
-	t_list * listaBloqueados = obtenerListaDePersonajesDePlanificador();
+	t_list * listaBloqueados = obtenerListaDePersonajesBloqueados();
 
 	t_list * listaInterbloqueados;
 	bool interbloqueo = false;
@@ -139,10 +149,10 @@ void informarVictimaAPlanificador(t_personaje * personaje){
 	//enviarMensaje(fdPlanificador,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
 }
 
-t_list * obtenerListaDePersonajesDePlanificador(){
+t_list * obtenerListaDePersonajesBloqueados(){
 	t_list * listaPersonajesBloqueados = list_create();
 
-	//TODO poner un mutex
+	/*//TODO poner un mutex
 	//enviarMensaje(fdPlanificador, NIV_recursosPersonajesBloqueados_PLA, "0");
 	char * mensaje;
 	//enum tipo_paquete tipoRecibido;
@@ -164,10 +174,17 @@ t_list * obtenerListaDePersonajesDePlanificador(){
 			j++;
 		}
 
-		t_personaje * personaje = personaje_rec_create(recursos[0], listaRecursosActuales, recursos[j]);
+		t_personaje * personaje = personaje_recursos_create(recursos[0], listaRecursosActuales, recursos[j]);
 		list_add(listaPersonajesBloqueados, personaje);
 
 		i++;
+	}*/
+
+	int i;
+	for (i=0; i <list_size(listaDePersonajes); i++){
+		t_personaje * personaje =  list_get(listaDePersonajes,i);
+		if (strcmp(personaje->recursoBloqueante, "") != 0)
+			list_add(listaPersonajesBloqueados, personaje);
 	}
 
 	return listaPersonajesBloqueados;

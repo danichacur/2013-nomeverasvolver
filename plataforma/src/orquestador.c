@@ -29,6 +29,9 @@ t_list *personajes_para_koopa; // es para lanzar koopa
 t_list *personajes_del_sistema; // es para identificar los simbolos de los personajes
 t_list *niveles_del_sistema;
 //int32_t comienzo = 0;
+char *ruta_koopa;
+char *ruta_script;
+char *ruta_disco;
 
 t_pers_koopa *per_koopa_crear(char personaje) {
 	t_pers_koopa *nuevo = malloc(sizeof(t_pers_koopa));
@@ -73,11 +76,12 @@ t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel,
 	return nuevo;
 }
 
-t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel) {
+t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int32_t nivel_fd) {
 
 	t_list *recursos_libres = list_create();
 	t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 	t_list *p_listos = dictionary_get(listos, str_nivel);
+	char* personajes_desbloqueados = string_new();
 
 	if (list_is_empty(p_bloqueados) || (p_bloqueados == NULL )) {
 		log_info(logger,
@@ -115,7 +119,8 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel) {
 				log_info(logger,
 						"sale %c de bloqueados y pasa a la lista de listos ",
 						per->personaje);
-
+				string_append(&personajes_desbloqueados,string_from_format("%c",per->personaje));
+				string_append(&personajes_desbloqueados,",");
 				if (rec->cantidad == 0) {
 					free(rec);
 					break;
@@ -130,6 +135,10 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel) {
 		}
 
 	}
+	if(personajes_desbloqueados[strlen(personajes_desbloqueados)] == ',')
+		personajes_desbloqueados = string_substring_until(personajes_desbloqueados,strlen(personajes_desbloqueados)-1);
+
+	enviarMensaje(nivel_fd,PLA_personajesDesbloqueados_NIV,personajes_desbloqueados);
 	return recursos_libres;
 }
 
@@ -190,16 +199,16 @@ void supr_pers_de_estructuras(int32_t sockett) {
 		 */
 	} else {
 		//era un personaje lo que se desconecto
-		int32_t _esta_enKoopa(t_pers_koopa *valor) {
-			return valor->personaje == aux->simbolo;
-		}
+		/*int32_t _esta_enKoopa(t_pers_koopa *valor) {
+		 return valor->personaje == aux->simbolo;
+		 }
 
-		pthread_mutex_lock(&mutex_personajes_para_koopa);
-		t_monitoreo *aux1 = list_remove_by_condition(personajes_para_koopa,
-				(void*) _esta_enKoopa);
-		pthread_mutex_unlock(&mutex_personajes_para_koopa);
-		free(aux1);
-
+		 pthread_mutex_lock(&mutex_personajes_para_koopa);
+		 t_monitoreo *aux1 = list_remove_by_condition(personajes_para_koopa,
+		 (void*) _esta_enKoopa);
+		 pthread_mutex_unlock(&mutex_personajes_para_koopa);
+		 free(aux1);*/
+		t_monitoreo *aux1;
 		int32_t _buscar_nivel(t_niveles_sistema *valor) {
 			return valor->nivel == aux->nivel;
 		}
@@ -259,6 +268,9 @@ int main() {
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG_ORQ");
 	logger = log_create(PATH_LOG, "ORQUESTADOR", true, LOG_LEVEL_INFO);
 	puerto = config_get_int_value(config, "PUERTO");
+	ruta_koopa = config_get_string_value(config, "koopa");
+	ruta_script = config_get_string_value(config, "script");
+	ruta_disco = config_get_string_value(config, "mapeo");
 	personajes_del_sistema = list_create();
 	niveles_del_sistema = list_create();
 	personajes_para_koopa = list_create();
@@ -415,25 +427,32 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
 		// delegar la conexión al hilo del nivel correspondiente
 		log_info(logger, "nivel solicitado: %d ", nivel);
-		t_monitoreo *aux = list_find(personajes_del_sistema,
-				(void*) _esta_personaje);
-		aux->nivel = nivel; //actualiza el nivel a donde se conecta el personaje
+
 		t_list *p_monitor = dictionary_get(monitoreo, mensaje);
-		t_monitoreo *item = per_monitor_crear(true, 'M', nivel, sockett);
-		memcpy(item, aux, sizeof(t_monitoreo));
-		pthread_mutex_lock(&mutex_monitoreo);
-		list_add(p_monitor, item);
-		pthread_mutex_unlock(&mutex_monitoreo);
-		// delegar la conexión al hilo del nivel correspondiente
+		if (p_monitor == NULL ) {
+			log_info(logger, "El nivel solicitado: %d aun no se encuentra disponible en el sistema, por favor intente mas tarde.", nivel);
 
-		//agregar a la lista de listos del nivel
-		t_list *p_listos = dictionary_get(listos, mensaje);
-		t_pers_por_nivel *item2 = crear_personaje(aux->simbolo, aux->fd);
-		pthread_mutex_lock(&mutex_listos);
-		list_add(p_listos, item2);
-		pthread_mutex_unlock(&mutex_listos);
-		//agregar a la lista de listos del nivel
+			enviarMensaje(sockett, ORQ_conexionNivel_PER, "1");
+		} else {
+			t_monitoreo *aux = list_find(personajes_del_sistema,
+					(void*) _esta_personaje);
+			aux->nivel = nivel; //actualiza el nivel a donde se conecta el personaje
+			t_monitoreo *item = per_monitor_crear(true, 'M', nivel, sockett);
+			memcpy(item, aux, sizeof(t_monitoreo));
+			pthread_mutex_lock(&mutex_monitoreo);
+			list_add(p_monitor, item);
+			pthread_mutex_unlock(&mutex_monitoreo);
+			// delegar la conexión al hilo del nivel correspondiente
 
+			//agregar a la lista de listos del nivel
+			t_list *p_listos = dictionary_get(listos, mensaje);
+			t_pers_por_nivel *item2 = crear_personaje(aux->simbolo, aux->fd);
+			pthread_mutex_lock(&mutex_listos);
+			list_add(p_listos, item2);
+			pthread_mutex_unlock(&mutex_listos);
+			//agregar a la lista de listos del nivel
+			enviarMensaje(sockett, ORQ_conexionNivel_PER, "0");
+		}
 		break;
 	}
 	case PER_handshake_ORQ: {
@@ -492,8 +511,27 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		 (void*) _esta_pendiente);
 		 if (list_is_empty(pendientes))*/
 		//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
-		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron))
+		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron)) {
 			log_info(logger, "lanzar_koopa();");
+
+			int32_t pid = fork();
+			if (pid == 0) { //si es el hijo
+				char * const paramList[] =
+						{ ruta_koopa, ruta_disco, ruta_script };
+				execv(ruta_koopa, paramList);
+				exit(0);
+			} else { //si es el padre
+				int retorno = 0;
+				wait(&retorno);
+				log_info(logger,
+						"La ejecucion de koopa retorno el valor %d, el pid del proceso era %d",
+						retorno, pid);
+				if (retorno == pid)
+					log_info(logger,
+							"Ambos valores son iguales. FIN DEL JUEGO");
+				exit(0);
+			}
+		}
 		//list_destroy(pendientes);
 		//pregunto si ya terminaron todos
 		break;

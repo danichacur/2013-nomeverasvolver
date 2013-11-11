@@ -27,5 +27,10 @@ typedef struct {
 
 
 char * posicionToString(t_posicion * posicion);
+char * charToString(char valor);
+t_posicion * posicion_create();
+t_posicion * posicion_create_pos(int x, int y);
+t_posicion * posicion_create_pos_rand(int maxRandPos);
+
 
 #endif /* ESTRUCTURAS_H_ */

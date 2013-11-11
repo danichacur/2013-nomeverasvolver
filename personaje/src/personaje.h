@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 typedef struct {
 	char *nombre;
@@ -75,6 +76,7 @@ void realizarMovimientoHaciaCajaRecursos(int nivel);
 void enviarNuevaPosicion(int nivel);
 int estoyEnCajaRecursos(int nivel);
 void solicitarRecurso(int nivel);
+void avisarQueNoEstoyEnCajaRecursos(int nivel);
 char* obtenerRecursosActualesPorNivel(int ordNivel);
 char* obtenerRecursosNecesariosPorNivel(int ordNivel);
 void avisarNivelConcluido(int nivel);
@@ -82,8 +84,6 @@ void desconectarPlataforma();
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel);
 int meQuedanVidas();
 void descontarUnaVida();
-void desconectarmeDePlataforma(int nivel);
-void conectarAPlataforma(int nivel);
 void interrumpirTodosPlanesDeNiveles();
 void finalizarTodoElProcesoPersonaje();
 char * obtenerNombreNivelDesdeOrden(int ordNivel);
@@ -96,5 +96,6 @@ int32_t obtenerFDPlanificador(int ordNivel);
 char *estoyEnLineaRectaALaCaja(int ordNivel);
 void moverpersonajeEn(char * orientacion, int ordNivel);
 char * obtenerProximoRecursosNecesario(int ordNivel);
+void capturarSeniales();
 
 #endif /* PERSONAJE_H_ */
