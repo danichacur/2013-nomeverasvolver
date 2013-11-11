@@ -241,7 +241,7 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 
 //Funcion obtenerDatos
 //Entrada: dado el nro de bloque de datos y un offset del archivo bloque de datos.
-//Salida: datos desde el offset.
+//Salida: datos desde el offset de entrada.
 
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque){
 
