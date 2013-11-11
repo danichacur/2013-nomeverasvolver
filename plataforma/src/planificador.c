@@ -305,14 +305,14 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 					list_add(p_bloqueados, personaje);
 					pthread_mutex_unlock(&mutex_bloqueados);
 
-					char recurso = mensaje[0];
+					char recurso = j_mensaje[0];
 					int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
 						return nuevo->recurso == recurso;
 					}
 					char * pers = string_from_format("%c",
 							personaje->personaje);
 					string_append(&pers, ",");
-					string_append(&pers, mensaje);
+					string_append(&pers, j_mensaje);
 					enviarMensaje(nivel->fd, PLA_solicitudRecurso_NIV, pers);
 					recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
 					if (t_mensaje == NIV_recursoConcedido_PLA) {
@@ -327,17 +327,21 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 									"se desbloquea a %c por haber obtenido su recurso",
 									aux->personaje);
 
-							t_recursos_obtenidos *rec = malloc(
-									sizeof(t_recursos_obtenidos));
 							pthread_mutex_lock(&mutex_listos);
 							if (list_is_empty(aux->recursos_obtenidos)) {
+
+								t_recursos_obtenidos *rec = malloc(
+										sizeof(t_recursos_obtenidos));
 								rec->recurso = recurso;
 								rec->cantidad = 1;
 								list_add(aux->recursos_obtenidos, rec);
 							} else {
-								rec = list_find(aux->recursos_obtenidos,
+								t_recursos_obtenidos *rec = list_find(aux->recursos_obtenidos,
 										(void*) _esta_recurso);
 								if (rec == NULL ) {
+
+									rec = malloc(
+											sizeof(t_recursos_obtenidos));
 									rec->recurso = recurso;
 									rec->cantidad = 1;
 									list_add(aux->recursos_obtenidos, rec);
@@ -411,7 +415,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 
 }
 char * transformarListaCadena(t_list *recursosDisponibles) {
-	char *recursosNuevos = string_new(); //"F,1,T,6,M,12";
+	char *recursosNuevos = string_new(); //"F,1;T,6;M,12";
 	char *recu, *cant;
 	int i;
 	while (!list_is_empty(recursosDisponibles)) {
@@ -422,7 +426,7 @@ char * transformarListaCadena(t_list *recursosDisponibles) {
 		string_append(&recursosNuevos, recu);
 		log_info(logger, "cadena en proceso %s", recursosNuevos);
 		cant = string_from_format("%d", valor->cantidad);
-		string_append(&recursosNuevos, ",");
+		string_append(&recursosNuevos, ";");
 		string_append(&recursosNuevos, cant);
 		log_info(logger, "cadena en proceso %s", recursosNuevos);
 		i++;
