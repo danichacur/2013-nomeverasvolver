@@ -91,6 +91,9 @@ void* conectarAlNivel(int* nroNivel){
 
 		recibirTurno();
 
+		if(tengoTodosLosRecursos(ordNivel))
+			break;
+
 		if(!tengoPosicionProximaCaja(ordNivel))
 			solicitarYRecibirPosicionProximoRecurso(ordNivel);
 
@@ -106,10 +109,8 @@ void* conectarAlNivel(int* nroNivel){
 
 		if(estoyEnCajaRecursos(ordNivel))
 			solicitarRecurso(ordNivel);
-
-		if(tengoTodosLosRecursos(ordNivel))
-			break;
-
+		else
+			avisarQueNoEstoyEnCajaRecursos(ordNivel);
 	}
 
 	if(!hubo_error)
@@ -518,6 +519,13 @@ void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando un
 	free(recursosNecesarios);
 }
 
+void avisarQueNoEstoyEnCajaRecursos(int nivel){
+	char * recursoNecesario = "0";
+		//log_info(logger, "Personaje %s (%s) (nivel: %s) avisa que no está en la caja", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+		if (CON_CONEXION)
+			enviarMensaje(fdOrquestador,PER_recurso_PLA,recursoNecesario);
+}
+
 char* obtenerRecursosActualesPorNivel(int ordNivel){
 	char * recursosActuales = string_new();
 	int i;
@@ -628,7 +636,7 @@ void recibirHandshake(int ordNivel){
 	free(nomNivel);
 }
 
-void enviaSolicitudConexionANivel(int ordNivel){
+void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volver a pedir el nivel mientras no esté conectado.
 	char* mensaje = string_new();
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 
@@ -665,7 +673,7 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
 		}else{
-			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") != 0){
+			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") == 0){
 				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_INTERBLOQUEO, ordNivel);
 			}else

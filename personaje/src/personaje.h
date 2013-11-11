@@ -76,6 +76,7 @@ void realizarMovimientoHaciaCajaRecursos(int nivel);
 void enviarNuevaPosicion(int nivel);
 int estoyEnCajaRecursos(int nivel);
 void solicitarRecurso(int nivel);
+void avisarQueNoEstoyEnCajaRecursos(int nivel);
 char* obtenerRecursosActualesPorNivel(int ordNivel);
 char* obtenerRecursosNecesariosPorNivel(int ordNivel);
 void avisarNivelConcluido(int nivel);
