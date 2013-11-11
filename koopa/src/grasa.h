@@ -57,22 +57,28 @@ typedef struct grasa_adm_t {
 	GFile admTnodo[GFILEBYTABLE];
 } GAdm;
 
+//Estructura funcion obtenerNroBloque
+typedef struct grasa_obtenerNroBloque_t {
+	ptrGBloque BloqueDatos;
+	 off_t offsetDatos;
+} tObNroBloque;
+
+
 //Variable Global estructura FS Grasa
 GAdm *GAdmin;
 GFile *GTNodo;
 t_bitarray *GBitmap;
-
-//Disco mapeado Global
-char * mapeo;
+ptrGBloque *blqindatos;
+char * mapeo; //Disco mapeado Global
 
 //Prototipos
 //Funciones auxiliares
-GFile* obtenerNodo(char *path);
-ptrGBloque obtenerNroBloque(GFile* Nodo, uint32_t pos);
-
+GFile obtenerNodo(char *path);
+tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
+char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
 /*fuse functions */
 
-//static uint32_t grasa_getattr(const char *path, struct stat *statbuf);
+static uint32_t grasa_getattr(const char *path, struct stat *statbuf);
 static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi);
 static uint32_t grasa_open(const char *path, struct fuse_file_info *fi);
 //static uint32_t grasa_release(const char *path, struct fuse_file_info *fi);

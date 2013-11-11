@@ -170,7 +170,9 @@ static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 }
 
 
-//Obtengo el nodo
+//Funcion: obtenerNodo
+//Entrada: Dado el path.
+//Salida: Devuelve el nro de inodo.
 
 GFile obtenerNodo(char *path){
 
@@ -213,12 +215,39 @@ GFile obtenerNodo(char *path){
 
 }
 
-//Para que te devuelva el número de bloque lineal donde está bloque "i" de datos del archivo.
+//Funcion obtenerNroBloque
+//Entrada: dado el nro de inodo y un offset del archivo a procesar.
+//Salida: offset del bloque de datos y bloque de datos.
 
-ptrGBloque obtenerNroBloque(nodo, i){
+tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 
-	return 0;
+	off_t entero,indirecto;
+	tObNroBloque admNroBloque;
+
+	entero = offsetArchivo / BLOCK_SIZE;
+	indirecto = entero / GFILEBYTABLE;
+
+	//Se calcula el resto y se resta 1 para contar desde 0.
+	admNroBloque.offsetDatos = offsetArchivo % BLOCK_SIZE;
+	if (entero) --admNroBloque.offsetDatos;
+
+    blqindatos = (ptrGBloque*)(mapeo + GTNodo[NroNodo].blk_indirect[indirecto]*BLOCK_SIZE);
+
+    admNroBloque.BloqueDatos = *(blqindatos+entero);
+
+	return admNroBloque;
 
 }
 
+//Funcion obtenerDatos
+//Entrada: dado el nro de bloque de datos y un offset del archivo bloque de datos.
+//Salida: datos desde el offset.
+
+char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque){
+
+	char * datos = (mapeo + NroBloqueDatos*BLOCK_SIZE + offsetbloque);
+
+	return datos;
+
+}
 
