@@ -477,7 +477,7 @@ char * transformarListaCadena_interbloq(t_list *personajesDisponibles) {
 }
 
 void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel) {
-	t_list *recursosDisponibles = desbloquear_personajes(recursos, str_nivel);
+	t_list *recursosDisponibles = desbloquear_personajes(recursos, str_nivel, fd);
 	char *recursosNuevos = transformarListaCadena(recursosDisponibles);
 	enviarMensaje(fd, PLA_actualizarRecursos_NIV, recursosNuevos);
 
@@ -614,7 +614,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		free(aux);
 		break;
 	}
-	case NIV_recursosPersonajesBloqueados_PLA: {
+	/*case NIV_recursosPersonajesBloqueados_PLA: {
 
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
@@ -631,6 +631,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 
 		break;
 	}
+	*/
 	default:
 		log_info(logger, "mensaje erroneo");
 		supr_pers_de_estructuras(socket_r);
