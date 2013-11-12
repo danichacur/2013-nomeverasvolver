@@ -50,7 +50,7 @@ int main (){
 
 
 	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
-	crearHiloInotify(hiloInotify);
+	//crearHiloInotify(hiloInotify);
 
 	//crearHiloInterbloqueo();
 
@@ -210,7 +210,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
 
-	pthread_mutex_lock(&mutex_mensajes);
+
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
 		switch (unMensaje) {
@@ -380,7 +380,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				printf("%s \n","recibio cualquier cosa");
 				break;
 			}
-			pthread_mutex_unlock(&mutex_mensajes);
+
 		//nivel_gui_dibujar(items,nombre);
 		free(elMensaje);
 
