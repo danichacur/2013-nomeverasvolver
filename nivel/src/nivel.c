@@ -16,16 +16,20 @@ int cols; // TAMAÑO DEL MAPA
 char * nombre;
 char * direccionIPyPuerto;
 char * algoritmo;
-t_list * listaRecursosNivel; //GLOBAL, PERSONAJES SABEN DONDE ESTAN SUS OBJETIVOS
-t_list * listaCajas;
+
+t_list * listaPersonajesRecursos;
 t_list * items;
-t_list * listaDePersonajes;
+
 t_config * config;
 t_log * logger;
 int32_t socketDeEscucha;
-pthread_t hilo1;
-pthread_mutex_t *mutex_mensajes;
-t_list * listaPersonajesRecursos;
+
+pthread_t hiloInotify;
+pthread_mutex_t mutex_listas;
+pthread_mutex_t mutex_mensajes;
+pthread_mutex_t mutex_cambiosConfiguracion;
+
+
 
 bool listaRecursosVacia;
 char * buffer_log;
@@ -34,14 +38,20 @@ char * buffer_log;
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
-	listaRecursosNivel=list_create(); //CREO LA LISTA DE RECURSOS POR NIVEL
+
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
-	listaDePersonajes = list_create(); // CREO LA LISTA DE PERSONAJES (NO VA)
+	pthread_mutex_init(&mutex_mensajes, NULL );
+	pthread_mutex_init(&mutex_listas, NULL );
+	pthread_mutex_init(&mutex_cambiosConfiguracion, NULL );
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
-	//crearHiloInotify();
-//	inicializarMapaNivel(listaRecursosNivel);
+
+	//inicializarMapaNivel();
+
+
 	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+	crearHiloInotify(hiloInotify);
+
 	//crearHiloInterbloqueo();
 
 	while(1){
@@ -55,16 +65,17 @@ int main (){
 	}
 
 	eliminarEstructuras();
+
 	return true;
 }
 
 ////////////////////////////////////////////////////ESPACIO DE FUNCIONES////////////////////////////////////////////////////
 int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
+
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
 	logger = log_create(PATH_LOG, "NIVEL", true, LOG_LEVEL_INFO); //CREO EL ARCHIVO DE LOG
 	log_info(logger, "Voy a leer mi archivo de configuracion");
-
 
 	nombre= config_get_string_value(config, "Nombre");
 	log_info(logger, "Encontramos los atributos de %s",nombre);
@@ -93,12 +104,11 @@ int leerArchivoConfiguracion(){
 
 	retardo = config_get_int_value(config, "retardo");
 	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardoSegundos);
-	//int retardo=retardoSegundos*1000;
 
 
 	// LEO LAS CAJAS DEL NIVEL //
-	char litCaja[6]="Caja1\0";
 
+	char litCaja[6]="Caja1\0";
 	bool ret = config_has_property(config, litCaja);
 
 	while (ret!=true){ //POR SI EMPIEZA EN UNA CAJA DISTINTA DE 1
@@ -119,20 +129,22 @@ int leerArchivoConfiguracion(){
 
 void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE RECURSOS DEL NIVEL
 
-
+	pthread_mutex_lock(&mutex_listas);
 	CrearCaja(items, caja[1][0],atoi(caja[3]), atoi(caja[4]), atoi(caja[2]));
+	pthread_mutex_unlock(&mutex_listas);
+
 	log_info(logger, "Se cre la caja de %s", caja[1]);
 
 }
 
-void inicializarMapaNivel(t_list* listaRecursos){
+void inicializarMapaNivel(){
 
-    t_list* items = list_create(); //LISTA DE ITEMS DEL MAPA (CAJAS PERSONAJES Y ENEMIGOS)
 	int rows, cols; // TAMAÑO DEL MAPA
-	int i=0;
+
 
 	int ok=nivel_gui_inicializar();
-		if(ok!=0){
+
+	if(ok!=0){
 
 			log_info(logger, "El mapa de %s no ha podido dibujarse",nombre);
 
@@ -141,23 +153,18 @@ void inicializarMapaNivel(t_list* listaRecursos){
 			log_info(logger, "El mapa de %s se ha dibujado",nombre);
 		}
 
+	/*
 	nivel_gui_get_area_nivel(&rows, &cols);
 	log_info(logger, "El mapa de %s se ha dibujado, tiene %s filas por %s columnas",nombre,rows,cols);
 
-	tRecursosNivel *unaCaja= list_get(listaRecursos, i);
-
-	while(unaCaja!=NULL){
-		char* simbolo=unaCaja->simbolo;
-		CrearCaja(items,*simbolo, unaCaja->posX, unaCaja->posY, unaCaja->instancias);
-		i++;
-	}
 	log_info(logger, "Se procede a graficar los elementos en el mapa creado",nombre,rows,cols);
 	nivel_gui_dibujar(items,nombre);
-
+*/
 }
 
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
-//	pthread_mutex_lock(mutex_mensajes);
+
+	pthread_mutex_lock(&mutex_mensajes);
 
 	log_info(logger, "El %s se conectara a la plataforma en %s ",nombre,direccionIPyPuerto);
 	char ** IPyPuerto = string_split(direccionIPyPuerto,":");
@@ -166,9 +173,6 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	char * IP=IPyPuerto[0];
 
 	printf("numero nivel %d \n",numeroNivel);
-
-
-
 
 	char * buffer=malloc(sizeof(char*));
 	int32_t puerto= atoi(IPyPuerto[1]);
@@ -182,37 +186,37 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 	recibirMensaje(socketDeEscucha,&unMensaje,&elMensaje);
 	if(unMensaje==ORQ_handshake_NIV){
-		if(socketDeEscucha>-1){
-			log_info(logger, "El %s se conecto a la plataforma en %s ",nombre,direccionIPyPuerto);
+
 			if(ok==0){
 				log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
-
 				return socketDeEscucha;
+			}else{
+
+				log_info(logger, "El %s no pudo enviar handshake a plataforma en %s ",nombre,direccionIPyPuerto);
+
 			}
-		}else
-			log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
-
-	}else {
-
-			log_info(logger, "El %s no pudo conectarse a la plataforma, se termina la ejecucion en %s ",nombre,direccionIPyPuerto);
 
 	}
+
 
 	free(buffer);
 	return socketDeEscucha;
 
-//	pthread_mutex_unlock(mutex_mensajes);
+pthread_mutex_unlock(&mutex_mensajes);
+
 }
 
 void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POSTERIOR RESPUESTA DE MENSAJES DEL ORQUESTADOR
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
 
+	pthread_mutex_lock(&mutex_mensajes);
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
 		switch (unMensaje) {
 
 			case PLA_movimiento_NIV: {//graficar y actualizar la lista RECIBE "@,1,3"
+
 				char ** mens = string_split(elMensaje,",");
 				//bool movValido;
 
@@ -220,7 +224,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				//if (movValido==true){
 
-		    	MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2])); //hay q validar q se mueva dentro del mapa...
+				pthread_mutex_lock(&mutex_listas);
+		    	MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
+		    	pthread_mutex_unlock(&mutex_listas);
 
 				printf("el personaje se movio %s",elMensaje);
 
@@ -240,18 +246,30 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_personajeMuerto_NIV:{ //RECIBE "@"
 				char id=elMensaje[0];
+				t_personaje * personaje = malloc(sizeof(t_personaje));
 
+				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
+
+				pthread_mutex_lock(&mutex_listas);
+				liberarRecursosDelPersonaje(personaje->recursosActuales);
 				BorrarItem(items,id);
+				pthread_mutex_unlock(&mutex_listas);
+
 				log_info(logger, "El personaje %s ha muerto ",id);
 				// sacar de lista de personajes y sumar sus recursos a  disponibles
+
+
 				break;
 			}
 			case PLA_nuevoPersonaje_NIV:{ //RECIBE "@" LA POSICION DE INICIO SERA SIEMPRE 0,0 POR LO QUE NO LA RECIBE
 
+
 				char * simbolo = malloc(strlen(elMensaje)+1);
 				strcpy(simbolo,elMensaje);
 
+				pthread_mutex_lock(&mutex_listas);
 				CrearPersonaje(items,elMensaje[0],0,0);
+				pthread_mutex_unlock(&mutex_listas);
 
 				//ACA CREO UNA LISTA DE PERSONAJES CON SUS RESPECTIVOS RECURSOS ASIGNADOS
 				t_personaje * personaje = malloc(sizeof(t_personaje));
@@ -260,14 +278,18 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje->recursoBloqueante = string_new();
 				personaje->posicion = posicion_create_pos(0,0);
 
+				pthread_mutex_lock(&mutex_listas);
 				list_add(listaPersonajesRecursos,personaje);
+				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El nuevo personaje %s se dibujo en el mapa",simbolo);
+
 
 				break;
 
 			}
 			case PLA_posCaja_NIV:{ // RECIBE "F" SI ESTA SOLICITANDO UNA FLOR, POR EJEMPLO
+
 
 				char * pos = string_new();
 				ITEM_NIVEL * caja = buscarRecursoEnLista(items, elMensaje);
@@ -286,9 +308,15 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				}
 				free(pos);
+
+
 				break;
 
 			}case PLA_solicitudRecurso_NIV:{ // LE CONTESTO SI EL RECURSOS ESTA DISPONIBLE
+
+
+
+
 				// El mensaje de ejemplo es : "@,H"
 
 				char * rta;
@@ -297,32 +325,62 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				if (hayRecurso){
 					rta = "0";
+
+					pthread_mutex_lock(&mutex_listas);
 					list_add(pers->recursosActuales, string_substring_from(elMensaje, 2));
 					pers->recursoBloqueante = string_new();
+					restarRecurso(items,elMensaje[1]);
+					pthread_mutex_unlock(&mutex_listas);
 
 				}else{
+
+					pthread_mutex_lock(&mutex_listas);
 					pers->recursoBloqueante = string_substring_from(elMensaje, 2);
 					rta = "1";
-					restarRecurso(items,elMensaje[1]);
+					pthread_mutex_unlock(&mutex_listas);
 				}
 
 				enviarMensaje(socketEscucha, NIV_recursoConcedido_PLA,rta);//"0" CONCEDIDO, "1" NO CONCEDIDO
 
-				break;
-			}
-			//case PLA_personajesDesbloqueados_NIV:{//"@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
-			//	break;
-			//}
-			case PLA_actualizarRecursos_NIV:{ //"F,1;C,3;....." actualizo la lista de recursos sumandole esas cantidades
 
 				break;
-						}
+			}
+			case PLA_personajesDesbloqueados_NIV:{//"@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
+				char ** mens = string_split(elMensaje,",");
+				int i=0;
+
+				while(mens[i]!=NULL){
+
+				t_personaje * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,mens[i]);
+
+				pthread_mutex_lock(&mutex_listas);
+				unPers->recursoBloqueante=string_new();
+				pthread_mutex_unlock(&mutex_listas);
+				}
+
+			break;
+			}
+			case PLA_actualizarRecursos_NIV:{ //"F,1;C,3;....." actualizo la lista de recursos sumandole esas cantidades
+				char ** mens = string_split(elMensaje,";");
+				int i=0;
+				while(mens[i]!=NULL){
+					char ** mensajeIndividual=string_split(mens[i],",");
+
+					pthread_mutex_lock(&mutex_listas);
+					sumarRecurso(items, mensajeIndividual[0][0],atoi(mensajeIndividual[1]));
+					pthread_mutex_unlock(&mutex_listas);
+				}
+
+
+				break;
+			}
+
 			{
 				default:
 				printf("%s \n","recibio cualquier cosa");
 				break;
 			}
-
+			pthread_mutex_unlock(&mutex_mensajes);
 		//nivel_gui_dibujar(items,nombre);
 		free(elMensaje);
 
@@ -341,6 +399,14 @@ bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje){ //TERMI
 
 }
 
+void liberarRecursosDelPersonaje(t_list * recursos){
+
+	while(list_size(recursos)!=0){
+		char * unElemento=list_remove(recursos, 0);
+		sumarRecurso(items, unElemento[0],1);
+	}
+}
+
 bool determinarRecursoDisponible(char * recursoSolicitado){
 	ITEM_NIVEL * item;
 
@@ -350,6 +416,7 @@ bool determinarRecursoDisponible(char * recursoSolicitado){
 	if(id== nulo[0]) {
 		return false;
 		}else{
+			restarRecurso(items,id);
 			return true;
 	}
 
@@ -429,105 +496,88 @@ t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //
 void eliminarEstructuras() { //TERMINAR
 
 	config_destroy(config);
+	list_destroy(items);
+	list_destroy(listaPersonajesRecursos);
+	log_destroy(logger);
 
 }
 
+void crearHiloInotify(pthread_t hiloNotify){
 
-// FUNCIONES DEL TP MIO CUATRI PASADO Y DEL TP DE PABLO, ADAPTAR Y CORREGIR
-/* int inotify(void) {
-        char buffer[BUF_LEN];
-        int quantumAux;
-        int retardoAux;
-        char * algoritmoAux;
-        int ret;
-        int i;
-        int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
-
-        if (file_descriptor < 0) {
-                perror("inotify_init");
-        }
-
-        // Creamos un monitor sobre un path indicando que eventos queremos escuchar
-        ///home/utnso/workspace/inotify/src
-        int watch_descriptor = inotify_add_watch(file_descriptor, "./", IN_MODIFY);
-
-        // El file descriptor creado por inotify, es el que recibe la información sobre los eventos ocurridos
-        // para leer esta información el descriptor se lee como si fuera un archivo comun y corriente pero
-        // la diferencia esta en que lo que leemos no es el contenido de un archivo sino la información
-        // referente a los eventos ocurridos
-
-
-        i = 0;
-        while (1) {
-                int length = read(file_descriptor, buffer, BUF_LEN);
-                printf("BUFFER = [%s]\n",buffer);
-                if (length < 0) {
-                        perror("read");
-                }
-        printf("DESPUES DE LEER\n");
-
-        int offset = 0;
-
-        // Luego del read buffer es un array de n posiciones donde cada posición contiene
-        // un eventos ( inotify_event ) junto con el nombre de este.
-        while (offset < length) {
-
-                // El buffer es de tipo array de char, o array de bytes. Esto es porque como los
-                // nombres pueden tener nombres mas cortos que 24 caracteres el tamaño va a ser menor
-                // a sizeof( struct inotify_event ) + 24.
-                struct inotify_event *event = (struct inotify_event *) &buffer[offset];
-
-                // El campo "len" nos indica la longitud del tamaño del nombre
-                if (event->len) {
-                        // Dentro de "mask" tenemos el evento que ocurrio y sobre donde ocurrio
-                        // sea un archivo o un directorio
-                        if (event->mask & IN_MODIFY) {
-                                if (ret == 0) {
-                                          if (i == 0){
-                                                        sleep(1);
-                                                        config_destroy(config);
-                                                        config = config_create(RUTA);
-                                                        ret = config_keys_amount(config);
-                                                        retardoAux = config_get_int_value(config, "retardo");
-                                                        quantumAux = config_get_int_value(config,"quantum");
-                                                        algoritmoAux=config_get_string_value(config,"algoritmo");
-                                                        printf("El nuevo quantum es: %d\n",quantum);
-                                                        printf("El nuevo retardo es: %d\n",retardoAux);
-                                                        //pthread_mutex_lock( &mutex3 );
-                                                        quantum=quantumAux;
-                                                        retardo=retardoAux;
-                                                        algoritmo=algoritmoAux;
-                                                    	sprintf(buffer,"%s,%d,%d",algoritmo,quantum,retardo);
-                                                    	enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
-
-                                                        //pthread_mutex_unlock( &mutex3 );
-                                                        i ++;
-                                                }
-                                                else i = 0;
-                                        }
-
-
-                }
-                else {
-                        printf("NO DEBERIAS LLEGAR ACA!\n");
-                        printf("event->len = %d",event->len);
-                }
-                offset += sizeof (struct inotify_event) + event->len;
-        }
-        }
-
-        inotify_rm_watch(file_descriptor, watch_descriptor);
-        close(file_descriptor);
-
-        printf("SALGO DEL PROGRAMA\n");
-
-        return EXIT_SUCCESS;
+	pthread_create(&hiloNotify, NULL, (void*)&inotify, NULL);
 }
 
-*/
+ void * inotify(void) {
+
+	 int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
+	 char buffer[BUF_LEN]; //INICIALIZO BUFFER DONDE VOY A GUARDAR LAS MODIFICACIONES LEIDAS DEL FD
+
+	 if (file_descriptor < 0) {
+
+		 perror("inotify_init");
+
+	 }
+
+	 while (1) {
+		 int watch_descriptor = inotify_add_watch(file_descriptor, "./config.cfg", IN_MODIFY); //CREAMOS MONITOR SOBRE EL PATH DONDE ESCUCHAREMOS LAS MODIFICACIONES
+		 sleep(2);
+		 int length = read(file_descriptor, buffer, BUF_LEN); //CARGAMOS LAS MODIFICACIONES QUE ESCUCHAMOS EN EL BUFFER
+		 log_info(logger, "Se cargó el buffer");
+		 // printf("BUFFER = [%s]\n",buffer); //BUFFER QUE CONTIENE UN EVENTO EN CADA POSICION
+		 	 if (length < 0) {
+		 		 perror("read");
+		 	 }
+
+		 printf("DESPUES DE LEER\n");
+		 sleep(2);
+		 struct inotify_event *event = (struct inotify_event *) &buffer[0]; //CARGAMOS LOS EVENTOS ESCUCHADOS EN UNA ESTRUCTURA
+
+		 if (event->mask & IN_MODIFY) { //EL CAMPO MASK, SI NO ESTA VACIO, INDICA QUE EVENTO OCURRIO (SI SOLO ESCUCHAMOS EL 2, DEBERIAN OCURRIR SOLO DE TIPO 2)
+
+			 config = config_create(RUTA);
+
+			 int retardoAux = config_get_int_value(config, "retardo");
+			 int quantumAux = config_get_int_value(config,"quantum");
+			 char * algoritmoAux=config_get_string_value(config,"algoritmo");
+
+			 if(retardoAux==retardo && quantumAux==quantum && strcmp(algoritmoAux,algoritmo)==0){
+				 printf("Hubo cambios en el archivo pero no sobre las variables en consideracion \n");
+
+			 } else {
+				 log_info(logger, "Envio cambios archivo configuracion ");
+				 pthread_mutex_lock(&mutex_mensajes);
+
+				 sprintf(buffer,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
+				 enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
+
+				 pthread_mutex_unlock(&mutex_mensajes);
+
+
+			 }
+
+
+
+			 //pthread_mutex_unlock( &mutex3 );
+
+		 } else {
+
+			 printf("SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
+
+		 }
+
+		 inotify_rm_watch(file_descriptor, watch_descriptor);
+		 close(file_descriptor);
+
+		 printf("SALGO DE INOTIFY\n");
+
+		 return EXIT_SUCCESS;
+	 }
+
+ }
+
 void crearHiloInterbloqueo(){
 	//pthread_t id;
-//	pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
+	//pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
 }
 
 

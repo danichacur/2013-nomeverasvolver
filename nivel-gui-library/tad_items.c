@@ -34,6 +34,7 @@ void CrearCaja(t_list* items, char id, int x , int y, int cant) {
 void BorrarItem(t_list* items, char id) {
     bool _search_by_id(ITEM_NIVEL* item) {
         return item->id == id;
+
     }
     
     list_remove_by_condition(items, (void*) _search_by_id);
@@ -59,6 +60,16 @@ void restarRecurso(t_list* items, char id) {
 
     if (item != NULL) {
         item->quantity = item->quantity > 0 ? item->quantity - 1 : 0;
+    } else {
+        printf("WARN: Item %c no existente\n", id);
+    }
+}
+
+void sumarRecurso(t_list* items, char id,int cantidad) {
+    ITEM_NIVEL* item = _search_item_by_id(items, id);
+
+    if (item != NULL) {
+        item->quantity = item->quantity + cantidad ;
     } else {
         printf("WARN: Item %c no existente\n", id);
     }
