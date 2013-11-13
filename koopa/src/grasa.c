@@ -13,10 +13,8 @@
 
 static struct fuse_operations fuse_oper = {
 		.open = grasa_open,
-		//.getattr = grasa_getattr,
+		.getattr = grasa_getattr,
 		.readdir  = grasa_readdir,
-		//.release = grasa_release,
-		//.flush = grasa_flush,
 		.read = grasa_read,
 		.mkdir = grasa_mkdir,
 		.rmdir = grasa_rmdir,
@@ -37,56 +35,6 @@ struct t_runtime_options {
 	char* welcome_msg;
 } runtime_options;
 
-
-int main(int argc, char *argv[]) {
-
-	int fd;
-	struct stat sbuf;
-
-	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
-
-	// Limpio la estructura que va a contener los parametros
-	memset(&runtime_options, 0, sizeof(struct t_runtime_options));
-
-	// Esta funcion de FUSE lee los parametros recibidos y los intepreta
-	if (fuse_opt_parse(&args, &runtime_options, fuse_options, NULL) == -1){
-		/** error parsing options */
-		perror("Invalid arguments!");
-		return EXIT_FAILURE;
-	}
-
-	//prueba
-    char* path = "/home/utnso/Escritorio/disk.bin";
-
-    fd = open(path,O_RDONLY);
-
-    if (fd == -1){
-     printf("Open Failed!\n");
-    }
-
-    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
-    	printf("stat Failed!\n");
-    }
-
-    mapeo = mmap(0,sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-
-    if (mapeo == MAP_FAILED){
-     printf("map Failed!\n");
-    }
-
-    GAdmin = (GAdm*) mapeo;
-    GTNodo = GAdmin->admTnodo;
-    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
-
-	// Esta es la funcion principal de FUSE, es la que se encarga
-	// de realizar el montaje, comuniscarse con el kernel, delegar
-    // en varios threads
-	return fuse_main(args.argc, args.argv, &fuse_oper, NULL);
-
-
-    return EXIT_SUCCESS;
-
-}
 
 /** keys for FUSE_OPT_ options */
 enum {
@@ -111,66 +59,164 @@ static struct fuse_opt fuse_options[] = {
 		FUSE_OPT_END,
 };
 
-/* - grasa_read -
- * @DESC
- *  Esta funciÃ³n va a ser llamada cuando a la biblioteca de FUSE le llege un pedido
- * para obtener el contenido de un archivo
- *
- * @PARAMETROS
- * 		path - El path es relativo al punto de montaje y es la forma mediante la cual debemos
- * 		       encontrar el archivo o directorio que nos solicitan
- * 		buf - Este es el buffer donde se va a guardar el contenido solicitado
- * 		size - Nos indica cuanto tenemos que leer
- * 		offset - A partir de que posicion del archivo tenemos que leer
- *
- * 	@RETURN
- * 		Si se usa el parametro direct_io los valores de retorno son 0 si  elarchivo fue encontrado
- * 		o -ENOENT si ocurrio un error. Si el parametro direct_io no esta presente se retorna
- * 		la cantidad de bytes leidos o -ENOENT si ocurrio un error. ( Este comportamiento es igual
- * 		para la funcion write )
- */
 
-int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
-{
-    int retstat = 0;
 
-    return retstat;
+int main(int argc, char *argv[]) {
+
+	int fd;
+	struct stat sbuf;
+
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
+	// Limpio la estructura que va a contener los parametros
+	memset(&runtime_options, 0, sizeof(struct t_runtime_options));
+
+	// Esta funcion de FUSE lee los parametros recibidos y los intepreta
+	if (fuse_opt_parse(&args, &runtime_options, fuse_options, NULL) == -1){
+		/** error parsing options */
+		perror("Invalid arguments!");
+		return EXIT_FAILURE;
+	}
+
+	//prueba
+    char* path = "/home/utnso/Escritorio/disk.bin";
+
+    fd = open(path,O_RDWR);
+
+    if (fd == -1){
+     printf("Open Failed!\n");
+    }
+
+    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
+    	printf("stat Failed!\n");
+    }
+
+    mapeo = mmap(0,sbuf.st_size,PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    if (mapeo == MAP_FAILED){
+     printf("map Failed!\n");
+    }
+
+    GAdmin = (GAdm*) mapeo;
+    GTNodo = GAdmin->admTnodo;
+    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
+
+	// Esta es la funcion principal de FUSE, es la que se encarga
+	// de realizar el montaje, comuniscarse con el kernel, delegar
+    // en varios threads
+	return fuse_main(args.argc, args.argv, &fuse_oper, NULL);
+
+
+    return EXIT_SUCCESS;
+
 }
 
-/* - grasa_readdir
- * @DESC
- *  Esta funciÃ³n va a ser llamada cuando a la biblioteca de FUSE le llege un pedido
- * para obtener la lista de archivos o directorios que se encuentra dentro de un directorio
- *
- * @PARAMETROS
- * 		path - El path es relativo al punto de montaje y es la forma mediante la cual debemos
- * 		       encontrar el archivo o directorio que nos solicitan
- * 		buf - Este es un buffer donde se colocaran los nombres de los archivos y directorios
- * 		      que esten dentro del directorio indicado por el path
- * 		filler - Este es un puntero a una funciÃ³n, la cual sabe como guardar una cadena dentro
- * 		         del campo buf
- *
- * 	@RETURN
- * 		O directorio fue encontrado. -ENOENT directorio no encontrado
- */
+
+//grasa_getattr
+
+static int grasa_getattr(const char *path, struct stat *stbuf)
+{
+	int res = 0;
+	GFile Nodo;
+
+	memset(stbuf, 0, sizeof(struct stat));
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.state == 2) {
+		stbuf->st_mode = S_IFDIR | 0755;
+		stbuf->st_nlink = 2;
+	} else if (Nodo.state == 1) {
+		stbuf->st_mode = S_IFREG | 0444;
+		stbuf->st_nlink = 1;
+		stbuf->st_size = Nodo.file_size;
+	} else
+		res = -ENOENT;
+
+	return res;
+}
+
+// IMPLEMENTACION DE FUNCIONES FUSE
+
+
+// - grasa_open -
+
+static int grasa_open(const char *path, struct fuse_file_info *fi) {
+	GFile Nodo;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.state == 3)
+		return -ENOENT;
+
+	if ((fi->flags & 3) != O_RDONLY)
+		return -EACCES;
+
+	return 0;
+}
+
+// - grasa_read -
+
+static int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+	(void) fi;
+	GFile Nodo;
+	size_t aCopiar=0;
+	tObNroBloque NroBloque;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.state == 3)
+		return -ENOENT;
+
+	if (offset + size > Nodo.file_size)
+		size = Nodo.file_size - offset;
+
+	if (offset < Nodo.file_size) {
+
+			while(offset < Nodo.file_size){
+
+				NroBloque = obtenerNroBloque(Nodo,offset);
+
+				aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
+
+				memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
+
+				buf += aCopiar;
+				offset += aCopiar;
+			}
+			buf -= size;
+	} else
+		size = 0;
+
+	return size;
+}
+
+
+// - grasa_readdir -
+
 static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	(void) offset;
 	(void) fi;
+	GFile Nodo;
 
-	if (strcmp(path, "/") != 0)
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.state == 3)
 		return -ENOENT;
 
 	// "." y ".." son entradas validas, la primera es una referencia al directorio donde estamos parados
 	// y la segunda indica el directorio padre
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
-	filler(buf, DEFAULT_FILE_NAME, NULL, 0);
+	filler(buf,Nodo.fname, NULL, 0);
 
 	return 0;
 }
 
 
-//Funcion: obtenerNodo
+//FUNCIONES AUXILIARES
+
+// - obtenerNodo -
 //Entrada: Dado el path.
 //Salida: Devuelve el nro de inodo.
 
@@ -209,13 +255,13 @@ GFile obtenerNodo(char *path){
 		}
 	}
 
-	//Si ni se ecuentra nodo e devuelve 3 en state, validar este retorno.
+	//Si no se ecuentra nodo es devuelve 3 en state, validar este retorno.
 	NodoBuscado.state = 3;
 	return NodoBuscado;
 
 }
 
-//Funcion obtenerNroBloque
+// - obtenerNroBloque -
 //Entrada: dado el nro de inodo y un offset del archivo a procesar.
 //Salida: offset del bloque de datos y bloque de datos.
 
@@ -239,7 +285,7 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 
 }
 
-//Funcion obtenerDatos
+// - obtenerDatos -
 //Entrada: dado el nro de bloque de datos y un offset del archivo bloque de datos.
 //Salida: datos desde el offset de entrada.
 

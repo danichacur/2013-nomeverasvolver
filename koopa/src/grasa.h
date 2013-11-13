@@ -73,22 +73,19 @@ char * mapeo; //Disco mapeado Global
 
 //Prototipos
 //Funciones auxiliares
-GFile obtenerNodo(char *path);
+GFile obtenerNodo(const char *path);
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
 /*fuse functions */
 
-static uint32_t grasa_getattr(const char *path, struct stat *statbuf);
-static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi);
-static uint32_t grasa_open(const char *path, struct fuse_file_info *fi);
-//static uint32_t grasa_release(const char *path, struct fuse_file_info *fi);
-static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
-//static uint32_t grasa_flush(const char *path, struct fuse_file_info *fi);
+static uint32_t grasa_getattr(const char *path, struct stat *statbuf); //obtener atributos
+static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi); //leer contenido de directorio
+static uint32_t grasa_open(const char *path, struct fuse_file_info *fi); //verificacion de apertura de archivo
+static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi); //lectura del archivo desde offset dado
 static uint32_t grasa_mkdir(const char *path, mode_t mode);
 static uint32_t grasa_rmdir(const char *path);
 static uint32_t grasa_unlink(const char *path);
 static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
 static uint32_t grasa_truncate(const char *path, off_t newsize);
 static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi);
-//static uint32_t grasa_rename(const char *path, const char *newPath);
 
