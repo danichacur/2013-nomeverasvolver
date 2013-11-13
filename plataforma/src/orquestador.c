@@ -452,7 +452,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 			list_add(p_listos, item2);
 			pthread_mutex_unlock(&mutex_listos);
 			//agregar a la lista de listos del nivel
-			//enviarMensaje(sockett, ORQ_conexionNivel_PER, "0");
+			enviarMensaje(sockett, ORQ_conexionNivel_PER, "0");
 		}
 		break;
 	}
