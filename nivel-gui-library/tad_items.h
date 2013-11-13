@@ -5,6 +5,7 @@
 #include "nivel.h"
 #include <collections/list.h>
 
+void sumarRecurso(t_list* items, char id, int cantidad);
 void BorrarItem(t_list* items, char id);
 void restarRecurso(t_list* items, char id);
 void MoverPersonaje(t_list* items, char personaje, int x, int y);

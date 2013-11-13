@@ -244,8 +244,9 @@ void supr_pers_de_estructuras(int32_t sockett) {
 			if (aux2 == NULL ) {
 				//si no estaba en listos, se estaba planificando en el momento.. lolaa
 				//fixme no hay tratamiento para eso
+				// o se desconecto porque termino su plan de niveles
 				log_info(logger,
-						"personaje muerto se estaba planificando. Rompe todo!!!");
+						"personaje muerto se estaba planificando. Rompe todo!!!. O , termino el nivel correctamente");
 			}
 			//}
 		}
@@ -495,7 +496,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		int32_t _esta_personaje(t_pers_koopa *koopa) {
 			return koopa->personaje == personaje;
 		}
-		t_pers_koopa *aux = list_find(personajes_del_sistema,
+		t_pers_koopa *aux = list_find(personajes_para_koopa,
 				(void*) _esta_personaje);
 		if (aux != NULL )
 			aux->termino_plan = true;

@@ -350,7 +350,7 @@ static t_personaje *personaje_create(char *nombre,
 
 void avisarPlanNivelesConcluido(){
 	if (CON_CONEXION)
-		enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,"0");
+		enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,personaje->simbolo);
 }
 
 void terminarProceso(){
@@ -639,10 +639,15 @@ void recibirHandshake(int ordNivel){
 void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volver a pedir el nivel mientras no esté conectado.
 	char* mensaje = string_new();
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
+	enum tipo_paquete tipoMensaje;
 
 	string_append(&mensaje,obtenerNumeroNivel(nomNivel));
-	if (CON_CONEXION)
+	if (CON_CONEXION){
 		enviarMensaje(fdOrquestador, PER_conexionNivel_ORQ, mensaje);
+		mensaje = NULL;
+		recibirMensaje(fdOrquestador, &tipoMensaje, &mensaje);
+		//validar que si es 1 vuelva a conectar
+	}
 	log_info(logger, "Personaje %s (%s) (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 
 	free(mensaje);

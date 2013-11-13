@@ -77,7 +77,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 	for (;;) {
 		//planificar a un personaje
-		if (!list_is_empty(p_listos)) {
+		if (!list_is_empty(p_listos) && (fd_personaje_actual== 0)) {
 			//hacer el if en base a los algoritmos para calcular el quantum e ir actualizandolo
 			personaje = planificar(nivel);
 			enviarMensaje(personaje->fd, PLA_turnoConcedido_PER, "0");
@@ -184,10 +184,13 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 						analizar_mensaje_rta(personaje, tipoMensaje, mensaje,
 								nivel, &quantum);
-					} else
+						fd_personaje_actual = 0;
+					} else{
 						planificador_analizar_mensaje(i, tipoMensaje, mensaje,
 								nivel);
-
+					fd_personaje_actual = 0;
+					destruir_personaje(personaje);
+					}
 				} // fin seccion recibir OK los datos
 			} // fin de tenemos datos
 		}
@@ -350,6 +353,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 							}
 							list_add(p_listos, aux);
 							pthread_mutex_unlock(&mutex_listos);
+
 							//
 
 							enviarMensaje(aux->fd, PLA_rtaRecurso_PER,
@@ -396,6 +400,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				}
 			} else
 				supr_pers_de_estructuras(personaje->fd);
+
 
 			free(m_mensaje);
 			free(j_mensaje);
@@ -509,8 +514,8 @@ void planificador_analizar_mensaje(int32_t socket_r,
 
 		log_info(logger, "el personaje %c termino este nivel %d",
 				aux->personaje, nivel->nivel);
-		list_destroy(aux->recursos_obtenidos);
-		free(aux);
+		proceso_desbloqueo(aux->recursos_obtenidos, nivel->fd, str_nivel);
+		destruir_personaje(aux);
 		pthread_mutex_unlock(&mutex_listos);
 		enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
 		/*                enum tipo_paquete t_mensaje;

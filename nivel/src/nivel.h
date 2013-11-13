@@ -65,15 +65,16 @@ typedef struct {
 
 
 bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje);
-int hilo_inotify(void);
+void crearHiloInotify();
 void eliminarEstructuras();
 void mensajesConPlataforma(int32_t socketEscucha);
-void inicializarMapaNivel(t_list* listaRecursos);
+void inicializarMapaNivel();
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
+void liberarRecursosDelPersonaje(t_list *recursosActuales);
 int32_t handshakeConPlataforma(); // handshake inicial
 void enviarDatosInicioNivel(); //envia algoritmo,quantum y retardo
-int inotify(void);
+void * inotify(void);
 void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensaje,char* mensaje);
 bool determinarRecursoDisponible(char * recursoSolicitado);
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
