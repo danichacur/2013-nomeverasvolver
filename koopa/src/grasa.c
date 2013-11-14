@@ -22,9 +22,7 @@ static struct fuse_operations fuse_oper = {
 		.write = grasa_write,
 		.truncate = grasa_truncate,
 		.create = grasa_create
-		//.rename = grasa_rename
 };
-
 
 /*
  * Esta es una estructura auxiliar utilizada para almacenar parametros
@@ -35,13 +33,11 @@ struct t_runtime_options {
 	char* welcome_msg;
 } runtime_options;
 
-
 /** keys for FUSE_OPT_ options */
 enum {
 	KEY_VERSION,
 	KEY_HELP,
 };
-
 
 /*
  * Esta estructura es utilizada para decirle a la biblioteca de FUSE que
@@ -59,14 +55,13 @@ static struct fuse_opt fuse_options[] = {
 		FUSE_OPT_END,
 };
 
-
+//////////////////////////////////////////////MAIN////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[]) {
-
 	int fd;
 	struct stat sbuf;
-
 	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+
 
 	// Limpio la estructura que va a contener los parametros
 	memset(&runtime_options, 0, sizeof(struct t_runtime_options));
@@ -213,6 +208,45 @@ static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 	return 0;
 }
 
+// - grasa_mkdir -
+
+static uint32_t grasa_mkdir(const char *path, mode_t mode){
+	GFile Nodo;
+	off_t i,j=2;
+
+	if(strlen(path) > 71)
+		return -ENAMETOOLONG;
+
+	for (i=2; i < 1025; i++){
+		j=i;
+		i=1025;
+		if (bitarray_test_bit(GBitmap,j))
+			i=j;
+	}
+
+	if(j < 1025){
+
+		GTNodo[j].parent_dir_block = 0;
+
+		if(dirname(strdup(path)) != "/"){
+			Nodo = obtenerNodo(strdup(path));
+			GTNodo[j].parent_dir_block = Nodo.parent_dir_block;
+		}
+
+		strcpy(GTNodo[j].fname,basename(path));
+		GTNodo[j].file_size = 0;
+		GTNodo[j].state = 2;
+		GTNodo[j].c_date = (uint64_t)time(NULL);
+		GTNodo[j].m_date = (uint64_t)time(NULL);
+
+		bitarray_set_bit(GBitmap,j);
+
+		return 0;
+	}
+
+
+	return -ENOSPC;
+}
 
 //FUNCIONES AUXILIARES
 
