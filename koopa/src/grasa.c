@@ -166,7 +166,7 @@ static int grasa_read(const char *path, char *buf, size_t size, off_t offset, st
 	if (offset + size > Nodo.NodoBuscado.file_size)
 		size = Nodo.NodoBuscado.file_size - offset;
 
-	if (offset < Nodo.NodoBuscado.file_size) {
+	if (offset <= Nodo.NodoBuscado.file_size) {
 
 			while(offset < Nodo.NodoBuscado.file_size){
 
@@ -179,6 +179,7 @@ static int grasa_read(const char *path, char *buf, size_t size, off_t offset, st
 				buf += aCopiar;
 				offset += aCopiar;
 			}
+			//TODO ver si usar size o filesize
 			buf -= size;
 	} else
 		size = 0;
@@ -273,7 +274,7 @@ static uint32_t grasa_rmdir(const char *path){
 		GTNodo[Nodo.NroNodo].c_date = 0;
 		GTNodo[Nodo.NroNodo].m_date = 0;
 
-		bitarray_clean_bit(Nodo.NroNodo+2);
+		bitarray_clean_bit(GBitmap,Nodo.NroNodo+2);
 
 	return 0;
 }
@@ -282,6 +283,7 @@ static uint32_t grasa_rmdir(const char *path){
 
 static uint32_t grasa_unlink(const char *path){
 	tNodoBuscado Nodo;
+	ptrGBloque i=0,j=0;
 
 	Nodo = obtenerNodo(path);
 
@@ -297,7 +299,15 @@ static uint32_t grasa_unlink(const char *path){
 		GTNodo[Nodo.NroNodo].c_date = 0;
 		GTNodo[Nodo.NroNodo].m_date = 0;
 
-		bitarray_clean_bit(Nodo.NroNodo+2);
+		//Liberar inodo, se coloca +2 ya que el NroNodo es relativo a la tabla de Nodos
+		bitarray_clean_bit(GBitmap,Nodo.NroNodo+2);
+
+		j = GTNodo[Nodo.NroNodo].blk_indirect[i];
+		while (bitarray_test_bit(GBitmap,j) && i > 1024){
+			bitarray_clean_bit(GBitmap,j);
+			i++;
+			j = GTNodo[Nodo.NroNodo].blk_indirect[i];
+		}
 
 	return 0;
 }
@@ -354,6 +364,9 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 		bitarray_set_bit(GBitmap,j);
 
 		return 0;
+	}
+
+	return -ENOENT;
 }
 
 // - grasa_write -
@@ -371,24 +384,26 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 		return -ENOENT;
 
 	if (offset + size > BLOCK_SIZE*BLKINDIRECT)
-		size = BLOCK_SIZE*BLKINDIRECT - offset;
+		return 0;
 
-	if (offset < Nodo.NodoBuscado.file_size) {
+	while(offset <= offset + size){
 
-			while(offset < Nodo.NodoBuscado.file_size){
+		NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
 
-				NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
+		if (bitarray_test_bit(GBitmap,NroBloque))
+				bitarray_set_bit(GBitmap,NroBloque);
 
-				aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
+		aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
 
-				memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
+		memcpy(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),buf,aCopiar);
 
-				buf += aCopiar;
-				offset += aCopiar;
-			}
-			buf -= size;
-	} else
-		size = 0;
+		buf += aCopiar;
+		offset += aCopiar;
+	}
+	//TODO ver si usar size o filesize
+	GTNodo[j].file_size = offset + size;
+	GTNodo[j].m_date = (uint64_t)time(NULL);
+	buf -= size;
 
 	return size;
 }
