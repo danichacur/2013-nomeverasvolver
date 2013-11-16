@@ -112,19 +112,19 @@ int main(int argc, char *argv[]) {
 static int grasa_getattr(const char *path, struct stat *stbuf)
 {
 	int res = 0;
-	GFile Nodo;
+	tNodoBuscado Nodo;
 
 	memset(stbuf, 0, sizeof(struct stat));
 
 	Nodo = obtenerNodo(path);
 
-	if (Nodo.state == 2) {
+	if (Nodo.NodoBuscado.state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
-	} else if (Nodo.state == 1) {
+	} else if (Nodo.NodoBuscado.state == 1) {
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
-		stbuf->st_size = Nodo.file_size;
+		stbuf->st_size = Nodo.NodoBuscado.file_size;
 	} else
 		res = -ENOENT;
 
@@ -137,11 +137,11 @@ static int grasa_getattr(const char *path, struct stat *stbuf)
 // - grasa_open -
 
 static int grasa_open(const char *path, struct fuse_file_info *fi) {
-	GFile Nodo;
+	tNodoBuscado Nodo;
 
 	Nodo = obtenerNodo(path);
 
-	if (Nodo.state == 3)
+	if (Nodo.NodoBuscado.state == 3)
 		return -ENOENT;
 
 	if ((fi->flags & 3) != O_RDONLY)
@@ -154,23 +154,23 @@ static int grasa_open(const char *path, struct fuse_file_info *fi) {
 
 static int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
 	(void) fi;
-	GFile Nodo;
+	tNodoBuscado Nodo;
 	size_t aCopiar=0;
 	tObNroBloque NroBloque;
 
 	Nodo = obtenerNodo(path);
 
-	if (Nodo.state == 3)
+	if (Nodo.NodoBuscado.state == 3)
 		return -ENOENT;
 
-	if (offset + size > Nodo.file_size)
-		size = Nodo.file_size - offset;
+	if (offset + size > Nodo.NodoBuscado.file_size)
+		size = Nodo.NodoBuscado.file_size - offset;
 
-	if (offset < Nodo.file_size) {
+	if (offset < Nodo.NodoBuscado.file_size) {
 
-			while(offset < Nodo.file_size){
+			while(offset < Nodo.NodoBuscado.file_size){
 
-				NroBloque = obtenerNroBloque(Nodo,offset);
+				NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
 
 				aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
 
@@ -192,18 +192,18 @@ static int grasa_read(const char *path, char *buf, size_t size, off_t offset, st
 static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	(void) offset;
 	(void) fi;
-	GFile Nodo;
+	tNodoBuscado Nodo;
 
 	Nodo = obtenerNodo(path);
 
-	if (Nodo.state == 3)
+	if (Nodo.NodoBuscado.state == 3)
 		return -ENOENT;
 
 	// "." y ".." son entradas validas, la primera es una referencia al directorio donde estamos parados
 	// y la segunda indica el directorio padre
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
-	filler(buf,Nodo.fname, NULL, 0);
+	filler(buf,Nodo.NodoBuscado.fname, NULL, 0);
 
 	return 0;
 }
@@ -211,7 +211,7 @@ static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 // - grasa_mkdir -
 
 static uint32_t grasa_mkdir(const char *path, mode_t mode){
-	GFile Nodo;
+	tNodoBuscado Nodo;
 	off_t i,j=2;
 
 	if(strlen(path) > 71)
@@ -228,9 +228,9 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 
 		GTNodo[j].parent_dir_block = 0;
 
-		if(dirname(strdup(path)) != "/"){
-			Nodo = obtenerNodo(strdup(path));
-			GTNodo[j].parent_dir_block = Nodo.parent_dir_block;
+		if(dirname(strdup(path)) != "/" || dirname(strdup(path)) != "." ){
+			Nodo = obtenerNodo(path);
+			GTNodo[j].parent_dir_block = Nodo.NodoBuscado.parent_dir_block;
 		}
 
 		strcpy(GTNodo[j].fname,basename(path));
@@ -248,17 +248,161 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 	return -ENOSPC;
 }
 
+// - grasa_rmdir -
+
+static uint32_t grasa_rmdir(const char *path){
+	tNodoBuscado Nodo;
+	int i;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.NodoBuscado.state == 3)
+		return -ENOENT;
+
+	if (Nodo.NodoBuscado.state < 2)
+		return -ENOTDIR;
+
+	for(i=0;i < 1024;i++){
+		if(GTNodo[i].parent_dir_block == Nodo.NroNodo)
+			return -ENOTEMPTY;
+	}
+
+		GTNodo[Nodo.NroNodo].parent_dir_block = 0;
+		GTNodo[Nodo.NroNodo].file_size = 0;
+		GTNodo[Nodo.NroNodo].state = 0;
+		GTNodo[Nodo.NroNodo].c_date = 0;
+		GTNodo[Nodo.NroNodo].m_date = 0;
+
+		bitarray_clean_bit(Nodo.NroNodo+2);
+
+	return 0;
+}
+
+// - grasa_unlink -
+
+static uint32_t grasa_unlink(const char *path){
+	tNodoBuscado Nodo;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.NodoBuscado.state == 3)
+		return -ENOENT;
+
+	if (Nodo.NodoBuscado.state == 2 || Nodo.NodoBuscado.state == 0)
+		return -EFAULT;
+
+		GTNodo[Nodo.NroNodo].parent_dir_block = 0;
+		GTNodo[Nodo.NroNodo].file_size = 0;
+		GTNodo[Nodo.NroNodo].state = 0;
+		GTNodo[Nodo.NroNodo].c_date = 0;
+		GTNodo[Nodo.NroNodo].m_date = 0;
+
+		bitarray_clean_bit(Nodo.NroNodo+2);
+
+	return 0;
+}
+
+// - grasa_truncate -
+
+static uint32_t grasa_truncate(const char *path, off_t newsize){
+	tNodoBuscado Nodo;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.NodoBuscado.state == 3)
+		return -ENOENT;
+
+	if (Nodo.NodoBuscado.state == 2 || Nodo.NodoBuscado.state == 0)
+		return -EFAULT;
+
+		GTNodo[Nodo.NroNodo].file_size = newsize;
+		GTNodo[Nodo.NroNodo].m_date =  (uint64_t)time(NULL);
+
+	return 0;
+}
+
+static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi){
+	(void) fi;
+	tNodoBuscado Nodo;
+	off_t i,j=2;
+
+	if(strlen(path) > 71)
+		return -ENAMETOOLONG;
+
+	for (i=2; i < 1025; i++){
+		j=i;
+		i=1025;
+		if (bitarray_test_bit(GBitmap,j))
+			i=j;
+	}
+
+	if(j < 1025){
+
+		GTNodo[j].parent_dir_block = 0;
+
+		if (strcmp(path, "/") == 0  || strcmp(path, ".") == 0){
+			Nodo = obtenerNodo(path);
+			GTNodo[j].parent_dir_block = Nodo.NodoBuscado.parent_dir_block;
+		}
+
+		strcpy(GTNodo[j].fname,basename(path));
+		GTNodo[j].file_size = 0;
+		GTNodo[j].state = 1;
+		GTNodo[j].c_date = (uint64_t)time(NULL);
+		GTNodo[j].m_date = (uint64_t)time(NULL);
+
+		bitarray_set_bit(GBitmap,j);
+
+		return 0;
+}
+
+// - grasa_write -
+
+static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi){
+	(void) fi;
+	(void) offset;
+	tNodoBuscado Nodo;
+	size_t aCopiar=0;
+	tObNroBloque NroBloque;
+
+	Nodo = obtenerNodo(path);
+
+	if (Nodo.NodoBuscado.state == 3)
+		return -ENOENT;
+
+	if (offset + size > BLOCK_SIZE*BLKINDIRECT)
+		size = BLOCK_SIZE*BLKINDIRECT - offset;
+
+	if (offset < Nodo.NodoBuscado.file_size) {
+
+			while(offset < Nodo.NodoBuscado.file_size){
+
+				NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
+
+				aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
+
+				memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
+
+				buf += aCopiar;
+				offset += aCopiar;
+			}
+			buf -= size;
+	} else
+		size = 0;
+
+	return size;
+}
+
 //FUNCIONES AUXILIARES
 
 // - obtenerNodo -
 //Entrada: Dado el path.
 //Salida: Devuelve el nro de inodo.
 
-GFile obtenerNodo(char *path){
-
+tNodoBuscado obtenerNodo( const char *path){
 	int i;
 	char *Filename,*dir1,*dir2;
-	GFile NodoBuscado;
+	tNodoBuscado NodoBuscado;
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -269,11 +413,12 @@ GFile obtenerNodo(char *path){
 	dir2 = basename(dir2);
 
 	//Si tengo un solo nivel de directorio, directorio raiz
-	if (strcmp(dir1, "/") == 0){
+	if (strcmp(dir1, "/") == 0  || strcmp(dir1, ".") == 0){
 		for (i = 0; i < 1024; i++){
-			if (strcmp(GTNodo[i].fname,Filename) == 0){
-				NodoBuscado = GTNodo[i];
-				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.fname);
+			if ((strcmp(GTNodo[i].fname,Filename) == 0) && (GTNodo[i].state != 0)){
+				NodoBuscado.NodoBuscado = GTNodo[i];
+				NodoBuscado.NroNodo = i;
+				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.NodoBuscado.fname);
 				return NodoBuscado;
 			}
 		}
@@ -281,16 +426,17 @@ GFile obtenerNodo(char *path){
 	else{
 		//Si tengo dos niveles de directorios
 		for (i = 0; i < 1024; i++){
-			if ((strcmp(GTNodo[i].fname,Filename) == 0)&&(strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0)){
-				NodoBuscado = GTNodo[i];
-				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.fname);
+			if ((strcmp(GTNodo[i].fname,Filename) == 0)&&(strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0) && (GTNodo[i].state != 0)){
+				NodoBuscado.NodoBuscado = GTNodo[i];
+				NodoBuscado.NroNodo = i;
+				printf("NodoBuscado,fname %s,%s.\n",Filename,NodoBuscado.NodoBuscado.fname);
 				return NodoBuscado;
 			}
 		}
 	}
 
 	//Si no se ecuentra nodo es devuelve 3 en state, validar este retorno.
-	NodoBuscado.state = 3;
+	NodoBuscado.NodoBuscado.state = 3;
 	return NodoBuscado;
 
 }
@@ -300,7 +446,6 @@ GFile obtenerNodo(char *path){
 //Salida: offset del bloque de datos y bloque de datos.
 
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
-
 	off_t entero,indirecto;
 	tObNroBloque admNroBloque;
 

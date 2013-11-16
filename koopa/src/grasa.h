@@ -57,10 +57,16 @@ typedef struct grasa_adm_t {
 	GFile admTnodo[GFILEBYTABLE];
 } GAdm;
 
+//Estructura funcion obtenerNodo
+typedef struct grasa_obtenerNodo_t {
+	GFile NodoBuscado;
+	ptrGBloque NroNodo;
+} tNodoBuscado;
+
 //Estructura funcion obtenerNroBloque
 typedef struct grasa_obtenerNroBloque_t {
 	ptrGBloque BloqueDatos;
-	 off_t offsetDatos;
+	off_t offsetDatos;
 } tObNroBloque;
 
 
@@ -73,19 +79,19 @@ char * mapeo; //Disco mapeado Global
 
 //Prototipos
 //Funciones auxiliares
-GFile obtenerNodo(const char *path);
+tNodoBuscado obtenerNodo(const char *path);
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
 /*fuse functions */
 
-static uint32_t grasa_getattr(const char *path, struct stat *statbuf); //obtener atributos
-static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi); //leer contenido de directorio
-static uint32_t grasa_open(const char *path, struct fuse_file_info *fi); //verificacion de apertura de archivo
-static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi); //lectura del archivo desde offset dado
-static uint32_t grasa_mkdir(const char *path, mode_t mode);
-static uint32_t grasa_rmdir(const char *path);
-static uint32_t grasa_unlink(const char *path);
+static uint32_t grasa_getattr(const char *path, struct stat *statbuf); //Obtener atributos
+static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi); //Leer contenido de directorio
+static uint32_t grasa_open(const char *path, struct fuse_file_info *fi); //Verificacion de apertura de archivo
+static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi); //Lectura del archivo desde offset dado
+static uint32_t grasa_mkdir(const char *path, mode_t mode); //Crear directorio
+static uint32_t grasa_rmdir(const char *path); //Borrar Directorio vacio
+static uint32_t grasa_unlink(const char *path); //Unlink(Borrar) Archivo
 static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
-static uint32_t grasa_truncate(const char *path, off_t newsize);
-static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi);
+static uint32_t grasa_truncate(const char *path, off_t newsize);//Truncar archivo
+static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi);//crear archivo vacio
 
