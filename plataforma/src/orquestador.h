@@ -8,6 +8,9 @@
 #ifndef ORQUESTADOR_H_
 #define ORQUESTADOR_H_
 
+#define LISTA_LISTOS 1
+#define LISTA_BLOQUEADOS 2
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,5 +72,6 @@ void supr_pers_de_estructuras (int32_t socket);
 t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int32_t nivel_fd);
 void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel);
 void destruir_personaje(t_pers_por_nivel *personaje);
+void imprimir_lista(int32_t tipo, char *str_nivel);
 
 #endif /* ORQUESTADOR_H_ */
