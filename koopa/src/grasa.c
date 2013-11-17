@@ -10,106 +10,11 @@
 
 #include "grasa.h"
 
-
-static struct fuse_operations fuse_oper = {
-		.open = grasa_open,
-		.getattr = grasa_getattr,
-		.readdir  = grasa_readdir,
-		.read = grasa_read,
-		.mkdir = grasa_mkdir,
-		.rmdir = grasa_rmdir,
-		.unlink = grasa_unlink,
-		.write = grasa_write,
-		.truncate = grasa_truncate,
-		.create = grasa_create
-};
-
-/*
- * Esta es una estructura auxiliar utilizada para almacenar parametros
- * que nosotros le pasemos por linea de comando a la funcion principal
- * de FUSE
- */
-struct t_runtime_options {
-	char* welcome_msg;
-} runtime_options;
-
-/** keys for FUSE_OPT_ options */
-enum {
-	KEY_VERSION,
-	KEY_HELP,
-};
-
-/*
- * Esta estructura es utilizada para decirle a la biblioteca de FUSE que
- * parametro puede recibir y donde tiene que guardar el valor de estos
- */
-static struct fuse_opt fuse_options[] = {
-		// Este es un parametro definido por nosotros
-		//CUSTOM_FUSE_OPT_KEY("--welcome-msg %s", welcome_msg, 0),
-
-		// Estos son parametros por defecto que ya tiene FUSE
-		FUSE_OPT_KEY("-V", KEY_VERSION),
-		FUSE_OPT_KEY("--version", KEY_VERSION),
-		FUSE_OPT_KEY("-h", KEY_HELP),
-		FUSE_OPT_KEY("--help", KEY_HELP),
-		FUSE_OPT_END,
-};
-
-//////////////////////////////////////////////MAIN////////////////////////////////////////////////////////////////
-
-int main(int argc, char *argv[]) {
-	int fd;
-	struct stat sbuf;
-	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
-
-
-	// Limpio la estructura que va a contener los parametros
-	memset(&runtime_options, 0, sizeof(struct t_runtime_options));
-
-	// Esta funcion de FUSE lee los parametros recibidos y los intepreta
-	if (fuse_opt_parse(&args, &runtime_options, fuse_options, NULL) == -1){
-		/** error parsing options */
-		perror("Invalid arguments!");
-		return EXIT_FAILURE;
-	}
-
-	//prueba
-    char* path = "/home/utnso/Escritorio/disk.bin";
-
-    fd = open(path,O_RDWR);
-
-    if (fd == -1){
-     printf("Open Failed!\n");
-    }
-
-    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
-    	printf("stat Failed!\n");
-    }
-
-    mapeo = mmap(0,sbuf.st_size,PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    if (mapeo == MAP_FAILED){
-     printf("map Failed!\n");
-    }
-
-    GAdmin = (GAdm*) mapeo;
-    GTNodo = GAdmin->admTnodo;
-    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
-
-	// Esta es la funcion principal de FUSE, es la que se encarga
-	// de realizar el montaje, comuniscarse con el kernel, delegar
-    // en varios threads
-	return fuse_main(args.argc, args.argv, &fuse_oper, NULL);
-
-
-    return EXIT_SUCCESS;
-
-}
-
+// IMPLEMENTACION DE FUNCIONES FUSE
 
 //grasa_getattr
 
-static int grasa_getattr(const char *path, struct stat *stbuf)
+static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 {
 	int res = 0;
 	tNodoBuscado Nodo;
@@ -131,12 +36,9 @@ static int grasa_getattr(const char *path, struct stat *stbuf)
 	return res;
 }
 
-// IMPLEMENTACION DE FUNCIONES FUSE
-
-
 // - grasa_open -
 
-static int grasa_open(const char *path, struct fuse_file_info *fi) {
+static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 	tNodoBuscado Nodo;
 
 	Nodo = obtenerNodo(path);
@@ -152,7 +54,7 @@ static int grasa_open(const char *path, struct fuse_file_info *fi) {
 
 // - grasa_read -
 
-static int grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
 	(void) fi;
 	tNodoBuscado Nodo;
 	size_t aCopiar=0;
@@ -190,10 +92,12 @@ static int grasa_read(const char *path, char *buf, size_t size, off_t offset, st
 
 // - grasa_readdir -
 
-static int grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	(void) offset;
 	(void) fi;
 	tNodoBuscado Nodo;
+
+	printf("Aqui");
 
 	Nodo = obtenerNodo(path);
 
@@ -390,8 +294,8 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 
 		NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
 
-		if (bitarray_test_bit(GBitmap,NroBloque))
-				bitarray_set_bit(GBitmap,NroBloque);
+		if (bitarray_test_bit(GBitmap,NroBloque.BloqueDatos))
+				bitarray_set_bit(GBitmap,NroBloque.BloqueDatos);
 
 		aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
 
@@ -401,8 +305,8 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 		offset += aCopiar;
 	}
 	//TODO ver si usar size o filesize
-	GTNodo[j].file_size = offset + size;
-	GTNodo[j].m_date = (uint64_t)time(NULL);
+	GTNodo[Nodo.NroNodo].file_size = offset + size;
+	GTNodo[Nodo.NroNodo].m_date = (uint64_t)time(NULL);
 	buf -= size;
 
 	return size;
@@ -491,3 +395,58 @@ char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque){
 
 }
 
+static struct fuse_operations grasa_oper = {
+		.open = grasa_open,
+		.getattr = grasa_getattr,
+		.readdir  = grasa_readdir,
+		.read = grasa_read,
+		.mkdir = grasa_mkdir,
+		.rmdir = grasa_rmdir,
+		.unlink = grasa_unlink,
+		.write = grasa_write,
+		.truncate = grasa_truncate,
+		.create = grasa_create,
+};
+
+//////////////////////////////////////////////MAIN////////////////////////////////////////////////////////////////
+
+int main(int argc, char *argv[]) {
+	int fd;
+	struct stat sbuf;
+	char *path;
+
+	//prueba
+    //char* path = "/home/utnso/Escritorio/disk.bin";
+	path = argv[1];
+    printf("File: %s\n",path);
+
+    fd = open(path,O_RDWR);
+
+    if (fd == -1){
+     printf("Open Failed!\n");
+    }
+
+//    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
+    if (stat(path, &sbuf) == -1) {
+    	printf("stat Failed!\n");
+    }
+
+    mapeo = mmap(0,sbuf.st_size,PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    if (mapeo == MAP_FAILED){
+     printf("map Failed!\n");
+    }
+
+    GAdmin = (GAdm*) mapeo;
+    GTNodo = GAdmin->admTnodo;
+    GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
+
+	// Esta es la funcion principal de FUSE, es la que se encarga
+	// de realizar el montaje, comunicarse con el kernel, delegar
+    // en varios threads
+	return fuse_main(argc,argv, &grasa_oper, NULL);
+
+
+//    return EXIT_SUCCESS;
+
+}
