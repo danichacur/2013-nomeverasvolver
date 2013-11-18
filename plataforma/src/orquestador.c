@@ -55,13 +55,13 @@ t_pers_por_nivel *crear_personaje(char personaje, int32_t fd) {
 
 void destruir_personaje(t_pers_por_nivel *personaje) {
 
-        int j = 0;
+      //  int j = 0;
         while (!list_is_empty(personaje->recursos_obtenidos)) {
 
                 t_recursos_obtenidos* rec = list_remove(personaje->recursos_obtenidos,
-                                j);
+                                0);
                 free(rec);
-                j++;
+               // j++;
         }
         free(personaje);
 
@@ -83,15 +83,17 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int
         t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
         t_list *p_listos = dictionary_get(listos, str_nivel);
         char* personajes_desbloqueados = string_new();
-
+        int j = 0;
         if (list_is_empty(p_bloqueados) || (p_bloqueados == NULL )) {
                 log_info(logger,
                                 "DesbloquearPersonajes: No habia personajes que desbloquear");
         } else {
-                int j = 0;
+
+                //poner que ademas pregunte si no hay mas personajes para desbloquear
+                t_recursos_obtenidos* rec = NULL;
                 while (!list_is_empty(recursos_obtenidos)) {
 
-                        t_recursos_obtenidos* rec = list_remove(recursos_obtenidos, j);
+                        rec = list_remove(recursos_obtenidos, 0);
 
                         int32_t bloqueadoXrecursos(t_pers_por_nivel *valor) {
                                 return valor->recurso_bloqueo == rec->recurso;
@@ -107,12 +109,14 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int
                                                 "DesbloquearPersonajes: No habia personajes que desbloquear con el recurso %c ",
                                                 rec->recurso);
                                 list_add(recursos_libres, rec);
+                                //j++;
                         } else {
                                 //desbloquear al personaje! =) y buscar algun otro
                                 log_info(logger, "DesbloquearPersonajes: se desbloquea a %c ",
                                                 per->personaje);
                                 per->estoy_bloqueado = false;
                                 rec->cantidad--;
+                                enviarMensaje(per->fd,PLA_rtaRecurso_PER,"0");
                                 pthread_mutex_lock(&mutex_listos);
                                 list_add(p_listos, per);
                                 pthread_mutex_unlock(&mutex_listos);
@@ -122,24 +126,31 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int
                                                 per->personaje);
                                 string_append(&personajes_desbloqueados,string_from_format("%c",per->personaje));
                                 string_append(&personajes_desbloqueados,",");
+                                j++;
                                 if (rec->cantidad == 0) {
                                         free(rec);
-                                        break;
+//                                        break;
                                 } else {
-                                        list_add(recursos_obtenidos, rec);
-                                        j--; //fixme probar bien esto!
+
+                                	list_add(recursos_obtenidos, rec);
+    //                                    j--; //fixme probar bien esto!
                                 }
 
                         }
-                        j++;
+//                        j++;
 
                 }
 
         }
-        if(personajes_desbloqueados[strlen(personajes_desbloqueados)] == ',')
+        if(personajes_desbloqueados[strlen(personajes_desbloqueados)-1] == ',')
                 personajes_desbloqueados = string_substring_until(personajes_desbloqueados,strlen(personajes_desbloqueados)-1);
 
-        enviarMensaje(nivel_fd,PLA_personajesDesbloqueados_NIV,personajes_desbloqueados);
+    	char *cantidad = string_from_format("%d",j);
+
+    	string_append(&cantidad, ",");
+    	string_append(&cantidad, personajes_desbloqueados);
+
+        enviarMensaje(nivel_fd,PLA_personajesDesbloqueados_NIV,cantidad);
         return recursos_libres;
 }
 
