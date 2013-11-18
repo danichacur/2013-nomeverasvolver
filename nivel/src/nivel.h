@@ -68,7 +68,6 @@ bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje);
 void crearHiloInotify();
 void eliminarEstructuras();
 void mensajesConPlataforma(int32_t socketEscucha);
-void inicializarMapaNivel();
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
 void liberarRecursosDelPersonaje(t_list *recursosActuales);
@@ -81,5 +80,5 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
 t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 void crearHiloInterbloqueo();
-
+int dibujar (void);
 #endif /* NIVEL_H_ */

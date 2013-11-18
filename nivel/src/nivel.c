@@ -37,19 +37,23 @@ char * buffer_log;
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
-	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
+
 
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
+	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
 	pthread_mutex_init(&mutex_cambiosConfiguracion, NULL );
-	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
+leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 
-	//inicializarMapaNivel();
+//	dibujar();
+	sleep(5);
+
+//	inicializarMapaNivel();
 
 
-	socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+	 socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
 	//crearHiloInotify(hiloInotify);
 
 	//crearHiloInterbloqueo();
@@ -64,7 +68,6 @@ int main (){
 
 	}
 
-	eliminarEstructuras();
 
 	return true;
 }
@@ -137,31 +140,6 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 
 }
 
-void inicializarMapaNivel(){
-
-	int rows, cols; // TAMAÑO DEL MAPA
-
-
-	int ok=nivel_gui_inicializar();
-
-	if(ok!=0){
-
-			log_info(logger, "El mapa de %s no ha podido dibujarse",nombre);
-
-		}else{
-
-			log_info(logger, "El mapa de %s se ha dibujado",nombre);
-		}
-
-	/*
-	nivel_gui_get_area_nivel(&rows, &cols);
-	log_info(logger, "El mapa de %s se ha dibujado, tiene %s filas por %s columnas",nombre,rows,cols);
-
-	log_info(logger, "Se procede a graficar los elementos en el mapa creado",nombre,rows,cols);
-	nivel_gui_dibujar(items,nombre);
-*/
-}
-
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
 
 	pthread_mutex_lock(&mutex_mensajes);
@@ -171,8 +149,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	char ** numeroNombreNivel = string_split(nombre,"l");
 	int32_t numeroNivel=atoi(numeroNombreNivel[1]);
 	char * IP=IPyPuerto[0];
-
-	printf("numero nivel %d \n",numeroNivel);
+	log_info(logger, "Este es el nivel %d",numeroNivel);
 
 	char * buffer=malloc(sizeof(char*));
 	int32_t puerto= atoi(IPyPuerto[1]);
@@ -200,9 +177,10 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 
 	free(buffer);
+	pthread_mutex_unlock(&mutex_mensajes);
+
 	return socketDeEscucha;
 
-pthread_mutex_unlock(&mutex_mensajes);
 
 }
 
@@ -212,7 +190,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-
+	// si recibe cualquier cosa que se mate a si mismo
 		switch (unMensaje) {
 
 			case PLA_movimiento_NIV: {//graficar y actualizar la lista RECIBE "@,1,3"
@@ -228,12 +206,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 		    	MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
 		    	pthread_mutex_unlock(&mutex_listas);
 
-				printf("el personaje se movio %s",elMensaje);
+
 
 				log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
 
-				int32_t respuesta=enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
-				printf("%d \n",respuesta);
+				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+
 				/*
 				} else {
 
@@ -251,12 +229,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
 				pthread_mutex_lock(&mutex_listas);
-				liberarRecursosDelPersonaje(personaje->recursosActuales);
+				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %s ha muerto ",id);
-				// sacar de lista de personajes y sumar sus recursos a  disponibles
+
 
 
 				break;
@@ -282,7 +260,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				list_add(listaPersonajesRecursos,personaje);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El nuevo personaje %s se dibujo en el mapa",simbolo);
+				log_info(logger, "El nuevo personaje %c se dibujo en el mapa",elMensaje[0]);
 
 
 				break;
@@ -312,7 +290,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 
-			}case PLA_solicitudRecurso_NIV:{ // LE CONTESTO SI EL RECURSOS ESTA DISPONIBLE
+			}
+			case PLA_solicitudRecurso_NIV:{ // LE CONTESTO SI EL RECURSOS ESTA DISPONIBLE
 
 
 
@@ -329,7 +308,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					pthread_mutex_lock(&mutex_listas);
 					list_add(pers->recursosActuales, string_substring_from(elMensaje, 2));
 					pers->recursoBloqueante = string_new();
-					restarRecurso(items,elMensaje[1]);
+					restarRecurso(items,elMensaje[2]); //tira recurso no existente
 					pthread_mutex_unlock(&mutex_listas);
 
 				}else{
@@ -345,39 +324,78 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-			case PLA_personajesDesbloqueados_NIV:{//"@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
+			case PLA_personajesDesbloqueados_NIV:{//"5,@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
 				char ** mens = string_split(elMensaje,",");
-				int i=0;
+				int i;
+				log_info(logger, "Personajes %s desbloqueados",elMensaje);
+				int cantPersonajes=atoi(mens[0]);
+				for(i=1;i<=cantPersonajes;i++){
+					char * unPersDesbloqueado=mens[i];
 
-				while(mens[i]!=NULL){
-
-				t_personaje * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,mens[i]);
-
-				pthread_mutex_lock(&mutex_listas);
-				unPers->recursoBloqueante=string_new();
-				pthread_mutex_unlock(&mutex_listas);
-				}
-
-			break;
-			}
-			case PLA_actualizarRecursos_NIV:{ //"F,1;C,3;....." actualizo la lista de recursos sumandole esas cantidades
-				char ** mens = string_split(elMensaje,";");
-				int i=0;
-				while(mens[i]!=NULL){
-					char ** mensajeIndividual=string_split(mens[i],",");
+					t_personaje * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,unPersDesbloqueado);
 
 					pthread_mutex_lock(&mutex_listas);
-					sumarRecurso(items, mensajeIndividual[0][0],atoi(mensajeIndividual[1]));
+					unPers->recursoBloqueante=string_new();
 					pthread_mutex_unlock(&mutex_listas);
+
 				}
 
 
 				break;
 			}
 
+			case PLA_actualizarRecursos_NIV:{ //"3;F,1;C,3;....." actualizo la lista de recursos sumandole esas cantidades
+				char ** mens = string_split(elMensaje,";");
+				int cantRecursos= atoi(mens[0]);
+				int i;
+				for(i=1;i<=cantRecursos;i++){
+					char** mensajeIndividual= string_split(mens[i],",");
+					pthread_mutex_lock(&mutex_listas);
+					int cantidad=atoi(mensajeIndividual[1]);
+					sumarRecurso(items, mensajeIndividual[0][0],cantidad);
+					pthread_mutex_unlock(&mutex_listas);
+
+				}
+
+
+				break;
+			}
+			case PLA_nivelFinalizado_NIV:{  //recibe personaje que termino el nivel ej: "@"
+				char id=elMensaje[0];
+				t_personaje * personaje = malloc(sizeof(t_personaje));
+
+				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
+
+				pthread_mutex_lock(&mutex_listas);
+				liberarRecursosDelPersonaje(personaje->recursosActuales);
+				BorrarItem(items,id);
+				pthread_mutex_unlock(&mutex_listas);
+
+				log_info(logger, "El personaje %s ha terminado el nivel ",id);
+
+
+				break;
+			}
+
+			case NIV_perMuereInterbloqueo_PLA:{
+				char id=elMensaje[0];
+				t_personaje * personaje = malloc(sizeof(t_personaje));
+
+				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
+
+				pthread_mutex_lock(&mutex_listas);
+				liberarRecursosDelPersonaje(personaje->recursosActuales);
+				BorrarItem(items,id);
+				pthread_mutex_unlock(&mutex_listas);
+
+				log_info(logger, "El personaje %s ha muerto por interbloqueo ",id);
+
+				break;
+			}
+
 			{
 				default:
-				printf("%s \n","recibio cualquier cosa");
+				log_info(logger, "Recibi cualquier cosa ");
 				break;
 			}
 
@@ -412,8 +430,8 @@ bool determinarRecursoDisponible(char * recursoSolicitado){
 
 	item=buscarRecursoEnLista(items,recursoSolicitado);
 	char id=item->id;
-	char * nulo="0";
-	if(id== nulo[0]) {
+	int cantidad=item->quantity;
+	if(cantidad==0) {
 		return false;
 		}else{
 			restarRecurso(items,id);
@@ -528,7 +546,7 @@ void crearHiloInotify(pthread_t hiloNotify){
 		 		 perror("read");
 		 	 }
 
-		 printf("DESPUES DE LEER\n");
+		// printf("DESPUES DE LEER\n");
 		 sleep(2);
 		 struct inotify_event *event = (struct inotify_event *) &buffer[0]; //CARGAMOS LOS EVENTOS ESCUCHADOS EN UNA ESTRUCTURA
 
@@ -541,7 +559,7 @@ void crearHiloInotify(pthread_t hiloNotify){
 			 char * algoritmoAux=config_get_string_value(config,"algoritmo");
 
 			 if(retardoAux==retardo && quantumAux==quantum && strcmp(algoritmoAux,algoritmo)==0){
-				 printf("Hubo cambios en el archivo pero no sobre las variables en consideracion \n");
+				// printf("Hubo cambios en el archivo pero no sobre las variables en consideracion \n");
 
 			 } else {
 				 log_info(logger, "Envio cambios archivo configuracion ");
@@ -561,17 +579,17 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 		 } else {
 
-			 printf("SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
+			// printf("SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
 
 		 }
 
 		 inotify_rm_watch(file_descriptor, watch_descriptor);
 		 close(file_descriptor);
 
-		 printf("SALGO DE INOTIFY\n");
+		// printf("SALGO DE INOTIFY\n");
 
-		 return EXIT_SUCCESS;
-	 }
+	}
+	 return EXIT_SUCCESS;
 
  }
 
@@ -588,6 +606,108 @@ void crearHiloInterbloqueo(){
 
 
 
+/////////// pruebaa //////////////////
+void rnd(int *x, int max){
+	*x += (rand() % 3) - 1;
+	*x = (*x<max) ? *x : max-1;
+	*x = (*x>0) ? *x : 1;
+}
+
+int dibujar (void) {
+	int rows, cols;
+		int q, p;
+
+		int x = 1;
+		int y = 1;
+
+		int ex1 = 10, ey1 = 14;
+		int ex2 = 20, ey2 = 3;
+
+		nivel_gui_inicializar();
+
+	    nivel_gui_get_area_nivel(&rows, &cols);
+
+		p = cols;
+		q = rows;
+
+
+
+
+		nivel_gui_dibujar(items, "Test Chamber 04");
+
+		while ( 1 ) {
+					int key = getch();
+
+					switch( key ) {
+
+						case KEY_UP:
+							if (y > 1) {
+								y--;
+							}
+						break;
+
+						case KEY_DOWN:
+							if (y < rows) {
+								y++;
+							}
+						break;
+
+						case KEY_LEFT:
+							if (x > 1) {
+								x--;
+							}
+						break;
+						case KEY_RIGHT:
+							if (x < cols) {
+								x++;
+							}
+						break;
+						case 'w':
+						case 'W':
+							if (q > 1) {
+								q--;
+							}
+						break;
+
+						case 's':
+						case 'S':
+							if (q < rows) {
+								q++;
+							}
+						break;
+
+						case 'a':
+						case 'A':
+							if (p > 1) {
+								p--;
+							}
+						break;
+						case 'D':
+						case 'd':
+							if (p < cols) {
+								p++;
+							}
+						break;
+						case 'Q':
+						case 'q':
+							nivel_gui_terminar();
+							exit(0);
+						break;
+					}
+
+
+					rnd(&ex1, cols);
+					rnd(&ey1, rows);
+					rnd(&ex2, cols);
+					rnd(&ey2, rows);
+
+					nivel_gui_dibujar(items, "Test Chamber 04");
+				}
+
+		nivel_gui_terminar();
+
+	return EXIT_SUCCESS;
+}
 
 
 
