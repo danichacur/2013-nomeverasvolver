@@ -31,6 +31,7 @@ int cantVidasDelArchivoDeConfiguracion;
 
 // tabla con los identificadores de los threads
 pthread_t tabla_thr[MAX_THREADS];
+int32_t tabla_fd[MAX_THREADS];
 
 char * horizontal;
 char * vertical;
@@ -116,7 +117,7 @@ void* conectarAlNivel(int* nroNivel){
 	if(!hubo_error)
 		avisarNivelConcluido(ordNivel);
 
-	desconectarPlataforma();
+	//desconectarPlataforma();
 
 	//liberarMemoria!!!
 	pthread_exit(NULL);
@@ -131,6 +132,8 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 	}else if( motivoMuerte == MUERTE_POR_INTERBLOQUEO){
 		log_info(logger, "Perdí una vida porque estaba interbloqueado");
 	}
+
+	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, "0");
 
 	if(meQuedanVidas() == EXIT_SUCCESS){
 		descontarUnaVida();
@@ -181,11 +184,13 @@ void conectarAlOrquestador(int ordNivel){
 		fd = 1;
 
 	if (fd > 0){
-		if (ordNivel != -1)
+		if (ordNivel != -1){
 			log_info(logger, "Personaje %s (%s) (nivel: %s) se conectó correctamente al Orquestador", personaje->nombre, personaje->simbolo, nomNivel);
-		else
+			tabla_fd[ordNivel] = fd;
+		}else{
 			log_info(logger, "Personaje %s se conectó correctamente al Orquestador", personaje->nombre);
-		fdOrquestador = fd;
+			fdOrquestador = fd;
+		}
 	}
 
 	free(nomNivel);
@@ -349,6 +354,7 @@ static t_personaje *personaje_create(char *nombre,
 }*/
 
 void avisarPlanNivelesConcluido(){
+	log_info(logger, "Personaje %s (%s) informa que finalizó su plan de niveles", personaje->nombre, personaje->simbolo);
 	if (CON_CONEXION)
 		enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,personaje->simbolo);
 }
@@ -371,7 +377,7 @@ int tengoTodosLosRecursos(int nivel){
 void recibirTurno(int ordNivel){
 	char* mensaje;
 	//recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_turnoConcedido_PER, &mensaje, ordNivel);
-	recibirUnMensaje(fdOrquestador, PLA_turnoConcedido_PER, &mensaje, ordNivel);
+	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_turnoConcedido_PER, &mensaje, ordNivel);
 	free(mensaje);
 
 }
@@ -387,12 +393,12 @@ void solicitarYRecibirPosicionProximoRecurso(int ordNivel){
 	log_info(logger, "Personaje %s (%s) (nivel: %s) solicita la ubicacion de la caja del recurso %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), proximoRecursoNecesario);
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, proximoRecursoNecesario);
-		enviarMensaje(fdOrquestador, PER_posCajaRecurso_PLA, proximoRecursoNecesario);
+		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, proximoRecursoNecesario);
 
 	char * mensaje;
 
 	//recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_posCajaRecurso_PER, &mensaje, ordNivel);
-	recibirUnMensaje(fdOrquestador, PLA_posCajaRecurso_PER, &mensaje, ordNivel);
+	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_posCajaRecurso_PER, &mensaje, ordNivel);
 
 	///////////////////   TODO HARDCODEADO por archConf
 	if(!CON_CONEXION){
@@ -467,12 +473,12 @@ void enviarNuevaPosicion(int ordNivel){
 	t_posicion* posicion = list_get(personaje->posicionesPorNivel,ordNivel);
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
-		enviarMensaje(fdOrquestador, PER_movimiento_PLA, posicionToString(posicion));
+		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
 	log_info(logger, "Personaje %s (%s) (nivel: %s) envió su posicion %s al Planificador", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), posicionToString(posicion));
 
 	char * mensaje;
 
-	recibirUnMensaje(fdOrquestador, PLA_movimiento_PER, &mensaje, ordNivel);
+	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_movimiento_PER, &mensaje, ordNivel);
 	if(!strcmp(mensaje,"1"))
 		log_info(logger, "Personaje %s (%s) (nivel: %s) se fue del mapa. Se rompió todo", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
 }
@@ -494,11 +500,11 @@ void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando un
 	log_info(logger, "Personaje %s (%s) (nivel: %s) solicita el recurso %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel), recursoNecesario);
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
-		enviarMensaje(fdOrquestador,PER_recurso_PLA,recursoNecesario);
+		enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
 
 	char * mensaje;
 	//recibirUnMensaje(obtenerFDPlanificador(nivel),PLA_rtaRecurso_PER,&mensaje,nivel);
-	recibirUnMensaje(fdOrquestador,PLA_rtaRecurso_PER,&mensaje,nivel);
+	recibirUnMensaje(obtenerFDPlanificador(nivel),PLA_rtaRecurso_PER,&mensaje,nivel);
 
 	//Agrego el recurso que me fue asignado
 	list_add(list_get(personaje->recursosActualesPorNivel, nivel),recursoNecesario);
@@ -523,7 +529,7 @@ void avisarQueNoEstoyEnCajaRecursos(int nivel){
 	char * recursoNecesario = "0";
 		//log_info(logger, "Personaje %s (%s) (nivel: %s) avisa que no está en la caja", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
 		if (CON_CONEXION)
-			enviarMensaje(fdOrquestador,PER_recurso_PLA,recursoNecesario);
+			enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
 }
 
 char* obtenerRecursosActualesPorNivel(int ordNivel){
@@ -555,7 +561,7 @@ void avisarNivelConcluido(int nivel){
 			personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(nivel),PER_nivelFinalizado_PLA,"0");
-		enviarMensaje(fdOrquestador,PER_nivelFinalizado_PLA,"0");
+		enviarMensaje(obtenerFDPlanificador(nivel) , PER_nivelFinalizado_PLA , personaje->simbolo);
 
 }
 
@@ -610,7 +616,7 @@ void enviarHandshake(int ordNivel){
 	string_append(&mensaje,personaje->simbolo);
 	//string_append(&mensaje,personaje->remain);
 	if (CON_CONEXION)
-		enviarMensaje(fdOrquestador, PER_handshake_ORQ, mensaje);
+		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_handshake_ORQ, mensaje);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) envía handshake al Orquestador con los siguientes datos: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 
 	free(mensaje);
@@ -624,7 +630,7 @@ void recibirHandshake(int ordNivel){
 	enum tipo_paquete tipoRecibido;
 
 	if (CON_CONEXION)
-		recibirMensaje(fdOrquestador,&tipoRecibido,&mensaje);
+		recibirMensaje(obtenerFDPlanificador(ordNivel),&tipoRecibido,&mensaje);
 	else
 		tipoRecibido = ORQ_handshake_PER;
 
@@ -638,15 +644,22 @@ void recibirHandshake(int ordNivel){
 
 void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volver a pedir el nivel mientras no esté conectado.
 	char* mensaje = string_new();
+	char * rta = string_new();
 	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 	enum tipo_paquete tipoMensaje;
 
 	string_append(&mensaje,obtenerNumeroNivel(nomNivel));
 	if (CON_CONEXION){
-		enviarMensaje(fdOrquestador, PER_conexionNivel_ORQ, mensaje);
-		mensaje = NULL;
-		recibirMensaje(fdOrquestador, &tipoMensaje, &mensaje);
-		//validar que si es 1 vuelva a conectar
+		while(1){
+			enviarMensaje(obtenerFDPlanificador(ordNivel), PER_conexionNivel_ORQ, mensaje);
+			//mensaje = NULL;
+			recibirMensaje(obtenerFDPlanificador(ordNivel), &tipoMensaje, &rta);
+			if( strcmp(rta,"0") == 0)
+				break;
+			else
+				sleep(10);
+			//validar que si es 1 vuelva a conectar
+		}
 	}
 	log_info(logger, "Personaje %s (%s) (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 
@@ -688,8 +701,10 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 }
 
 int32_t obtenerFDPlanificador(int ordNivel){
-	t_descriptorPorNivel * descriptorNivel = list_get(listaDeFilesDescriptorsPorNivel, ordNivel);
-	return descriptorNivel->fdNivel;
+	//t_descriptorPorNivel * descriptorNivel = list_get(listaDeFilesDescriptorsPorNivel, ordNivel);
+	//return descriptorNivel->fdNivel;
+
+	return tabla_fd[ordNivel];
 }
 
 char* posicionToString(t_posicion * posicion){

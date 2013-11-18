@@ -48,7 +48,7 @@ int main (){
 leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 
 //	dibujar();
-	sleep(5);
+	//sleep(5);
 
 //	inicializarMapaNivel();
 
@@ -348,6 +348,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char ** mens = string_split(elMensaje,";");
 				int cantRecursos= atoi(mens[0]);
 				int i;
+				log_info(logger, "Recursos desbloqueados: %s",elMensaje);
 				for(i=1;i<=cantRecursos;i++){
 					char** mensajeIndividual= string_split(mens[i],",");
 					pthread_mutex_lock(&mutex_listas);
@@ -371,7 +372,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El personaje %s ha terminado el nivel ",id);
+				log_info(logger, "El personaje %c ha terminado el nivel ",id);
 
 
 				break;
