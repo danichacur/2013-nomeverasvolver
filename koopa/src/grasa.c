@@ -89,7 +89,6 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
 	return size;
 }
 
-
 // - grasa_readdir -
 
 static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
@@ -97,7 +96,7 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	(void) fi;
 	tNodoBuscado Nodo;
 
-	printf("Aqui");
+	printf("grasa_readdir");
 
 	Nodo = obtenerNodo(path);
 
@@ -118,6 +117,8 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 static uint32_t grasa_mkdir(const char *path, mode_t mode){
 	tNodoBuscado Nodo;
 	off_t i,j=2;
+
+	printf("grasa_mkdir");
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -159,6 +160,8 @@ static uint32_t grasa_rmdir(const char *path){
 	tNodoBuscado Nodo;
 	int i;
 
+	printf("grasa_rmdir");
+
 	Nodo = obtenerNodo(path);
 
 	if (Nodo.NodoBuscado.state == 3)
@@ -188,6 +191,8 @@ static uint32_t grasa_rmdir(const char *path){
 static uint32_t grasa_unlink(const char *path){
 	tNodoBuscado Nodo;
 	ptrGBloque i=0,j=0;
+
+	printf("grasa_unlink");
 
 	Nodo = obtenerNodo(path);
 
@@ -221,6 +226,8 @@ static uint32_t grasa_unlink(const char *path){
 static uint32_t grasa_truncate(const char *path, off_t newsize){
 	tNodoBuscado Nodo;
 
+	printf("grasa_truncate");
+
 	Nodo = obtenerNodo(path);
 
 	if (Nodo.NodoBuscado.state == 3)
@@ -239,6 +246,8 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 	(void) fi;
 	tNodoBuscado Nodo;
 	off_t i,j=2;
+
+	printf("grasa_create");
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -282,6 +291,8 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	size_t aCopiar=0;
 	tObNroBloque NroBloque;
 
+	printf("grasa_write");
+
 	Nodo = obtenerNodo(path);
 
 	if (Nodo.NodoBuscado.state == 3)
@@ -322,6 +333,8 @@ tNodoBuscado obtenerNodo( const char *path){
 	int i;
 	char *Filename,*dir1,*dir2;
 	tNodoBuscado NodoBuscado;
+
+	printf("obtenerNodo");
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -368,6 +381,8 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 	off_t entero,indirecto;
 	tObNroBloque admNroBloque;
 
+	printf("obtenerNroBloque");
+
 	entero = offsetArchivo / BLOCK_SIZE;
 	indirecto = entero / GFILEBYTABLE;
 
@@ -388,6 +403,8 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 //Salida: datos desde el offset de entrada.
 
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque){
+
+	printf("obtenerDatos");
 
 	char * datos = (mapeo + NroBloqueDatos*BLOCK_SIZE + offsetbloque);
 
@@ -413,21 +430,24 @@ static struct fuse_operations grasa_oper = {
 int main(int argc, char *argv[]) {
 	int fd;
 	struct stat sbuf;
-	char *path;
+	char *pathm="/disk.bin";
+	char pathf[71];
 
-	//prueba
-    //char* path = "/home/utnso/Escritorio/disk.bin";
-	path = argv[1];
-    printf("File: %s\n",path);
+	memcpy (pathf,argv[1],strlen(argv[1]));
+	pathf[strlen(argv[1])] = '\0';
+	strcat(pathf,pathm);
 
-    fd = open(path,O_RDWR);
+    //path = "/home/utnso/Escritorio/tmp/disk.bin";
 
-    if (fd == -1){
+    printf("File: %s\n",pathf);
+
+    fd = open(pathf,O_RDWR);
+
+    if (fd < 0){
      printf("Open Failed!\n");
     }
 
-//    if (stat("/home/utnso/Escritorio/disk.bin", &sbuf) == -1) {
-    if (stat(path, &sbuf) == -1) {
+    if (stat(pathf, &sbuf) == -1) {
     	printf("stat Failed!\n");
     }
 
@@ -440,6 +460,9 @@ int main(int argc, char *argv[]) {
     GAdmin = (GAdm*) mapeo;
     GTNodo = GAdmin->admTnodo;
     GBitmap = bitarray_create(GAdmin->admbitmap, sbuf.st_size/BLOCK_SIZE/8);
+
+    printf("File: %s\n",GTNodo[6].fname);
+
 
 	// Esta es la funcion principal de FUSE, es la que se encarga
 	// de realizar el montaje, comunicarse con el kernel, delegar
