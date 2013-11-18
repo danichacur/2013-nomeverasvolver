@@ -12,8 +12,8 @@ bool recovery;
 extern t_list * listaDePersonajes;
 int32_t fdPlanificador;
 
-t_personaje * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
-	t_personaje * new = malloc(sizeof(t_personaje));
+t_personaje_niv * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
+	t_personaje_niv * new = malloc(sizeof(t_personaje_niv));
 	new->simbolo = simbolo;
 	new->recursosActuales = recActuales;
 	new->recursoBloqueante = recBloqueante;
@@ -40,7 +40,7 @@ void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 			printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
 
 			if(recovery){
-				t_personaje * personaje = seleccionarVictima(listaInterbloqueados);
+				t_personaje_niv * personaje = seleccionarVictima(listaInterbloqueados);
 				informarVictimaAPlanificador(personaje);
 			}
 
@@ -67,7 +67,7 @@ t_list * obtenerPersonajesInterbloqueados(){
 		listaInterbloqueados = list_create();
 
 		int ordenPrimerPers = j;
-		t_personaje * primerPers = list_get(listaBloqueados,ordenPrimerPers);
+		t_personaje_niv * primerPers = list_get(listaBloqueados,ordenPrimerPers);
 		char * recursoBloqueantePrimerPers = obtenerRecursoBloqueante(primerPers);
 
 		int i;
@@ -81,7 +81,7 @@ t_list * obtenerPersonajesInterbloqueados(){
 		strcpy(recursoBloqueanteActual,recursoBloqueantePrimerPers);
 		list_add(listaInterbloqueados, list_get(listaBloqueados,j));
 		while (i != ordenPersActual && !interbloqueo){
-			t_personaje * pers = list_get(listaBloqueados,i);
+			t_personaje_niv * pers = list_get(listaBloqueados,i);
 			if(personajeTieneRecurso(pers, recursoBloqueanteActual) && !estaEnLista(listaInterbloqueados,pers)){
 				list_add(listaInterbloqueados, pers);
 				recursoBloqueanteActual = obtenerRecursoBloqueante(pers);
@@ -107,11 +107,11 @@ t_list * obtenerPersonajesInterbloqueados(){
 
 
 
-bool estaEnLista(t_list * lista, t_personaje * pers){
+bool estaEnLista(t_list * lista, t_personaje_niv * pers){
 	bool esta = false;
 	int i;
 	for (i=0 ; i<list_size(lista) ; i++){
-		t_personaje * personaje = list_get(lista,i);
+		t_personaje_niv * personaje = list_get(lista,i);
 		if(!strcmp(pers->simbolo, personaje->simbolo))
 			esta = true;
 	}
@@ -119,12 +119,12 @@ bool estaEnLista(t_list * lista, t_personaje * pers){
 	return esta;
 }
 
-char * obtenerRecursoBloqueante(t_personaje * personaje){
+char * obtenerRecursoBloqueante(t_personaje_niv * personaje){
 	char * recurso = personaje->recursoBloqueante;
 	return recurso;
 }
 
-bool personajeTieneRecurso(t_personaje * personaje, char * recurso){
+bool personajeTieneRecurso(t_personaje_niv * personaje, char * recurso){
 	int i = 0;
 	bool encontrado = false;
 	while(i < list_size(personaje->recursosActuales) && !encontrado){
@@ -140,12 +140,12 @@ bool hayInterbloqueo(t_list * listaInterbloqueados){
 	return (list_size(listaInterbloqueados) > 0); // toma el primero que se conectó porque está en orden.
 }
 
-t_personaje * seleccionarVictima(t_list * listaInterbloqueados){
-	t_personaje * pers = list_get(listaInterbloqueados,0);
+t_personaje_niv * seleccionarVictima(t_list * listaInterbloqueados){
+	t_personaje_niv * pers = list_get(listaInterbloqueados,0);
 	return pers;
 }
 
-void informarVictimaAPlanificador(t_personaje * personaje){
+void informarVictimaAPlanificador(t_personaje_niv * personaje){
 	//enviarMensaje(fdPlanificador,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
 }
 
@@ -174,7 +174,7 @@ t_list * obtenerListaDePersonajesBloqueados(){
 			j++;
 		}
 
-		t_personaje * personaje = personaje_recursos_create(recursos[0], listaRecursosActuales, recursos[j]);
+		t_personaje_niv * personaje = personaje_recursos_create(recursos[0], listaRecursosActuales, recursos[j]);
 		list_add(listaPersonajesBloqueados, personaje);
 
 		i++;
@@ -182,7 +182,7 @@ t_list * obtenerListaDePersonajesBloqueados(){
 
 	int i;
 	for (i=0; i <list_size(listaDePersonajes); i++){
-		t_personaje * personaje =  list_get(listaDePersonajes,i);
+		t_personaje_niv * personaje =  list_get(listaDePersonajes,i);
 		if (strcmp(personaje->recursoBloqueante, "") != 0)
 			list_add(listaPersonajesBloqueados, personaje);
 	}
@@ -195,7 +195,7 @@ char * obtenerIdsPersonajes(t_list * listaPersonajes){
 	char * ids = string_new();
 	int i;
 	for( i=0 ; i<list_size(listaPersonajes) ; i++){
-		t_personaje * per = list_get(listaPersonajes,i);
+		t_personaje_niv * per = list_get(listaPersonajes,i);
 		if(i+1 != list_size(listaPersonajes))
 			string_append_with_format(&ids,"%s%s", per->simbolo, ",");
 		else

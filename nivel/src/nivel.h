@@ -30,17 +30,12 @@
 #include <sys/inotify.h>
 #include <stdlib.h>
 #include <curses.h>
+#include "enemigo.h"
 
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 
 
-typedef struct {
-	char* nombre;
-	char* simbolo;
-	int instancias;
-	int posX;
-	int posY;
-}tRecursosNivel;
+
 
 typedef struct {
 	char* nombre;
@@ -56,12 +51,7 @@ typedef struct {
 }tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
 
 
-typedef struct {
-		char * simbolo;
-        t_posicion * posicion;
-        t_list * recursosActuales;
-        char * recursoBloqueante;
-} t_personaje;
+
 
 
 bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje);
@@ -78,7 +68,8 @@ void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensa
 bool determinarRecursoDisponible(char * recursoSolicitado);
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
-t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
+t_personaje_niv * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 void crearHiloInterbloqueo();
+void crearHilosEnemigos();
 int dibujar (void);
 #endif /* NIVEL_H_ */

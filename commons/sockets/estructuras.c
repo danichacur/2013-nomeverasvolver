@@ -51,6 +51,25 @@ t_posicion * posicion_create_pos_rand(int maxRandPos){
 	return posicion;
 }
 
+tRecursosNivel * recurso_create(char * nombre, char * simbolo, int instancias, int posX, int posY ){
+	tRecursosNivel * recurso = malloc(sizeof(tRecursosNivel));
+	recurso->nombre = nombre;
+	recurso->simbolo = simbolo;
+	recurso->instancias = instancias;
+	recurso->posX = posX;
+	recurso->posY = posY;
+
+	return recurso;
+}
+
+t_personaje_niv * personaje_create_pos(char * simbolo, t_posicion * posicion ){
+	t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
+	personaje->posicion = posicion;
+	personaje->simbolo = simbolo;
+
+	return personaje;
+}
+
 /*
 static t_posicion * posicion_create(int posX, int posY){
 	t_posicion *new = malloc(sizeof(t_posicion));

@@ -16,6 +16,7 @@ int cols; // TAMAÑO DEL MAPA
 char * nombre;
 char * direccionIPyPuerto;
 char * algoritmo;
+int enemigos;
 
 t_list * listaPersonajesRecursos;
 t_list * items;
@@ -56,6 +57,7 @@ leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	 socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
 	//crearHiloInotify(hiloInotify);
 
+	//crearHilosEnemigos();
 	//crearHiloInterbloqueo();
 
 	while(1){
@@ -89,7 +91,7 @@ int leerArchivoConfiguracion(){
 	int recovery = config_get_int_value(config, "Recovery");
 	log_info(logger, "El recovery para %s es de %d ut",nombre,recovery);
 
-	int enemigos = config_get_int_value(config, "Enemigos");
+	enemigos = config_get_int_value(config, "Enemigos");
 	log_info(logger, "La cantidad de enemigos de %s es %d",nombre,enemigos);
 
 	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
@@ -224,7 +226,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_personajeMuerto_NIV:{ //RECIBE "@"
 				char id=elMensaje[0];
-				t_personaje * personaje = malloc(sizeof(t_personaje));
+				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -250,7 +252,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_unlock(&mutex_listas);
 
 				//ACA CREO UNA LISTA DE PERSONAJES CON SUS RESPECTIVOS RECURSOS ASIGNADOS
-				t_personaje * personaje = malloc(sizeof(t_personaje));
+				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
 				personaje->simbolo = string_substring_until(elMensaje,1);
 				personaje->recursosActuales = list_create();
 				personaje->recursoBloqueante = string_new();
@@ -300,7 +302,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				char * rta;
 				bool hayRecurso = determinarRecursoDisponible (string_substring_from(elMensaje, 2));
-				t_personaje * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
+				t_personaje_niv * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
 
 				if (hayRecurso){
 					rta = "0";
@@ -332,7 +334,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				for(i=1;i<=cantPersonajes;i++){
 					char * unPersDesbloqueado=mens[i];
 
-					t_personaje * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,unPersDesbloqueado);
+					t_personaje_niv * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,unPersDesbloqueado);
 
 					pthread_mutex_lock(&mutex_listas);
 					unPers->recursoBloqueante=string_new();
@@ -363,7 +365,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_nivelFinalizado_NIV:{  //recibe personaje que termino el nivel ej: "@"
 				char id=elMensaje[0];
-				t_personaje * personaje = malloc(sizeof(t_personaje));
+				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -380,7 +382,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 			case NIV_perMuereInterbloqueo_PLA:{
 				char id=elMensaje[0];
-				t_personaje * personaje = malloc(sizeof(t_personaje));
+				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -484,15 +486,15 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 	return item;
 }
 
-t_personaje * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
+t_personaje_niv * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
 
 
-	int32_t _esta_el_personaje(t_personaje * personaje){
+	int32_t _esta_el_personaje(t_personaje_niv * personaje){
 
 		return string_equals_ignore_case(personaje->simbolo,simbolo);
 	}
 
-	t_personaje * unPers = list_find(lista, (void*) _esta_el_personaje);
+	t_personaje_niv * unPers = list_find(lista, (void*) _esta_el_personaje);
 
 
 	/*
@@ -599,7 +601,13 @@ void crearHiloInterbloqueo(){
 	//pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
 }
 
-
+void crearHilosEnemigos(){
+	int i;
+	pthread_t pid;
+	for(i = 0 ; i<enemigos ; i++){
+		pthread_create(&pid, NULL, (void*)&enemigo, NULL);
+	}
+}
 
 
 
