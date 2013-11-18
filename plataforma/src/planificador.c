@@ -553,7 +553,9 @@ void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel) {
 	t_list *recursosDisponibles = desbloquear_personajes(recursos, str_nivel,
 			fd);
 	char *recursosNuevos = transformarListaCadena(recursosDisponibles);
-	enviarMensaje(fd, PLA_actualizarRecursos_NIV, recursosNuevos);
+
+	if(!string_equals_ignore_case(recursosNuevos,"0"))
+		enviarMensaje(fd, PLA_actualizarRecursos_NIV, recursosNuevos);
 
 	int m;
 	t_recursos_obtenidos *elem;

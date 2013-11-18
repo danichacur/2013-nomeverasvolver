@@ -84,8 +84,10 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int
         t_list *p_listos = dictionary_get(listos, str_nivel);
         char* personajes_desbloqueados = string_new();
         int j = 0;
+        bool desbloquie = true;
         if (list_is_empty(p_bloqueados) || (p_bloqueados == NULL )) {
-                log_info(logger,
+        	desbloquie = false;
+        	log_info(logger,
                                 "DesbloquearPersonajes: No habia personajes que desbloquear");
         } else {
 
@@ -150,6 +152,7 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int
     	string_append(&cantidad, ",");
     	string_append(&cantidad, personajes_desbloqueados);
 
+    	if(desbloquie || (j !=0))
         enviarMensaje(nivel_fd,PLA_personajesDesbloqueados_NIV,cantidad);
         return recursos_libres;
 }
@@ -534,6 +537,56 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
                 break;
         }
+    	case PER_finPlanDeNiveles_ORQ: {
+
+    		char personaje = mensaje[0];
+    		//estructura: personajes en el sistema
+    		int32_t _esta_personaje(t_pers_koopa *koopa) {
+    			return koopa->personaje == personaje;
+    		}
+    		pthread_mutex_lock(&mutex_personajes_para_koopa);
+    		t_pers_koopa *aux = list_find(personajes_para_koopa,
+    				(void*) _esta_personaje);
+    		if (aux != NULL )
+    			aux->termino_plan = true;
+    		else
+    			log_info(logger, "error al buscar el personaje");
+    		//todo: hacer tratamiento de errores
+    		pthread_mutex_unlock(&mutex_personajes_para_koopa);
+
+    		//pregunto si _ya_terminaron terminaron todos
+    		int32_t _ya_terminaron(t_pers_koopa *koopa) {
+    			return (koopa->termino_plan);
+    		}
+    		/*t_list* pendientes = list_filter(personajes_del_sistema,
+    		 (void*) _esta_pendiente);
+    		 if (list_is_empty(pendientes))*/
+    		//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
+    		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron)) {
+    			log_info(logger, "lanzar_koopa();");
+
+    			int32_t pid = fork();
+    			if (pid == 0) { //si es el hijo
+    				char * const paramList[] =
+    						{ ruta_koopa, ruta_disco, ruta_script };
+    				execv(ruta_koopa, paramList);
+    				exit(0);
+    			} else { //si es el padre
+    				int retorno = 0;
+    				wait(&retorno);
+    				log_info(logger,
+    						"La ejecucion de koopa retorno el valor %d, el pid del proceso era %d",
+    						retorno, pid);
+    				if (retorno == pid)
+    					log_info(logger,
+    							"Ambos valores son iguales. FIN DEL JUEGO");
+    				exit(0);
+    			}
+    		}
+    		//list_destroy(pendientes);
+    		//pregunto si ya terminaron todos
+    		break;
+    	}
 
         default:
                 log_info(logger, "mensaje erroneo");
