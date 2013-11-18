@@ -6,6 +6,7 @@
 
 #define RUTA "./config.cfg"
 #define BUF_LEN 1024
+#define LOGCONSOLA false
 
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES GLOBALES////////////////////////////////////////////////////
 int retardo;
@@ -46,25 +47,26 @@ int main (){
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
 	pthread_mutex_init(&mutex_cambiosConfiguracion, NULL );
-leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
-
-//	dibujar();
-	//sleep(5);
-
-//	inicializarMapaNivel();
+	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
+	dibujar();
+	socketDeEscucha=handshakeConPlataforma();
 
 
-	 socketDeEscucha=handshakeConPlataforma(); //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
+
+
+ /*
+	 //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
 	//crearHiloInotify(hiloInotify);
 
 	//crearHilosEnemigos();
 	//crearHiloInterbloqueo();
-
+*/
 	while(1){
 		if(socketDeEscucha!=-1){
 		mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
 		}else{
 			log_info(logger, "Hubo un error al leer el socket y el programa finalizara su ejecucion");
+			kill(getpid(), SIGKILL);
 			break;
 		}
 
@@ -79,7 +81,7 @@ int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
 
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
-	logger = log_create(PATH_LOG, "NIVEL", true, LOG_LEVEL_INFO); //CREO EL ARCHIVO DE LOG
+	logger = log_create(PATH_LOG, "NIVEL", LOGCONSOLA, LOG_LEVEL_INFO); //CREO EL ARCHIVO DE LOG
 	log_info(logger, "Voy a leer mi archivo de configuracion");
 
 	nombre= config_get_string_value(config, "Nombre");
@@ -158,6 +160,13 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 
 	socketDeEscucha= cliente_crearSocketDeConexion(IP,puerto);
+	if(socketDeEscucha==-1){
+		kill(getpid(), SIGKILL); //PROCESO MUERTO POR TIMEOUT
+	}
+
+
+
+
 	sprintf(buffer,"%d,%s,%d,%d",numeroNivel,algoritmo,quantum,retardo);
 	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
 	enum tipo_paquete unMensaje;
@@ -172,6 +181,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 			}else{
 
 				log_info(logger, "El %s no pudo enviar handshake a plataforma en %s ",nombre,direccionIPyPuerto);
+				//kill(getpid(), SIGKILL);
 
 			}
 
@@ -192,7 +202,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-	// si recibe cualquier cosa que se mate a si mismo
+
 		switch (unMensaje) {
 
 			case PLA_movimiento_NIV: {//graficar y actualizar la lista RECIBE "@,1,3"
@@ -211,6 +221,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 
 				log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
+				nivel_gui_dibujar(items,nombre);
 
 				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
 
@@ -226,7 +237,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_personajeMuerto_NIV:{ //RECIBE "@"
 				char id=elMensaje[0];
-				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
+				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -252,7 +263,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_unlock(&mutex_listas);
 
 				//ACA CREO UNA LISTA DE PERSONAJES CON SUS RESPECTIVOS RECURSOS ASIGNADOS
-				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
+				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 				personaje->simbolo = string_substring_until(elMensaje,1);
 				personaje->recursosActuales = list_create();
 				personaje->recursoBloqueante = string_new();
@@ -262,6 +273,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				list_add(listaPersonajesRecursos,personaje);
 				pthread_mutex_unlock(&mutex_listas);
 
+				nivel_gui_dibujar(items,nombre);
 				log_info(logger, "El nuevo personaje %c se dibujo en el mapa",elMensaje[0]);
 
 
@@ -301,8 +313,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				// El mensaje de ejemplo es : "@,H"
 
 				char * rta;
-				bool hayRecurso = determinarRecursoDisponible (string_substring_from(elMensaje, 2));
-				t_personaje_niv * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
+				bool hayRecurso = determinarRecursoDisponible (string_substring_from(elMensaje, 2)); //SI ESTA EL RECURSO TMB LO RESTA
+				t_personaje_niv1 * pers = buscarPersonajeListaPersonajes(listaPersonajesRecursos, string_substring_until(elMensaje,1));
 
 				if (hayRecurso){
 					rta = "0";
@@ -310,7 +322,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					pthread_mutex_lock(&mutex_listas);
 					list_add(pers->recursosActuales, string_substring_from(elMensaje, 2));
 					pers->recursoBloqueante = string_new();
-					restarRecurso(items,elMensaje[2]); //tira recurso no existente
+
 					pthread_mutex_unlock(&mutex_listas);
 
 				}else{
@@ -334,7 +346,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				for(i=1;i<=cantPersonajes;i++){
 					char * unPersDesbloqueado=mens[i];
 
-					t_personaje_niv * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,unPersDesbloqueado);
+					t_personaje_niv1 * unPers=buscarPersonajeListaPersonajes(listaPersonajesRecursos,unPersDesbloqueado);
 
 					pthread_mutex_lock(&mutex_listas);
 					unPers->recursoBloqueante=string_new();
@@ -358,6 +370,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					sumarRecurso(items, mensajeIndividual[0][0],cantidad);
 					pthread_mutex_unlock(&mutex_listas);
 
+					nivel_gui_dibujar(items,nombre);
 				}
 
 
@@ -365,7 +378,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_nivelFinalizado_NIV:{  //recibe personaje que termino el nivel ej: "@"
 				char id=elMensaje[0];
-				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
+				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -376,13 +389,15 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				log_info(logger, "El personaje %c ha terminado el nivel ",id);
 
+				nivel_gui_dibujar(items,nombre);
+
 
 				break;
 			}
 
 			case NIV_perMuereInterbloqueo_PLA:{
 				char id=elMensaje[0];
-				t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
+				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
@@ -393,16 +408,19 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				log_info(logger, "El personaje %s ha muerto por interbloqueo ",id);
 
+				nivel_gui_dibujar(items,nombre);
+
 				break;
 			}
 
 			{
 				default:
 				log_info(logger, "Recibi cualquier cosa ");
+				kill(getpid(), SIGKILL);
 				break;
 			}
 
-		//nivel_gui_dibujar(items,nombre);
+
 		free(elMensaje);
 
 		}
@@ -486,15 +504,15 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 	return item;
 }
 
-t_personaje_niv * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
+t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
 
 
-	int32_t _esta_el_personaje(t_personaje_niv * personaje){
+	int32_t _esta_el_personaje(t_personaje_niv1 * personaje){
 
 		return string_equals_ignore_case(personaje->simbolo,simbolo);
 	}
 
-	t_personaje_niv * unPers = list_find(lista, (void*) _esta_el_personaje);
+	t_personaje_niv1 * unPers = list_find(lista, (void*) _esta_el_personaje);
 
 
 	/*
@@ -624,96 +642,21 @@ void rnd(int *x, int max){
 
 int dibujar (void) {
 	int rows, cols;
-		int q, p;
 
-		int x = 1;
-		int y = 1;
-
-		int ex1 = 10, ey1 = 14;
-		int ex2 = 20, ey2 = 3;
 
 		nivel_gui_inicializar();
 
 	    nivel_gui_get_area_nivel(&rows, &cols);
 
-		p = cols;
-		q = rows;
 
 
 
 
-		nivel_gui_dibujar(items, "Test Chamber 04");
 
-		while ( 1 ) {
-					int key = getch();
-
-					switch( key ) {
-
-						case KEY_UP:
-							if (y > 1) {
-								y--;
-							}
-						break;
-
-						case KEY_DOWN:
-							if (y < rows) {
-								y++;
-							}
-						break;
-
-						case KEY_LEFT:
-							if (x > 1) {
-								x--;
-							}
-						break;
-						case KEY_RIGHT:
-							if (x < cols) {
-								x++;
-							}
-						break;
-						case 'w':
-						case 'W':
-							if (q > 1) {
-								q--;
-							}
-						break;
-
-						case 's':
-						case 'S':
-							if (q < rows) {
-								q++;
-							}
-						break;
-
-						case 'a':
-						case 'A':
-							if (p > 1) {
-								p--;
-							}
-						break;
-						case 'D':
-						case 'd':
-							if (p < cols) {
-								p++;
-							}
-						break;
-						case 'Q':
-						case 'q':
-							nivel_gui_terminar();
-							exit(0);
-						break;
-					}
+		nivel_gui_dibujar(items, nombre);
 
 
-					rnd(&ex1, cols);
-					rnd(&ey1, rows);
-					rnd(&ex2, cols);
-					rnd(&ey2, rows);
-
-					nivel_gui_dibujar(items, "Test Chamber 04");
-				}
-
-		nivel_gui_terminar();
+		//nivel_gui_terminar();
 
 	return EXIT_SUCCESS;
 }

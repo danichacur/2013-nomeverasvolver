@@ -18,13 +18,14 @@
 ////////////////////////////////////////////////////BIBLIOTECAS COMMONS////////////////////////////////////////////////////
 #include <sockets/sockets.h>
 #include <sockets/mensajes.h>
-#include <sockets/estructuras.h>
+//#include <sockets/estructuras.h>
 #include <commons/temporal.h>
 #include <commons/string.h>
 #include <collections/list.h>
 #include <commons/config.h>
 #include <pthread.h>
 #include <nivel.h>
+#include <signal.h>
 #include <commons/log.h>
 #include <tad_items.h>
 #include <sys/inotify.h>
@@ -47,9 +48,14 @@ typedef struct {
 	long tiempoDeadlock;
 	long sleepEnemigos;
 	char* direccionIPyPuerto;
-
 }tNivel; // NO SE SI TIENE UTILIDAD DEFINIRLO COMO UN STRUCT, PUEDE SER UTIL PARA ENEMIGO Y PLATAFORMA
 
+typedef struct {
+			char * simbolo;
+	        t_posicion * posicion;
+	        t_list * recursosActuales;
+	        char * recursoBloqueante;
+	} t_personaje_niv1;
 
 
 
@@ -68,7 +74,7 @@ void procesarSolicitudesPlanificador(int32_t socket, enum tipo_paquete tipoMensa
 bool determinarRecursoDisponible(char * recursoSolicitado);
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo);
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo);
-t_personaje_niv * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
+t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 void crearHiloInterbloqueo();
 void crearHilosEnemigos();
 int dibujar (void);
