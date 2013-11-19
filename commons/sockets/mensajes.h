@@ -46,6 +46,8 @@ enum tipo_paquete{
 	PLA_actualizarRecursos_NIV,
 	PLA_personajesDesbloqueados_NIV,
 	ORQ_conexionNivel_PER,
+	NIV_recursosPersonajesBloqueados_PLA,
+	PLA_recursosPersonajesBloqueados_NIV,
 
 };
 

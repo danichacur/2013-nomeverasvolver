@@ -47,6 +47,7 @@ t_personaje_niv * buscaPersonajeCercano(t_enemigo * enemigo);
 int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje);
 t_list * buscarPersonajesAtacables();
 t_list * obtenerListaPersonajesAtacables();
+t_list * obtenerListaCajas();
 bool personajeEstaEnCaja(t_personaje_niv * personaje, int posX, int posY);
 bool estoyArribaDeAlgunPersonaje(t_enemigo * enemigo);
 void avisarAlNivel(t_enemigo * enemigo);

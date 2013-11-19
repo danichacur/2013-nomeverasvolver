@@ -326,8 +326,14 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				break;
 			}
 		} else {
-			supr_pers_de_estructuras(personaje->fd);
-			break;
+			//TODO Danii, aca me parece que deberia poder recibir el mensaje de que el personaje murio por enemigo, es la unica forma que se me ocurre en caso de que el personaje se mueva y el enemigo lo agarre justo, si no puedo recibir aca el mensaje de que el enemigo lo mató, entonces nunca se le va a responder que el turno estaba bien o mal, porque va a recibir el mensaje del personaje muerto por enemigo
+			if (t_mensaje == NIV_enemigosAsesinaron_PLA){
+				log_info(logger_pla, "%s","recibi el mensaje de que asesinaron un personaje, deberia seguir funcionando");
+				//aca deberia llamar a una funcion que tenga toda la logica de cuando recibe este mensaje. Esa lógica ya está, pero hya que ponerkla en una funcion aparte para poder llamarla desde aca o desde el otro metodo cuando no pasa esto de que todo pasa junto
+			}else{
+				supr_pers_de_estructuras(personaje->fd);
+				break;
+			}
 		}
 
 		free(m_mensaje);
@@ -668,7 +674,8 @@ void planificador_analizar_mensaje(int32_t socket_r,
 	}
 	case NIV_enemigosAsesinaron_PLA: {
 
-		t_list *p_listos = dictionary_get(listos, str_nivel);
+		t_list *p_listos = dictionary_get(listos, str_nivel); //TODO Daniiii, aca no funciona, me devuelve una lista con 0 elementos, y me pincha mas adelante (matyx)
+		log_info(logger_pla, "%s","aca me devuelve una lista vacia y rompe, pero recibió el mensaje de que un enemigo asesino un personaje");
 
 		t_pers_por_nivel *aux;
 		int j, i = 0;

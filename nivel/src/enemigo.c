@@ -1,101 +1,44 @@
 #include "enemigo.h"
-
+#include <commons/log.h>
 
 
 //esta lista de enemigos la agrego para que el nivel los conozca y obtenga sus posiciones para graficarlos
 extern t_list * items;
-
-t_list * listaRecursosNivel;
-t_list * listaDeEnemigos; //TODO, hacer el create_list
+extern t_list * listaDeEnemigos; //TODO, hacer el create_list
+extern int32_t socketDeEscucha;
+extern long sleepEnemigos;
+extern t_log * logger;
 t_list * listaDePersonajes;
 char * horizontal;
 char * vertical;
 char * cadenaVacia;
-int sleepEnemigos;
+
 
 //#define PRUEBA_CON_CONEXION false
 //#define IMPRIMIR_INFO_ENEMIGO true
 
 ////////////SEMAFOROS
-pthread_mutex_t mx_fd;
-pthread_mutex_t mx_lista_personajes;
-pthread_mutex_t mx_lista_items;
-/*
-int main(){
-
-
-	listaRecursosNivel = list_create();
-	listaDeEnemigos = list_create();
-	listaDePersonajes = list_create();
-
-	/////AGREGO PERSONAJES
-	t_personaje_niv * personaje = personaje_create((char *) "@", posicion_create_pos(3,2));
-	list_add(listaDePersonajes, personaje);
-
-	t_personaje_niv * personaje2 = personaje_create((char *) "%", posicion_create_pos(6,3));
-	list_add(listaDePersonajes, personaje2);
-
-	t_personaje_niv * personaje3 = personaje_create((char *) "#", posicion_create_pos(5,1));
-	list_add(listaDePersonajes, personaje3);
-
-	t_personaje_niv * personaje4 = personaje_create((char *) "$", posicion_create_pos(7,4));
-	list_add(listaDePersonajes, personaje4);
-
-	/////AGREGO CAJAS
-	tRecursosNivel * recurso = recurso_create((char*) "hongos", (char*)"H", 3, 3, 1);
-	list_add(listaRecursosNivel,recurso);
-
-	//tRecursosNivel * recurso2 = recurso_create((char*) "monedas", (char*)"M", 3, 4, 2); //este caso con las cajas tan pegadas me rompe
-	//list_add(listaRecursosNivel,recurso2);
-
-	tRecursosNivel * recurso3 = recurso_create((char*) "flores", (char*)"F", 3, 6, 3);
-	list_add(listaRecursosNivel,recurso3);
-
-	tRecursosNivel * recurso4 = recurso_create((char*) "caracoles", (char*)"C", 3, 5, 5);
-	list_add(listaRecursosNivel,recurso4);
-
-	tRecursosNivel * recurso5 = recurso_create((char*) "dolares", (char*)"D", 3, 7, 6);
-	list_add(listaRecursosNivel,recurso5);
-
-	enemigo();
-
-
-	//libero la memoria
-	while(!list_is_empty(listaDePersonajes)){
-		free(list_remove(listaDePersonajes,0));
-	}
-	while(!list_is_empty(listaRecursosNivel)){
-		free(list_remove(listaRecursosNivel,0));
-	}
-
-	return 1; //EXIT_SUCCESS
-}
-*/
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////   nivel.c    //////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+extern pthread_mutex_t mx_fd;
+extern pthread_mutex_t mx_lista_personajes;
+extern pthread_mutex_t mx_lista_items;
 #include <stdbool.h>
 
-
-
+bool IMPRIMIR_INFO_ENEMIGO;
 
 void enemigo(){
 
+	IMPRIMIR_INFO_ENEMIGO = false;
 	horizontal = "H";
 	vertical = "V";
 	cadenaVacia = "";
-	sleepEnemigos = 1;
-	pthread_mutex_init(&mx_fd,NULL);
-	pthread_mutex_init(&mx_lista_personajes,NULL);
-	pthread_mutex_init(&mx_lista_items,NULL);
+	//pthread_mutex_init(&mx_fd,NULL);
+	//pthread_mutex_init(&mx_lista_personajes,NULL);
+	//pthread_mutex_init(&mx_lista_items,NULL);
 
 	t_enemigo * enemigo = crearseASiMismo(); //random, verifica que no se cree en el (0,0)
 
-	//if(IMPRIMIR_INFO_ENEMIGO)
-		printf("Posicion inicial del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"Posicion inicial del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
 
 
 	while(1){ //cada x tiempo, configurado por archivo de configuracion
@@ -142,8 +85,8 @@ bool hayPersonajeAtacable(){
 
 t_personaje_niv * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
 	t_personaje_niv * personaje = buscaPersonajeCercano(enemigo);
-	//if(IMPRIMIR_INFO_ENEMIGO)
-		printf("Buscando al personaje mas cercano.. Es %s \n", personaje->simbolo);
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"Buscando al personaje mas cercano.. Es %s \n", personaje->simbolo);
 
 
 	char * condicion = estoyEnLineaRectaAlPersonaje(enemigo, personaje); // 'H','V' o ''
@@ -222,8 +165,8 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv * personaje, char * ori
 	}
 
 
-	//if(IMPRIMIR_INFO_ENEMIGO)
-		printf("Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
 
 
 	//TODO alcanza con esto o tengo q usar una funcion list_replace?
@@ -252,8 +195,8 @@ void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orien
 		}else
 			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
 	}
-	//if(IMPRIMIR_INFO_ENEMIGO)
-			printf("Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+	if(IMPRIMIR_INFO_ENEMIGO)
+			log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
 
 }
 
@@ -261,6 +204,8 @@ bool hayCaja(int x, int y){
 	int i = 0;
 	bool hay = false;
 	tRecursosNivel * recurso;
+	t_list * listaRecursosNivel = obtenerListaCajas();
+
 	while(i< list_size(listaRecursosNivel) && !hay){
 		recurso = list_get(listaRecursosNivel, i);
 		if (recurso->posX == x && recurso->posY == y)
@@ -323,9 +268,11 @@ t_list * buscarPersonajesAtacables(){
 	tRecursosNivel * caja;
 	bool encontrado;
 	t_list * listaPersonajesAtacablesUbicaciones;
+	t_list * listaRecursosNivel;
 	t_list * lista = list_create();
 
 	listaPersonajesAtacablesUbicaciones = obtenerListaPersonajesAtacables();
+	listaRecursosNivel = obtenerListaCajas();
 
 	int cantPersonajesEnNivel = list_size(listaPersonajesAtacablesUbicaciones);
 	int cantCajas = list_size(listaRecursosNivel);
@@ -369,6 +316,21 @@ t_list * obtenerListaPersonajesAtacables(){
 	return personajes;
 }
 
+t_list * obtenerListaCajas(){
+	t_list * cajas = list_create();
+	int i;
+	for(i=0 ; i < list_size(items) ; i++){
+		ITEM_NIVEL * elemento;
+		elemento = list_get(items,i);
+		if (elemento->item_type == RECURSO_ITEM_TYPE){
+			tRecursosNivel * unaCaja = recurso_create("", charToString(elemento->id),elemento->quantity,elemento->posx,elemento->posy);
+			list_add(cajas, unaCaja);
+		}
+	}
+
+	return cajas;
+}
+
 bool personajeEstaEnCaja(t_personaje_niv * personaje, int posX, int posY){
 	return (personaje->posicion->posX == posX && personaje->posicion->posY == posY);
 }
@@ -384,7 +346,6 @@ bool estoyArribaDeAlgunPersonaje(t_enemigo * enemigo){
 
 void avisarAlNivel(t_enemigo * enemigo){
 	//TODO ver como consigo el fd del Planificador
-	int32_t fdPlanificador = 1;
 
 	int i;
 	ITEM_NIVEL * personaje;
@@ -395,27 +356,27 @@ void avisarAlNivel(t_enemigo * enemigo){
 		string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
 	}
 
-	//if(IMPRIMIR_INFO_ENEMIGO)
-		printf("El enemigo atacó a los personajes: %s \n", simbolosPersonajesAtacados);
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"El enemigo atacó a los personajes: %s \n", simbolosPersonajesAtacados);
 
 
 	//if (PRUEBA_CON_CONEXION)
-	if(false){
+	if(true){
 		pthread_mutex_lock(&mx_fd);
-		enviarMensaje(fdPlanificador, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
+		enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
 		pthread_mutex_unlock(&mx_fd);
 	}
 
 
 	//TODO tengo que sacar los personajes de la lista de personajes?
 	while(list_size(listaPersonajesAtacados) > 0){
-		t_personaje_niv * persAtacado = list_get(listaPersonajesAtacados,0);
+		ITEM_NIVEL * persAtacado = list_get(listaPersonajesAtacados,0);
 		int i = 0;
 		bool encontrado = false;
 		while(i<list_size(items) && !encontrado){
 			ITEM_NIVEL * elem = list_get(items,i);
 			if (elem->item_type == PERSONAJE_ITEM_TYPE)
-				if (strcmp(persAtacado->simbolo, charToString(elem->id)) == 0){
+				if (strcmp(charToString(persAtacado->id), charToString(elem->id)) == 0){
 					encontrado = true;
 					pthread_mutex_lock(&mx_lista_personajes);
 					list_remove(items,i);
@@ -451,8 +412,8 @@ t_list * obtenerListaDePersonajesAbajoDeEnemigo(t_enemigo * enemigo){
 }
 
 void movermeEnL(t_enemigo * enemigo){
-	//if(IMPRIMIR_INFO_ENEMIGO)
-		printf("No hay personajes para atacar. Moviendo en L \n");
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"No hay personajes para atacar. Moviendo en L \n");
 
 
 	char * orientacion;

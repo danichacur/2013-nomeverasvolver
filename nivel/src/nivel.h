@@ -78,4 +78,5 @@ t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo
 void crearHiloInterbloqueo();
 void crearHilosEnemigos();
 int dibujar (void);
+bool existePersonajeEnListaItems(char idPers);
 #endif /* NIVEL_H_ */
