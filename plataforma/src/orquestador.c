@@ -641,14 +641,14 @@ void orquestador_analizar_mensaje(int32_t sockett,
 				char * const paramList[] =
 						{ ruta_koopa, ruta_disco, ruta_script };
 				execv(ruta_koopa, paramList);
-				//  exit(0);
+				  exit(0);
 			} else { //si es el padre
 				int retorno = 0;
 				wait(&retorno);
 				log_info(logger,
 						"La ejecucion de koopa retorno el valor %d, el pid del proceso era %d",
 						retorno, pid);
-				if (retorno == pid)
+				//if (retorno == pid)
 					log_info(logger,
 							"Ambos valores son iguales. FIN DEL JUEGO");
 				exit(0);
