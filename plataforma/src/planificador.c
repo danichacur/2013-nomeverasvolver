@@ -365,11 +365,12 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
                 log_info(logger_pla, "Nivel %d: El personaje %c termino este nivel",
                                 nivel->nivel, personaje->personaje);
                 proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd, str_nivel);
-                destruir_personaje(personaje);
+
                 log_info(logger_pla,
                                 "Nivel %d: Mando al nivel que el personaje %c terminó este nivel ",
                                 nivel->nivel, personaje->personaje);
                 enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
+                destruir_personaje(personaje);
                 /*                enum tipo_paquete t_mensaje;
                  char* m_mensaje = NULL;
                  recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
@@ -624,7 +625,7 @@ void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel) {
                         fd);
         char *recursosNuevos = transformarListaCadena(recursosDisponibles);
 
-        if (!string_equals_ignore_case(recursosNuevos, "0")) {
+        if (!string_equals_ignore_case(recursosNuevos, "0;")) {
                 log_info(logger_pla,
                                 "Nivel %s: Le envio al nivel los recursos disponibles %s",
                                 str_nivel, recursosNuevos);
