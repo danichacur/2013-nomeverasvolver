@@ -354,6 +354,7 @@ static t_personaje *personaje_create(char *nombre,
 }*/
 
 void avisarPlanNivelesConcluido(){
+	sleep(3);
 	log_info(logger, "Personaje %s (%s) informa que finalizó su plan de niveles", personaje->nombre, personaje->simbolo);
 	if (CON_CONEXION)
 		enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,personaje->simbolo);
