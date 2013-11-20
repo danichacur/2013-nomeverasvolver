@@ -102,6 +102,7 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	(void) fi;
 	int i;
 	char *Filename,*dir1,*dir2;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_readdir\n");
 
@@ -118,10 +119,11 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	dir2 = dirname(dir2);
 	dir2 = basename(dir2);
 
+	pthread_mutex_lock( &mutex1 );
 	//Directorio raiz
 	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") == 0){
 		for (i = 0; i < 1024; i++){
-			if (GTNodo[i].parent_dir_block == 0 && GTNodo[i].state != 0 && GTNodo[i].state == 2){
+			if (GTNodo[i].parent_dir_block == 0 && GTNodo[i].state != 0){
 				filler(buf,GTNodo[i].fname, NULL, 0);
 				printf("_readdir:%s\n",GTNodo[i].fname);
 			}
@@ -134,7 +136,7 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 				filler(buf,GTNodo[i].fname, NULL, 0);
 		}
 	}
-
+	pthread_mutex_unlock( &mutex1 );
 	return 0;
 }
 
