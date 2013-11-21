@@ -17,6 +17,7 @@ char * direccionIPyPuerto;
 char * algoritmo;
 int enemigos;
 bool nivelTerminado;
+int distancia;
 
 t_list * listaPersonajesRecursos;
 t_list * items;
@@ -41,6 +42,7 @@ bool graficar;
 bool crearLosEnemigos;
 t_list * listaDeEnemigos;
 long sleepEnemigos;
+int ingresoAlSistema;
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
@@ -128,6 +130,8 @@ int leerArchivoConfiguracion(){
 	retardo = config_get_int_value(config, "retardo");
 	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardoSegundos);
 
+	distancia = config_get_int_value(config, "distancia");
+	log_info(logger, "El remaining distance para el %s es de %d",nombre,distancia);
 
 	// LEO LAS CAJAS DEL NIVEL //
 
@@ -183,7 +187,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 
 
-	sprintf(buffer,"%d,%s,%d,%d",numeroNivel,algoritmo,quantum,retardo);
+	sprintf(buffer,"%d,%s,%d,%d,%d",numeroNivel,algoritmo,quantum,retardo,distancia);
 	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
@@ -217,7 +221,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	char* elMensaje=NULL;
 
 	//TODO revisar esto del sleep, lo agregue yo Matyx
-	sleep(retardo);
+	//sleep(retardo);
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
@@ -292,6 +296,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje->recursosActuales = list_create();
 				personaje->recursoBloqueante = string_new();
 				personaje->posicion = posicion_create_pos(0,0);
+				personaje->ingresoSistema = ingresoAlSistema;
+				ingresoAlSistema++;
 
 				pthread_mutex_lock(&mutex_listas);
 				list_add(listaPersonajesRecursos,personaje);

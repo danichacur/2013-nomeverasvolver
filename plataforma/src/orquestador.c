@@ -329,10 +329,11 @@ void imprimir_lista(int32_t tipo, char *str_nivel) {
 			list_add_all(auxiliar, elemento->recursos_obtenidos);
 			cadena = transformarListaCadena(auxiliar);
 			list_destroy(auxiliar);
+			int remain = abs(elemento->pos_recurso - elemento->pos_inicial);
 			log_info(logger_pla,
 					"Nivel %s: Personaje: %c, bloqueado por: %c, posee los recursos: %s, remaining distance: %d",
 					str_nivel, elemento->personaje, elemento->recurso_bloqueo,
-					cadena, abs(elemento->pos_recurso - elemento->pos_inicial));
+					cadena, remain);
 			free(cadena);
 		}
 		pthread_mutex_unlock(&mutex_bloqueados);
@@ -490,8 +491,8 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		nuevo->algol = n_mensaje[1];
 		nuevo->quantum = atoi(n_mensaje[2]);
 		nuevo->retardo = atoi(n_mensaje[3]);
-    //    nuevo->remain_distance = atoi(n_mensaje[4]);
-		nuevo->remain_distance = 4;
+        nuevo->remain_distance = atoi(n_mensaje[4]);
+		//nuevo->remain_distance = 4;
 
 		list_add(niveles_del_sistema, nuevo);
 

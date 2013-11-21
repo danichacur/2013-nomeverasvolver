@@ -55,6 +55,7 @@ typedef struct {
 	        t_posicion * posicion;
 	        t_list * recursosActuales;
 	        char * recursoBloqueante;
+	        int ingresoSistema;
 	} t_personaje_niv1;
 
 
