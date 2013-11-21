@@ -42,6 +42,7 @@ bool graficar;
 bool crearLosEnemigos;
 t_list * listaDeEnemigos;
 long sleepEnemigos;
+bool activarInterbloqueo;
 int ingresoAlSistema;
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
@@ -49,6 +50,7 @@ int main (){
 	nivelTerminado=false;
 	graficar = false;  // si no grafica loguea, buena idea!
 	crearLosEnemigos = false;
+	activarInterbloqueo = false;
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
@@ -76,7 +78,9 @@ int main (){
 		log_info(logger,"Se levantaron los enemigos");
 		crearHilosEnemigos();
 	}
-
+	if(activarInterbloqueo){
+	crearHiloInterbloqueo();
+	}
 
 	while(1){
 		if(socketDeEscucha!=-1){
@@ -670,8 +674,9 @@ void crearHiloInotify(pthread_t hiloNotify){
  }
 
 void crearHiloInterbloqueo(){
-	//pthread_t id;
-	//pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
+	 log_info(logger, "Creo el hilo deteccion de interbloqueo ");
+	pthread_t id;
+	pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
 }
 
 void crearHilosEnemigos(){
