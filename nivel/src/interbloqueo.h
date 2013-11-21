@@ -27,12 +27,12 @@
 
 void* rutinaInterbloqueo();
 t_list * obtenerPersonajesInterbloqueados();
-bool estaEnLista(t_list * lista, t_personaje_niv * pers);
-char * obtenerRecursoBloqueante(t_personaje_niv * personaje);
-bool personajeTieneRecurso(t_personaje_niv * personaje, char * recurso);
+bool estaEnLista(t_list * lista, t_personaje_niv1 * pers);
+char * obtenerRecursoBloqueante(t_personaje_niv1 * personaje);
+bool personajeTieneRecurso(t_personaje_niv1 * personaje, char * recurso);
 bool hayInterbloqueo(t_list * listaInterbloqueados);
-t_personaje_niv * seleccionarVictima(t_list * listaInterbloqueados);
-void informarVictimaAPlanificador(t_personaje_niv * personaje);
+t_personaje_niv1 *seleccionarVictima(t_list *listaInterbloqueados);
+void informarVictimaAPlanificador(t_personaje_niv1 * personaje);
 t_list * obtenerListaDePersonajesBloqueados();
 char * obtenerIdsPersonajes(t_list * listaPersonajes);
 
