@@ -421,7 +421,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				}
 
-				if (list_size(listaPersonajesRecursos==0)){
+				if (list_size(listaPersonajesRecursos)==0){
 					eliminarEstructuras();
 
 
@@ -430,7 +430,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-
+/* MATY: el planificador nunca le informa esto. Le informa los recursos disponibles y personajes desbloqueados, no un mensaje particular
 			case PLA_perMuereInterbloqueo_NIV:{ // corregido matyx!
 				char id=elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
@@ -449,7 +449,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-
+*/
 			{
 				default:
 				log_info(logger, "Recibi cualquier cosa ");

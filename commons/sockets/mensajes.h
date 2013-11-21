@@ -48,7 +48,7 @@ enum tipo_paquete{
 	ORQ_conexionNivel_PER,
 	NIV_recursosPersonajesBloqueados_PLA,
 	PLA_recursosPersonajesBloqueados_NIV,
-
+	PLA_nivelCaido_PER,
 };
 
 
