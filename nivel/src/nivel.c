@@ -5,8 +5,6 @@
 ////////////////////////////////////////////////////ESPACIO DE DEFINICIONES////////////////////////////////////////////////////
 
 #define RUTA "./config.cfg"
-#define BUF_LEN 1024
-#define LOGCONSOLA false
 
 ////////////////////////////////////////////////////ESPACIO DE VARIABLES GLOBALES////////////////////////////////////////////////////
 int retardo;
@@ -18,6 +16,7 @@ char * nombre;
 char * direccionIPyPuerto;
 char * algoritmo;
 int enemigos;
+bool nivelTerminado;
 
 t_list * listaPersonajesRecursos;
 t_list * items;
@@ -45,8 +44,8 @@ long sleepEnemigos;
 
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
-
-	graficar = false;
+	nivelTerminado=false;
+	graficar = false;  // si no grafica loguea, buena idea!
 	crearLosEnemigos = false;
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
@@ -62,10 +61,10 @@ int main (){
 
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	dibujar();
+
+	crearHiloInotify(hiloInotify);
+
 	socketDeEscucha=handshakeConPlataforma();
-
-
-
 
 
 	 //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
@@ -75,7 +74,7 @@ int main (){
 		log_info(logger,"Se levantaron los enemigos");
 		crearHilosEnemigos();
 	}
-	//crearHiloInterbloqueo();
+
 
 	while(1){
 		if(socketDeEscucha!=-1){
@@ -98,7 +97,7 @@ int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
 
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
-	logger = log_create(PATH_LOG, "NIVEL", !graficar, LOG_LEVEL_INFO); //CREO EL ARCHIVO DE LOG LOGCONSOLA
+	logger = log_create(PATH_LOG, "NIVEL", !graficar, LOG_LEVEL_INFO);
 	log_info(logger, "Voy a leer mi archivo de configuracion");
 
 	nombre= config_get_string_value(config, "Nombre");
@@ -416,14 +415,23 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				log_info(logger, "El personaje %c ha terminado el nivel ",id);
 
-				if(graficar)
+				if(graficar){
+
 					nivel_gui_dibujar(items,nombre);
+
+				}
+
+				if (list_size(listaPersonajesRecursos==0)){
+					eliminarEstructuras();
+
+
+				}
 
 
 				break;
 			}
 
-			case NIV_perMuereInterbloqueo_PLA:{ // TODO: Leo, esto esta bien? porque el nivel recibiria un mensaje del nivel?? (matyx)
+			case PLA_perMuereInterbloqueo_NIV:{ // corregido matyx!
 				char id=elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
@@ -569,6 +577,8 @@ void eliminarEstructuras() { //TERMINAR
 	list_destroy(items);
 	list_destroy(listaPersonajesRecursos);
 	log_destroy(logger);
+	nivelTerminado=true;
+
 
 }
 
@@ -579,31 +589,32 @@ void crearHiloInotify(pthread_t hiloNotify){
 
  void * inotify(void) {
 
-	 int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
-	 char buffer[BUF_LEN]; //INICIALIZO BUFFER DONDE VOY A GUARDAR LAS MODIFICACIONES LEIDAS DEL FD
 
-	 if (file_descriptor < 0) {
 
-		 perror("inotify_init");
+	 while (nivelTerminado==false) {
+		 int file_descriptor = inotify_init(); //DESCRIPTOR DE ARCHIVO DE INOTIFY
+		 char * buffer=malloc(sizeof(struct inotify_event)); //INICIALIZO BUFFER DONDE VOY A GUARDAR LAS MODIFICACIONES LEIDAS DEL FD
 
-	 }
+		 if (file_descriptor < 0) {
 
-	 while (1) {
-		 int watch_descriptor = inotify_add_watch(file_descriptor, "./config.cfg", IN_MODIFY); //CREAMOS MONITOR SOBRE EL PATH DONDE ESCUCHAREMOS LAS MODIFICACIONES
-		 sleep(2);
-		 int length = read(file_descriptor, buffer, BUF_LEN); //CARGAMOS LAS MODIFICACIONES QUE ESCUCHAMOS EN EL BUFFER
+			 perror("inotify_init");
+
+		 }
+
+		 int watch_descriptor= inotify_add_watch(file_descriptor, "./config.cfg", IN_MODIFY); //CREAMOS MONITOR SOBRE EL PATH DONDE ESCUCHAREMOS LAS MODIFICACIONES
+
+		 int length = read(file_descriptor, buffer, sizeof(struct inotify_event)); //CARGAMOS LAS MODIFICACIONES QUE ESCUCHAMOS EN EL BUFFER
 		 log_info(logger, "Se cargó el buffer");
-		 // printf("BUFFER = [%s]\n",buffer); //BUFFER QUE CONTIENE UN EVENTO EN CADA POSICION
-		 	 if (length < 0) {
-		 		 perror("read");
+
+		 if (length < 0) {
+			 log_info(logger, "Archivo invalido");
 		 	 }
 
-		// printf("DESPUES DE LEER\n");
-		 sleep(2);
+		 sleep(1);
+
 		 struct inotify_event *event = (struct inotify_event *) &buffer[0]; //CARGAMOS LOS EVENTOS ESCUCHADOS EN UNA ESTRUCTURA
 
 		 if (event->mask & IN_MODIFY) { //EL CAMPO MASK, SI NO ESTA VACIO, INDICA QUE EVENTO OCURRIO (SI SOLO ESCUCHAMOS EL 2, DEBERIAN OCURRIR SOLO DE TIPO 2)
-
 			 config = config_create(RUTA);
 
 			 int retardoAux = config_get_int_value(config, "retardo");
@@ -611,36 +622,43 @@ void crearHiloInotify(pthread_t hiloNotify){
 			 char * algoritmoAux=config_get_string_value(config,"algoritmo");
 
 			 if(retardoAux==retardo && quantumAux==quantum && strcmp(algoritmoAux,algoritmo)==0){
-				// printf("Hubo cambios en el archivo pero no sobre las variables en consideracion \n");
+
+				 log_info(logger,"Hubo cambios en el archivo pero no sobre las variables en consideracion ");
+
+
+
 
 			 } else {
 				 log_info(logger, "Envio cambios archivo configuracion ");
-				 pthread_mutex_lock(&mutex_mensajes);
+				 pthread_mutex_lock(&mx_fd);
+
+				 retardo=retardoAux;
+				 quantum=quantumAux;
+				 strcpy(algoritmo,algoritmoAux);
 
 				 sprintf(buffer,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
 				 enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
 
-				 pthread_mutex_unlock(&mutex_mensajes);
+				 pthread_mutex_unlock(&mx_fd);
 
 
 			 }
 
 
-
-			 //pthread_mutex_unlock( &mutex3 );
-
 		 } else {
 
-			// printf("SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
+			log_info(logger,"SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
 
 		 }
 
+
 		 inotify_rm_watch(file_descriptor, watch_descriptor);
 		 close(file_descriptor);
-
-		// printf("SALGO DE INOTIFY\n");
-
+		 log_info(logger,"continuo un nuevo ciclo");
+		 free(buffer);
 	}
+
+	 log_info(logger,"el nivel %s termino, finaliza el hilo de notificaciones",nombre);
 	 return EXIT_SUCCESS;
 
  }

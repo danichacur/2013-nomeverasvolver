@@ -431,7 +431,7 @@ void movermeEnL(t_enemigo * enemigo){
 		else
 			orientacion2 = -1;
 
-
+ //void MoverEnemigo(t_list* items, char personaje, int x, int y); para graficar
 		moverEnemigoEnDireccion(enemigo, orientacion, orientacion2);
 		if(enemigo->cantTurnosEnL > -1){ // si tiene -1 es porque se topó con una caja, y debe arracar la L de vuelta
 			enemigo->cantTurnosEnL = 1;
@@ -470,6 +470,7 @@ t_enemigo * enemigo_create(){
 	enemigo->cantTurnosEnL = 0;
 	enemigo->orientacion1 = "";
 	enemigo->orientacion2 = 0;
+	//CrearEnemigo(items,id,posx,posy);
 
 	return enemigo;
 }
