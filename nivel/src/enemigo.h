@@ -32,6 +32,7 @@ typedef struct {
         int cantTurnosEnL;
         char * orientacion1;
         int orientacion2;
+        char id;
 } t_enemigo;
 
 

@@ -12,13 +12,15 @@ t_list * listaDePersonajes;
 char * horizontal;
 char * vertical;
 char * cadenaVacia;
+char numeroEnemigo='1';
 
 
 //#define PRUEBA_CON_CONEXION false
 //#define IMPRIMIR_INFO_ENEMIGO true
 
 ////////////SEMAFOROS
-extern pthread_mutex_t mx_fd;
+extern pthread_mutex_t mx_enemigos;
+extern pthread_mutex_t mutex_mensajes;
 extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
 #include <stdbool.h>
@@ -31,7 +33,8 @@ void enemigo(){
 	horizontal = "H";
 	vertical = "V";
 	cadenaVacia = "";
-	//pthread_mutex_init(&mx_fd,NULL);
+	//pthread_mutex_init(&mx_enemigos,NULL);
+	//pthread_mutex_init(&mutex_mensajes,NULL);
 	//pthread_mutex_init(&mx_lista_personajes,NULL);
 	//pthread_mutex_init(&mx_lista_items,NULL);
 
@@ -68,7 +71,9 @@ t_enemigo * crearseASiMismo(){
 		if(!igualACeroCero)
 			break;
 	}
+
 	list_add(listaDeEnemigos, enemigo);
+	CrearEnemigo(items,enemigo->id, enemigo->posicion->posX, enemigo->posicion->posY); //cuidado con esto, el enemigo deberia tener id individuales
 	return enemigo;
 }
 
@@ -136,33 +141,52 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv * personaje, char * ori
 	}*/
 
 
-	if(orientacion == horizontal)
-		if(enemigo->posicion->posX > personaje->posicion->posX)
+	if(orientacion == horizontal){
+		if(enemigo->posicion->posX > personaje->posicion->posX){
 			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
-			}else
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			}else{
+
 				enemigo->posicion->posX = enemigo->posicion->posX - 1;
-		else
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+			}
+		}else{
 			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
-			}else
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+			}else{
 				enemigo->posicion->posX = enemigo->posicion->posX + 1;
-	else if(orientacion == vertical){
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+			}
+		}
+	}else if(orientacion == vertical){
 		if(enemigo->posicion->posY > personaje->posicion->posY)
 			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1)){
 				orientacion = horizontal;
 				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
-			}else
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+			}else{
 				enemigo->posicion->posY = enemigo->posicion->posY - 1;
-		else
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+			}else
 			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
 				orientacion = horizontal;
 				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
 			}else
 				enemigo->posicion->posY = enemigo->posicion->posY + 1;
-	}
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+		}
+
 
 
 	if(IMPRIMIR_INFO_ENEMIGO)
@@ -186,18 +210,28 @@ void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orien
 		if(hayCaja(enemigo->posicion->posX + orientacion2, enemigo->posicion->posY)){
 			enemigo->cantTurnosEnL = -1;
 			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
-		}else
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+		}else{
 			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
-	else if(orientacion1 == vertical){
-		if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
-			enemigo->cantTurnosEnL = -1;
-			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
-		}else
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+		}else if(orientacion1 == vertical){
+			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
+				enemigo->cantTurnosEnL = -1;
+				enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
+				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+		}else{
 			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
-	}
-	if(IMPRIMIR_INFO_ENEMIGO)
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+
+		}
+		if(IMPRIMIR_INFO_ENEMIGO){
 			log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
 
+		}
+	}
 }
 
 bool hayCaja(int x, int y){
@@ -362,9 +396,9 @@ void avisarAlNivel(t_enemigo * enemigo){
 
 	//if (PRUEBA_CON_CONEXION)
 	if(true){
-		pthread_mutex_lock(&mx_fd);
+		pthread_mutex_lock(&mutex_mensajes);
 		enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
-		pthread_mutex_unlock(&mx_fd);
+		pthread_mutex_unlock(&mutex_mensajes);
 	}
 
 
@@ -431,7 +465,7 @@ void movermeEnL(t_enemigo * enemigo){
 		else
 			orientacion2 = -1;
 
- //void MoverEnemigo(t_list* items, char personaje, int x, int y); para graficar
+
 		moverEnemigoEnDireccion(enemigo, orientacion, orientacion2);
 		if(enemigo->cantTurnosEnL > -1){ // si tiene -1 es porque se topó con una caja, y debe arracar la L de vuelta
 			enemigo->cantTurnosEnL = 1;
@@ -470,7 +504,12 @@ t_enemigo * enemigo_create(){
 	enemigo->cantTurnosEnL = 0;
 	enemigo->orientacion1 = "";
 	enemigo->orientacion2 = 0;
-	//CrearEnemigo(items,id,posx,posy);
+	//enemigo->id=litEnemigo;  //agrego el id de enemigo, necesario para las funciones de grafica del nivel
+
+	//pthread_mutex_lock(&mx_enemigos);
+	numeroEnemigo++;
+	//pthread_mutex_unlock(&mx_enemigos);
+
 
 	return enemigo;
 }

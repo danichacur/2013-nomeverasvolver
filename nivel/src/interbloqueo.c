@@ -11,7 +11,7 @@ int sleepInterbloqueo;
 bool recovery;
 extern t_list * listaPersonajesRecursos;
 int32_t fdPlanificador;
-extern pthread_mutex_t mx_fd;
+extern pthread_mutex_t mutex_mensajes;
 
 t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
 	t_personaje_niv1 * new = malloc(sizeof(t_personaje_niv1));
@@ -156,9 +156,9 @@ t_personaje_niv1 *seleccionarVictima(t_list *listaInterbloqueados) {
 }
 
 void informarVictimaAPlanificador(t_personaje_niv1 * personaje){
-	pthread_mutex_lock(&mx_fd);
+	pthread_mutex_lock(&mutex_mensajes);
 	enviarMensaje(fdPlanificador,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
-	pthread_mutex_unlock(&mx_fd);
+	pthread_mutex_unlock(&mutex_mensajes);
 }
 
 t_list * obtenerListaDePersonajesBloqueados(){

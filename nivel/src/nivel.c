@@ -29,9 +29,9 @@ int32_t socketDeEscucha;
 pthread_t hiloInotify;
 pthread_mutex_t mutex_listas;
 pthread_mutex_t mutex_mensajes;
-pthread_mutex_t mutex_cambiosConfiguracion;
 
-pthread_mutex_t mx_fd;
+
+
 pthread_mutex_t mx_lista_personajes;
 pthread_mutex_t mx_lista_items;
 
@@ -57,9 +57,9 @@ int main (){
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
-	pthread_mutex_init(&mutex_cambiosConfiguracion, NULL );
 
-	pthread_mutex_init(&mx_fd,NULL);
+
+	pthread_mutex_init(&mutex_mensajes,NULL);
 	pthread_mutex_init(&mx_lista_personajes,NULL);
 	pthread_mutex_init(&mx_lista_items,NULL);
 
@@ -187,7 +187,7 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
 
-	pthread_mutex_lock(&mutex_mensajes);
+
 
 	log_info(logger, "El %s se conectara a la plataforma en %s ",nombre,direccionIPyPuerto);
 	char ** IPyPuerto = string_split(direccionIPyPuerto,":");
@@ -209,20 +209,32 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 
 	sprintf(buffer,"%d,%s,%d,%d,%d",numeroNivel,algoritmo,quantum,retardo,distancia);
+
+	pthread_mutex_lock(&mutex_mensajes);
 	int32_t ok= enviarMensaje(socketDeEscucha, NIV_handshake_ORQ,buffer);
+	pthread_mutex_unlock(&mutex_mensajes);
+
+
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
 
+	pthread_mutex_lock(&mutex_mensajes);
 	recibirMensaje(socketDeEscucha,&unMensaje,&elMensaje);
+	pthread_mutex_unlock(&mutex_mensajes);
+
+
+
 	if(unMensaje==ORQ_handshake_NIV){
 
 			if(ok==0){
 				log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
 				return socketDeEscucha;
+
 			}else{
 
 				log_info(logger, "El %s no pudo enviar handshake a plataformaen %s, el nivel se cierra ",nombre,direccionIPyPuerto);
 				kill(getpid(), SIGKILL);
+
 
 			}
 
@@ -230,7 +242,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 
 	free(buffer);
-	pthread_mutex_unlock(&mutex_mensajes);
+
 
 	return socketDeEscucha;
 
@@ -247,7 +259,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
 
-	pthread_mutex_lock(&mx_fd);
+
 
 		switch (unMensaje) {
 
@@ -272,12 +284,14 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 
 				}
-
+				pthread_mutex_lock(&mutex_mensajes);
 				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+				pthread_mutex_unlock(&mutex_mensajes);
 
 				} else {
-
+					pthread_mutex_lock(&mutex_mensajes);
 					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
+					pthread_mutex_unlock(&mutex_mensajes);
 					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);//"1" SI ES INVALIDO
 
 				}
@@ -342,7 +356,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, ",");
 				string_append(&pos, string_from_format("%d",caja->posy));
 
+				pthread_mutex_lock(&mutex_mensajes);
 				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+				pthread_mutex_unlock(&mutex_mensajes);
 
 				if(mensaje==0){
 					log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
@@ -385,11 +401,14 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					pthread_mutex_unlock(&mutex_listas);
 				}
 
-				enviarMensaje(socketEscucha, NIV_recursoConcedido_PLA,rta);//"0" CONCEDIDO, "1" NO CONCEDIDO
 
+				pthread_mutex_lock(&mutex_mensajes);
+				enviarMensaje(socketEscucha, NIV_recursoConcedido_PLA,rta);//"0" CONCEDIDO, "1" NO CONCEDIDO
+				pthread_mutex_unlock(&mutex_mensajes);
 
 				break;
 			}
+
 			case PLA_personajesDesbloqueados_NIV:{//"5,@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
 				char ** mens = string_split(elMensaje,",");
 				int i;
@@ -490,7 +509,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 		}
 
-		pthread_mutex_unlock(&mx_fd);
+
 }
 
 
@@ -663,7 +682,7 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 			 } else {
 				 log_info(logger, "Envio cambios archivo configuracion ");
-				 pthread_mutex_lock(&mx_fd);
+				 pthread_mutex_lock(&mutex_mensajes);
 
 				 retardo=retardoAux;
 				 quantum=quantumAux;
@@ -672,7 +691,7 @@ void crearHiloInotify(pthread_t hiloNotify){
 				 sprintf(buffer,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
 				 enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
 
-				 pthread_mutex_unlock(&mx_fd);
+				 pthread_mutex_unlock(&mutex_mensajes);
 
 
 			 }
