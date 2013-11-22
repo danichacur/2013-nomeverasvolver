@@ -61,9 +61,10 @@ typedef struct {
 
 
 
-bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje);
+
 void crearHiloInotify();
 void eliminarEstructuras();
+void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo);
 void mensajesConPlataforma(int32_t socketEscucha);
 void crearCaja(char ** caja);
 int leerArchivoConfiguracion();
@@ -80,4 +81,5 @@ void crearHiloInterbloqueo();
 void crearHilosEnemigos();
 int dibujar (void);
 bool existePersonajeEnListaItems(char idPers);
+
 #endif /* NIVEL_H_ */

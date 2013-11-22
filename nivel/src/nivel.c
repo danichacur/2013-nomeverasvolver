@@ -38,7 +38,7 @@ pthread_mutex_t mx_lista_items;
 bool listaRecursosVacia;
 char * buffer_log;
 
-bool graficar;
+int graficar;
 bool crearLosEnemigos;
 t_list * listaDeEnemigos;
 long sleepEnemigos;
@@ -48,7 +48,7 @@ int ingresoAlSistema;
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
 	nivelTerminado=false;
-	graficar = false;  // si no grafica loguea, buena idea!
+
 	crearLosEnemigos = false;
 	activarInterbloqueo = false;
 	listaDeEnemigos = list_create();
@@ -68,11 +68,12 @@ int main (){
 
 	crearHiloInotify(hiloInotify);
 
+
 	socketDeEscucha=handshakeConPlataforma();
 
 
 	 //SE CREA UN SOCKET NIVEL-PLATAFORMA DONDE RECIBE LOS MENSAJES POSTERIORMENTE
-	//crearHiloInotify(hiloInotify);
+
 
 	if (crearLosEnemigos){
 		log_info(logger,"Se levantaron los enemigos");
@@ -103,7 +104,21 @@ int leerArchivoConfiguracion(){
 	//VOY A LEER EL ARCHIVO DE CONFIGURACION DE UN NIVEL//
 
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
-	logger = log_create(PATH_LOG, "NIVEL", !graficar, LOG_LEVEL_INFO);
+	graficar = config_get_int_value(config, "graficar");
+
+	if(graficar){
+
+		logger = log_create(PATH_LOG, "NIVEL", false, LOG_LEVEL_INFO);
+		log_info(logger, "La config de graficado para el  %s es %d",nombre,graficar);
+
+	}else{
+
+
+		logger = log_create(PATH_LOG, "NIVEL", true, LOG_LEVEL_INFO);
+		log_info(logger, "La config de graficado para el  %s es %d",nombre,graficar);
+	}
+
+
 	log_info(logger, "Voy a leer mi archivo de configuracion");
 
 	nombre= config_get_string_value(config, "Nombre");
@@ -129,6 +144,8 @@ int leerArchivoConfiguracion(){
 
 	direccionIPyPuerto = config_get_string_value(config, "Plataforma");
 	log_info(logger, "El %s tiene la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
+
+
 
 
 	retardo = config_get_int_value(config, "retardo");
@@ -164,7 +181,7 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 	CrearCaja(items, caja[1][0],atoi(caja[3]), atoi(caja[4]), atoi(caja[2]));
 	pthread_mutex_unlock(&mutex_listas);
 
-	log_info(logger, "Se cre la caja de %s", caja[1]);
+	log_info(logger, "Se crea la caja de %s", caja[1]);
 
 }
 
@@ -204,8 +221,8 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 				return socketDeEscucha;
 			}else{
 
-				log_info(logger, "El %s no pudo enviar handshake a plataforma en %s ",nombre,direccionIPyPuerto);
-				//kill(getpid(), SIGKILL);
+				log_info(logger, "El %s no pudo enviar handshake a plataformaen %s, el nivel se cierra ",nombre,direccionIPyPuerto);
+				kill(getpid(), SIGKILL);
 
 			}
 
@@ -224,12 +241,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	enum tipo_paquete unMensaje;
 	char* elMensaje=NULL;
 
-	//TODO revisar esto del sleep, lo agregue yo Matyx
-	//sleep(retardo);
+
+	sleep(1);
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
-	//TODO esto del semaforo tmb lo agregue yo, matyx
+
 	pthread_mutex_lock(&mx_fd);
 
 		switch (unMensaje) {
@@ -237,12 +254,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			case PLA_movimiento_NIV: {//graficar y actualizar la lista RECIBE "@,1,3"
 
 				char ** mens = string_split(elMensaje,",");
-				//bool movValido;
 
-				//movValido= validarMovimientoPersonaje(mens,pers);
-
-				//if (movValido==true){
 				char idPers = mens[0][0];
+
+
+				if (true){
+
 				if(existePersonajeEnListaItems(idPers)){
 					pthread_mutex_lock(&mutex_listas);
 					MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
@@ -257,13 +274,13 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				}
 
 				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
-				/*
+
 				} else {
 
 					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
 					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);//"1" SI ES INVALIDO
 
-				}*/
+				}
 
 				break;
 			}
@@ -421,6 +438,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales);
 				BorrarItem(items,id);
+				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %c ha terminado el nivel ",id);
@@ -476,16 +494,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 }
 
 
-bool validarMovimientoPersonaje(char ** mensaje,ITEM_NIVEL * personaje){ //TERMINAR
-	if(personaje->posx <= atoi(mensaje[1]) && personaje->posy <= atoi(mensaje[2])){
-		log_info(logger, "El personaje %s realizo un movimiento valido y se dibujara en el mapa",personaje->id);
-		return true;
-	}else{
-		log_info(logger, "El personaje %s realizo un movimiento invalido y no se dibujara en el mapa",personaje->id);
-		return false;
-	}
 
-}
 
 void liberarRecursosDelPersonaje(t_list * recursos){
 
@@ -553,7 +562,25 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 	return item;
 }
 
-t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){ //NO SIRVE, BORRAR
+
+void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
+
+
+	int32_t _esta_el_personaje(t_personaje_niv1 * personaje){
+
+		return string_equals_ignore_case(personaje->simbolo,simbolo);
+	}
+
+	list_remove_by_condition(lista, (void*) _esta_el_personaje);
+
+
+
+
+
+
+}
+
+t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 
 
 	int32_t _esta_el_personaje(t_personaje_niv1 * personaje){
@@ -564,31 +591,27 @@ t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo
 	t_personaje_niv1 * unPers = list_find(lista, (void*) _esta_el_personaje);
 
 
-	/*
-	bool encontrado = false;
-	int i=0;
-	while(i < list_size(lista) && !encontrado){
-		unPers = list_get(lista,i);
-		if (strcmp(unPers->simbolo,simbolo) == 0){
-			encontrado = true;
-			personaje = unPers;
-		}
-		i++;
-	}
 
-	return personaje;
-*/
 	return unPers;
 }
 
 void eliminarEstructuras() { //TERMINAR
 
-	config_destroy(config);
+	nivelTerminado=true;
 	list_destroy(items);
 	list_destroy(listaPersonajesRecursos);
-	log_destroy(logger);
-	nivelTerminado=true;
 
+	config_destroy(config);
+	log_info(logger,"el nivel ha terminado satisfactoriamente");
+	kill(getpid(), SIGKILL);
+
+
+
+if(graficar){
+	nivel_gui_terminar();
+
+}
+log_destroy(logger);
 
 }
 
