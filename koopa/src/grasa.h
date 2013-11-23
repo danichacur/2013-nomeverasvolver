@@ -57,12 +57,6 @@ typedef struct grasa_adm_t {
 	GFile admTnodo[GFILEBYTABLE];
 } GAdm;
 
-//Estructura funcion obtenerNodo
-typedef struct grasa_obtenerNodo_t {
-	GFile NodoBuscado;
-	ptrGBloque NroNodo;
-} tNodoBuscado;
-
 //Estructura funcion obtenerNroBloque
 typedef struct grasa_obtenerNroBloque_t {
 	ptrGBloque BloqueDatos;
@@ -79,7 +73,9 @@ char * mapeo; //Disco mapeado Global
 
 //Prototipos
 //Funciones auxiliares
-tNodoBuscado obtenerNodo(const char *path,uint32_t j);
+//tNodoBuscado obtenerNodo(const char *path,uint32_t j);
+ptrGBloque obtenerNodo(const char *path,uint32_t j);
+ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k);
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
 /*fuse functions */

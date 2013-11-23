@@ -17,27 +17,30 @@
 static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 {
 	int res=0;
-	tNodoBuscado Nodo;
+	uint32_t i;
+	//tNodoBuscado Nodo;
 
 	printf("grasa_getattr\n");
 
 	memset(stbuf, 0, sizeof(struct stat));
 
-	Nodo = obtenerNodo(path,0);
+	i = obtenerNodo(path,0);
+
+	if (i == 1024)
+		return -ENOENT;
 
 	printf("path: %s\n",path);
-	printf("Nodo.name: %s\n",Nodo.NodoBuscado.fname);
-	printf("Nodo.state: %d\n",Nodo.NodoBuscado.state);
+	printf("Nodo.name: %s\n",GTNodo[i].fname);
+	printf("Nodo.state: %d\n",GTNodo[i].state);
 
-	if (Nodo.NodoBuscado.state == 2) {
+	if (GTNodo[i].state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
-	} else if (Nodo.NodoBuscado.state == 1) {
+	} else if (GTNodo[i].state == 1) {
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
-		stbuf->st_size = Nodo.NodoBuscado.file_size;
-	} else
-		res = -ENOENT;
+		stbuf->st_size = GTNodo[i].file_size;
+	}
 
 	return res;
 }
@@ -45,13 +48,13 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 // - grasa_open -
 
 static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
-	tNodoBuscado Nodo;
+	uint32_t i;
 
 	printf("grasa_open\n");
 
-	Nodo = obtenerNodo(path,0);
+	i = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (i == 1024)
 		return -ENOENT;
 
 	if ((fi->flags & 3) != O_RDONLY)
@@ -64,25 +67,25 @@ static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 
 static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
 	(void) fi;
-	tNodoBuscado Nodo;
 	size_t aCopiar=0;
 	tObNroBloque NroBloque;
+	uint32_t i;
 
 	printf("grasa_read\n");
 
-	Nodo = obtenerNodo(path,0);
+	i = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (i == 1024)
 		return -ENOENT;
 
-	if (offset + size > Nodo.NodoBuscado.file_size)
-		size = Nodo.NodoBuscado.file_size - offset;
+	if (offset + size > GTNodo[i].file_size)
+		size = GTNodo[i].file_size - offset;
 
-	if (offset <= Nodo.NodoBuscado.file_size) {
+	if (offset <= GTNodo[i].file_size) {
 
-			while(offset < Nodo.NodoBuscado.file_size){
+			while(offset < GTNodo[i].file_size){
 
-				NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
+				NroBloque = obtenerNroBloque(i,offset);
 
 				aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
 
@@ -104,8 +107,8 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
 static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	(void) offset;
 	(void) fi;
-	uint32_t i=0,j=0;
-	tNodoBuscado Nodo;
+	uint32_t i=0,j=0,k=0,l=0;
+	//tNodoBuscado Nodo;
 
 	printf("grasa_readdir\n");
 
@@ -114,12 +117,14 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
 
+	k = obtenerNodo(path,i);
+
 	while (i < 1024){
-		Nodo = obtenerNodo(path,i);
-		if (Nodo.NodoBuscado.state != 3){
-			filler(buf,GTNodo[i].fname, NULL, 0);
-			i = Nodo.NroNodo;
-			printf("filedir:%s,i:%d,Nn:%d\n",GTNodo[i].fname,i,Nodo.NroNodo);
+		l = obtenerNodoRelacionado(path,i,k);
+		if (l != 1024){
+			filler(buf,GTNodo[l].fname, NULL, 0);
+			i = l;
+			printf("filedir:%s,i:%d,Nn:%d\n",GTNodo[l].fname,i,l);
 			j = 1;
 		}
 		i++;
@@ -134,8 +139,8 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 // - grasa_mkdir -
 
 static uint32_t grasa_mkdir(const char *path, mode_t mode){
-	tNodoBuscado Nodo;
-	off_t i,j=2;
+	off_t i,j=2,k;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_mkdir\n");
 
@@ -151,20 +156,23 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 
 	if(j < 1025){
 
-		GTNodo[j].parent_dir_block = 0;
+		pthread_mutex_lock( &mutex1 );
+			GTNodo[j].parent_dir_block = 0;
 
-		if(dirname(strdup(path)) != "/"){
-			Nodo = obtenerNodo(path,0);
-			GTNodo[j].parent_dir_block = Nodo.NodoBuscado.parent_dir_block;
-		}
+			if(strcmp(dirname(strdup(path)),"/") != 0){
+				k = obtenerNodo(path,0);
+				GTNodo[j].parent_dir_block = GTNodo[k].parent_dir_block;
+			}
 
-		strcpy(GTNodo[j].fname,basename(strdup(path)));
-		GTNodo[j].file_size = 0;
-		GTNodo[j].state = 2;
-		GTNodo[j].c_date = (uint64_t)time(NULL);
-		GTNodo[j].m_date = (uint64_t)time(NULL);
 
-		bitarray_set_bit(GBitmap,j);
+			strcpy(GTNodo[j].fname,basename(strdup(path)));
+			GTNodo[j].file_size = 0;
+			GTNodo[j].state = 2;
+			GTNodo[j].c_date = (uint64_t)time(NULL);
+			GTNodo[j].m_date = (uint64_t)time(NULL);
+
+			bitarray_set_bit(GBitmap,j);
+		pthread_mutex_unlock( &mutex1 );
 
 		return 0;
 	}
@@ -176,31 +184,33 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 // - grasa_rmdir -
 
 static uint32_t grasa_rmdir(const char *path){
-	tNodoBuscado Nodo;
-	int i;
+	uint32_t i,j;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_rmdir\n");
 
-	Nodo = obtenerNodo(path,0);
+	j = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (j == 1024)
 		return -ENOENT;
 
-	if (Nodo.NodoBuscado.state < 2)
+	if (GTNodo[j].state < 2)
 		return -ENOTDIR;
 
 	for(i=0;i < 1024;i++){
-		if(GTNodo[i].parent_dir_block == Nodo.NroNodo)
+		if(GTNodo[i].parent_dir_block == j)
 			return -ENOTEMPTY;
 	}
 
-		GTNodo[Nodo.NroNodo].parent_dir_block = 0;
-		GTNodo[Nodo.NroNodo].file_size = 0;
-		GTNodo[Nodo.NroNodo].state = 0;
-		GTNodo[Nodo.NroNodo].c_date = 0;
-		GTNodo[Nodo.NroNodo].m_date = 0;
+	pthread_mutex_lock( &mutex1 );
+		GTNodo[j].parent_dir_block = 0;
+		GTNodo[j].file_size = 0;
+		GTNodo[j].state = 0;
+		GTNodo[j].c_date = 0;
+		GTNodo[j].m_date = 0;
 
-		bitarray_clean_bit(GBitmap,Nodo.NroNodo+2);
+		bitarray_clean_bit(GBitmap,j+2);
+	pthread_mutex_unlock( &mutex1 );
 
 	return 0;
 }
@@ -208,34 +218,36 @@ static uint32_t grasa_rmdir(const char *path){
 // - grasa_unlink -
 
 static uint32_t grasa_unlink(const char *path){
-	tNodoBuscado Nodo;
-	ptrGBloque i=0,j=0;
+	ptrGBloque i=0,j=0,k;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_unlink\n");
 
-	Nodo = obtenerNodo(path,0);
+	k = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (k == 1024)
 		return -ENOENT;
 
-	if (Nodo.NodoBuscado.state == 2 || Nodo.NodoBuscado.state == 0)
+	if (GTNodo[k].state == 2 || GTNodo[k].state == 0)
 		return -EFAULT;
 
-		GTNodo[Nodo.NroNodo].parent_dir_block = 0;
-		GTNodo[Nodo.NroNodo].file_size = 0;
-		GTNodo[Nodo.NroNodo].state = 0;
-		GTNodo[Nodo.NroNodo].c_date = 0;
-		GTNodo[Nodo.NroNodo].m_date = 0;
+	pthread_mutex_lock( &mutex1 );
+		GTNodo[k].parent_dir_block = 0;
+		GTNodo[k].file_size = 0;
+		GTNodo[k].state = 0;
+		GTNodo[k].c_date = 0;
+		GTNodo[k].m_date = 0;
 
 		//Liberar inodo, se coloca +2 ya que el NroNodo es relativo a la tabla de Nodos
-		bitarray_clean_bit(GBitmap,Nodo.NroNodo+2);
+		bitarray_clean_bit(GBitmap,k+2);
 
-		j = GTNodo[Nodo.NroNodo].blk_indirect[i];
+		j = GTNodo[k].blk_indirect[i];
 		while (bitarray_test_bit(GBitmap,j) && i > 1024){
 			bitarray_clean_bit(GBitmap,j);
 			i++;
-			j = GTNodo[Nodo.NroNodo].blk_indirect[i];
+			j = GTNodo[k].blk_indirect[i];
 		}
+	pthread_mutex_unlock( &mutex1 );
 
 	return 0;
 }
@@ -243,48 +255,53 @@ static uint32_t grasa_unlink(const char *path){
 // - grasa_truncate -
 
 static uint32_t grasa_truncate(const char *path, off_t newsize){
-	tNodoBuscado Nodo;
+	ptrGBloque i;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_truncate\n");
 
-	Nodo = obtenerNodo(path,0);
+	i = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (i == 1024)
 		return -ENOENT;
 
-	if (Nodo.NodoBuscado.state == 2 || Nodo.NodoBuscado.state == 0)
+	if (GTNodo[i].state == 2 || GTNodo[i].state == 0)
 		return -EFAULT;
 
-		GTNodo[Nodo.NroNodo].file_size = newsize;
-		GTNodo[Nodo.NroNodo].m_date =  (uint64_t)time(NULL);
+	pthread_mutex_lock( &mutex1 );
+		GTNodo[i].file_size = newsize;
+		GTNodo[i].m_date =  (uint64_t)time(NULL);
+	pthread_mutex_unlock( &mutex1 );
 
 	return 0;
 }
 
 static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi){
 	(void) fi;
-	tNodoBuscado Nodo;
 	off_t i,j=2;
+	uint32_t k;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_create\n");
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
 
-	for (i=2; i < 1025; i++){
-		j=i;
-		i=1025;
-		if (bitarray_test_bit(GBitmap,j))
-			i=j;
-	}
+	pthread_mutex_lock( &mutex1 );
+		for (i=2; i < 1025; i++){
+			j=i;
+			i=1025;
+			if (bitarray_test_bit(GBitmap,j))
+				i=j;
+		}
 
 	if(j < 1025){
 
 		GTNodo[j].parent_dir_block = 0;
 
-		if (strcmp(path, "/") == 0  || strcmp(path, ".") == 0){
-			Nodo = obtenerNodo(path,0);
-			GTNodo[j].parent_dir_block = Nodo.NodoBuscado.parent_dir_block;
+		if (strcmp(dirname(strdup(path)),"/") != 0){
+			k = obtenerNodo(path,0);
+			GTNodo[j].parent_dir_block = GTNodo[k].parent_dir_block;
 		}
 
 		strcpy(GTNodo[j].fname,basename(strdup(path)));
@@ -294,9 +311,11 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 		GTNodo[j].m_date = (uint64_t)time(NULL);
 
 		bitarray_set_bit(GBitmap,j);
+		pthread_mutex_unlock( &mutex1 );
 
 		return 0;
 	}
+	pthread_mutex_unlock( &mutex1 );
 
 	return -ENOENT;
 }
@@ -306,23 +325,26 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi){
 	(void) fi;
 	(void) offset;
-	tNodoBuscado Nodo;
+	uint32_t i;
 	size_t aCopiar=0;
 	tObNroBloque NroBloque;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_write\n");
 
-	Nodo = obtenerNodo(path,0);
+	i = obtenerNodo(path,0);
 
-	if (Nodo.NodoBuscado.state == 3)
+	if (i == 1024)
 		return -ENOENT;
 
 	if (offset + size > BLOCK_SIZE*BLKINDIRECT)
 		return 0;
 
+	pthread_mutex_lock( &mutex1 );
+
 	while(offset <= offset + size){
 
-		NroBloque = obtenerNroBloque(Nodo.NroNodo,offset);
+		NroBloque = obtenerNroBloque(i,offset);
 
 		if (bitarray_test_bit(GBitmap,NroBloque.BloqueDatos))
 				bitarray_set_bit(GBitmap,NroBloque.BloqueDatos);
@@ -335,9 +357,11 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 		offset += aCopiar;
 	}
 	//TODO ver si usar size o filesize
-	GTNodo[Nodo.NroNodo].file_size = offset + size;
-	GTNodo[Nodo.NroNodo].m_date = (uint64_t)time(NULL);
+	GTNodo[i].file_size = offset + size;
+	GTNodo[i].m_date = (uint64_t)time(NULL);
 	buf -= size;
+
+	pthread_mutex_unlock( &mutex1 );
 
 	return size;
 }
@@ -348,13 +372,84 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 //Entrada: Dado el path y el numero de inodo a partir del cual se quiere buscar (consecutivo)
 //Salida: Devuelve el nro de inodo.
 
-tNodoBuscado obtenerNodo( const char *path, uint32_t j){
-	uint32_t i;
+ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
+	ptrGBloque i;
 	char *Filename,*dir1,*dir2;
-	tNodoBuscado NodoBuscado;
-	//pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//NodoBuscado.NroNodo = 1024;
+	//printf("obtenerNodo:%s\n",path);
+
+	Filename = basename(strdup(path));
+	dir1 = strdup(path);
+	dir1 = dirname(dir1);
+	dir1 = dirname(dir1);
+	dir2 = strdup(path);
+	dir2 = dirname(dir2);
+	dir2 = basename(dir2);
+
+	printf("dir1:%s\n",dir1);
+	printf("dir2:%s\n",dir2);
+	printf("filename:%s\n",Filename);
+
+	//Directorio raiz
+	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") == 0){
+		for (i = j; i < 1024; i++){
+			if (GTNodo[i].parent_dir_block == 0 &&
+				GTNodo[i].state != 0){
+				printf("0 pdirblk: %d, posi:%d, posj:%d\n",GTNodo[i].parent_dir_block,i,j);
+				return i;
+			}
+		}
+	}
+	else//Si tengo un solo nivel
+		if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") != 0){
+			for (i = j; i < 1024; i++){
+				if (strcmp(GTNodo[i].fname,Filename) == 0 &&
+					GTNodo[i].parent_dir_block == 0 &&
+					GTNodo[i].state != 0){
+					printf("1 NodoBuscado: %s, posi: %d\n",Filename,i);
+					return i;
+				}
+			}
+		}
+		else//Si tengo un solo nivel de directorio
+			if ((strcmp(dir1, "/") == 0)  && (strcmp(dir2, "/") != 0)){
+				for (i = j; i < 1024; i++){
+					if ((strcmp(GTNodo[i].fname,Filename) == 0)&&
+						(strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0) &&
+						(GTNodo[GTNodo[i].parent_dir_block].parent_dir_block == 0) &&
+						(GTNodo[i].state != 0)){
+						printf("2 NodoBuscado: %s, posi: %d\n",Filename,i);
+						return i;
+					}
+				}
+			}
+			else//Si tengo dos niveles de directorios
+				if ((strcmp(dir1, "/") != 0)  && (strcmp(dir2, "/") != 0)){
+					for (i = j; i < 1024; i++){
+						if (strcmp(GTNodo[i].fname,Filename) == 0 &&
+							GTNodo[i].state != 0 &&
+							strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0 &&
+							GTNodo[GTNodo[i].parent_dir_block].state != 0 &&
+							strcmp(GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].fname,basename(strdup(dir1))) == 0 &&
+							GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].parent_dir_block == 0 &&
+							GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].state != 0){
+							printf("3 NodoBuscado: %s, posi: %d\n",Filename,i);
+							return i;
+						}
+					}
+				}
+
+	//Si no se ecuentra nodo devuelve 1024, validar este retorno.
+	return 1024;
+}
+
+// - obtenerNodoRelacionado -
+//Entrada: Dado el path, el numero de inodo a partir del cual se quiere buscar (consecutivo) y a cual esta relacionado
+//Salida: Devuelve el nro de inodo relacionado.
+
+ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k){
+	ptrGBloque i;
+	char *Filename,*dir1,*dir2;
 
 	//printf("obtenerNodo:%s\n",path);
 
@@ -370,76 +465,28 @@ tNodoBuscado obtenerNodo( const char *path, uint32_t j){
 //	printf("dir2:%s\n",dir2);
 //	printf("filename:%s\n",Filename);
 
-	//pthread_mutex_lock( &mutex1 );
-
 	//Directorio raiz
 	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") == 0){
 		for (i = j; i < 1024; i++){
 			if (GTNodo[i].parent_dir_block == 0 &&
 				GTNodo[i].state != 0){
-				NodoBuscado.NodoBuscado = GTNodo[i];
-				NodoBuscado.NroNodo = i;
-				printf("0 pdirblk: %d, fname: %s, posi:%d, posj:%d\n",GTNodo[i].parent_dir_block,NodoBuscado.NodoBuscado.fname,i,j);
-				//pthread_mutex_unlock( &mutex1 );
-				return NodoBuscado;
+				printf("r0 filename: %s, posi:%d, posj:%d\n",GTNodo[i].fname,i,j);
+				return i;
 			}
 		}
 	}
-	else//Si tengo un solo nivel
-		if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") != 0){
+	else{//cualquier otro
 			for (i = j; i < 1024; i++){
-				if (strcmp(GTNodo[i].fname,Filename) == 0 &&
-					GTNodo[i].parent_dir_block == 0 &&
+				if (GTNodo[i].parent_dir_block == k &&
 					GTNodo[i].state != 0){
-					NodoBuscado.NodoBuscado = GTNodo[i];
-					NodoBuscado.NroNodo = i;
-					printf("1 NodoBuscado: %s, fname: %s\n",Filename,NodoBuscado.NodoBuscado.fname);
-					//pthread_mutex_unlock( &mutex1 );
-					return NodoBuscado;
+					printf("r1 NodoBuscado: %s, posi: %d, posj:%d\n",GTNodo[i].fname,i,j);
+					return i;
 				}
 			}
 		}
-		else//Si tengo un solo nivel de directorio
-			if ((strcmp(dir1, "/") == 0)  && (strcmp(dir2, "/") != 0)){
-				for (i = j; i < 1024; i++){
-					if ((strcmp(GTNodo[i].fname,Filename) == 0)&&
-						(strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0) &&
-						(GTNodo[GTNodo[i].parent_dir_block].parent_dir_block == 0) &&
-						(GTNodo[i].state != 0)){
-						NodoBuscado.NodoBuscado = GTNodo[i];
-						NodoBuscado.NroNodo = i;
-						printf("2 NodoBuscado: %s, fname: %s\n",Filename,NodoBuscado.NodoBuscado.fname);
-						//pthread_mutex_unlock( &mutex1 );
-						return NodoBuscado;
-					}
-				}
-			}
-			else//Si tengo dos niveles de directorios
-				if ((strcmp(dir1, "/") != 0)  && (strcmp(dir2, "/") != 0)){
-					for (i = j; i < 1024; i++){
-						if (strcmp(GTNodo[i].fname,Filename) == 0 &&
-							GTNodo[i].state != 0 &&
-							strcmp(GTNodo[GTNodo[i].parent_dir_block].fname,dir2) == 0 &&
-							GTNodo[GTNodo[i].parent_dir_block].state != 0 &&
-							strcmp(GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].fname,dir1) == 0 &&
-							GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].parent_dir_block == 0 &&
-							GTNodo[GTNodo[GTNodo[i].parent_dir_block].parent_dir_block].state != 0){
-							NodoBuscado.NodoBuscado = GTNodo[i];
-							NodoBuscado.NroNodo = i;
-							printf("3 NodoBuscado: %s, fname: %s\n",Filename,NodoBuscado.NodoBuscado.fname);
-							//pthread_mutex_unlock( &mutex1 );
-							return NodoBuscado;
-						}
-					}
-				}
 
-	//pthread_mutex_unlock( &mutex1 );
-
-	//Si no se ecuentra nodo es devuelve 3 en state, validar este retorno.
-//	if (NodoBuscado.NroNodo == 1024)
-		NodoBuscado.NodoBuscado.state = 3;
-
-	return NodoBuscado;
+	//Si no se ecuentra nodo devuelve 1024, validar este retorno.
+	return 1024;
 }
 
 // - obtenerNroBloque -
