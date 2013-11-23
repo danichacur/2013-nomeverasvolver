@@ -79,7 +79,7 @@ char * mapeo; //Disco mapeado Global
 
 //Prototipos
 //Funciones auxiliares
-tNodoBuscado obtenerNodo(const char *path);
+tNodoBuscado obtenerNodo(const char *path,uint32_t j);
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
 /*fuse functions */
