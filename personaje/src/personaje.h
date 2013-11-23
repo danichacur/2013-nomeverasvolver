@@ -82,7 +82,7 @@ char* obtenerRecursosNecesariosPorNivel(int ordNivel);
 void avisarNivelConcluido(int nivel);
 void desconectarPlataforma();
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel);
-int meQuedanVidas();
+bool meQuedanVidas();
 void descontarUnaVida();
 void interrumpirTodosPlanesDeNiveles();
 void finalizarTodoElProcesoPersonaje();
@@ -97,5 +97,6 @@ char *estoyEnLineaRectaALaCaja(int ordNivel);
 void moverpersonajeEn(char * orientacion, int ordNivel);
 char * obtenerProximoRecursosNecesario(int ordNivel);
 void capturarSeniales();
+void desconectarmeDePlataforma(int ordNivel);
 
 #endif /* PERSONAJE_H_ */

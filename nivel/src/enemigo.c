@@ -6,13 +6,15 @@
 extern t_list * items;
 extern t_list * listaDeEnemigos; //TODO, hacer el create_list
 extern int32_t socketDeEscucha;
-extern long sleepEnemigos;
+extern useconds_t sleepEnemigos;
 extern t_log * logger;
+extern bool graficar;
+extern char * nombre;
 t_list * listaDePersonajes;
 char * horizontal;
 char * vertical;
 char * cadenaVacia;
-char numeroEnemigo='1';
+char idEnemigo;
 
 
 //#define PRUEBA_CON_CONEXION false
@@ -27,12 +29,17 @@ extern pthread_mutex_t mx_lista_items;
 
 bool IMPRIMIR_INFO_ENEMIGO;
 
-void enemigo(){
+void enemigo(int* pIdEnemigo){
 
-	IMPRIMIR_INFO_ENEMIGO = false;
+	IMPRIMIR_INFO_ENEMIGO = true;
 	horizontal = "H";
 	vertical = "V";
 	cadenaVacia = "";
+
+	char * cadena = string_new();
+	string_append_with_format(&cadena,"%d", (int) pIdEnemigo);
+	idEnemigo = cadena[0];
+
 	//pthread_mutex_init(&mx_enemigos,NULL);
 	//pthread_mutex_init(&mutex_mensajes,NULL);
 	//pthread_mutex_init(&mx_lista_personajes,NULL);
@@ -41,11 +48,11 @@ void enemigo(){
 	t_enemigo * enemigo = crearseASiMismo(); //random, verifica que no se cree en el (0,0)
 
 	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"Posicion inicial del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+		log_info(logger,"Posicion inicial del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
 
 
 	while(1){ //cada x tiempo, configurado por archivo de configuracion
-		sleep(sleepEnemigos);
+		sleep(sleepEnemigos/1000);
 
 		if(hayPersonajeAtacable()){
 			moverseHaciaElPersonajeDeFormaAlternada(enemigo);
@@ -74,6 +81,9 @@ t_enemigo * crearseASiMismo(){
 
 	list_add(listaDeEnemigos, enemigo);
 	CrearEnemigo(items,enemigo->id, enemigo->posicion->posX, enemigo->posicion->posY); //cuidado con esto, el enemigo deberia tener id individuales
+
+	if(graficar)
+		nivel_gui_dibujar(items,nombre);
 	return enemigo;
 }
 
@@ -91,7 +101,7 @@ bool hayPersonajeAtacable(){
 t_personaje_niv * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
 	t_personaje_niv * personaje = buscaPersonajeCercano(enemigo);
 	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"Buscando al personaje mas cercano.. Es %s \n", personaje->simbolo);
+		log_info(logger,"Buscando al personaje mas cercano.. Es %s ", personaje->simbolo);
 
 
 	char * condicion = estoyEnLineaRectaAlPersonaje(enemigo, personaje); // 'H','V' o ''
@@ -176,21 +186,23 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv * personaje, char * ori
 				enemigo->posicion->posY = enemigo->posicion->posY - 1;
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
-			}else
-			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
-				orientacion = horizontal;
-				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
-				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			}
+		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
+			orientacion = horizontal;
+			enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
-			}else
-				enemigo->posicion->posY = enemigo->posicion->posY + 1;
-				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
-		}
+		}else
+			enemigo->posicion->posY = enemigo->posicion->posY + 1;
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+	}
 
 
+	if(graficar)
+		nivel_gui_dibujar(items,nombre);
 
 	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
+		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
 
 
 	//TODO alcanza con esto o tengo q usar una funcion list_replace?
@@ -206,32 +218,49 @@ void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orien
 		enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
 	*/
 
-	if(orientacion1 == horizontal)
-		if(hayCaja(enemigo->posicion->posX + orientacion2, enemigo->posicion->posY)){
+	if(orientacion1 == horizontal){
+		if(hayCajaOExcedeLimite(enemigo->posicion->posX + orientacion2, enemigo->posicion->posY)){
 			enemigo->cantTurnosEnL = -1;
-			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
+			enemigo->posicion->posX = enemigo->posicion->posX + (orientacion2 * -1);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
 		}else{
 			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
-		}else if(orientacion1 == vertical){
-			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
-				enemigo->cantTurnosEnL = -1;
-				enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
-				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+		}
+	}else if(orientacion1 == vertical){
+		if(hayCajaOExcedeLimite(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
+			enemigo->cantTurnosEnL = -1;
+			enemigo->posicion->posY = enemigo->posicion->posY + (orientacion2 * -1);
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
 		}else{
 			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
 		}
-		if(IMPRIMIR_INFO_ENEMIGO){
-			log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d \n", enemigo->posicion->posX, enemigo->posicion->posY);
-
-		}
 	}
+
+	if(graficar)
+		nivel_gui_dibujar(items,nombre);
+
+
+	if(IMPRIMIR_INFO_ENEMIGO){
+		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
+	}
+
+}
+
+bool hayCajaOExcedeLimite(int x, int y){
+	if (hayCaja(x,y)){
+		return true;
+	}
+
+	if (excedeLimite(x,y)){
+		return true;
+	}
+	return false;
 }
 
 bool hayCaja(int x, int y){
@@ -248,6 +277,10 @@ bool hayCaja(int x, int y){
 	}
 
 	return hay;
+}
+
+bool excedeLimite(int x, int y){
+	return (x<0 || y<0);
 }
 
 int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv * personaje){
@@ -391,7 +424,7 @@ void avisarAlNivel(t_enemigo * enemigo){
 	}
 
 	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"El enemigo atacó a los personajes: %s \n", simbolosPersonajesAtacados);
+		log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
 
 
 	//if (PRUEBA_CON_CONEXION)
@@ -447,7 +480,7 @@ t_list * obtenerListaDePersonajesAbajoDeEnemigo(t_enemigo * enemigo){
 
 void movermeEnL(t_enemigo * enemigo){
 	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"No hay personajes para atacar. Moviendo en L \n");
+		log_info(logger,"No hay personajes para atacar. Moviendo en L ");
 
 
 	char * orientacion;
@@ -504,10 +537,10 @@ t_enemigo * enemigo_create(){
 	enemigo->cantTurnosEnL = 0;
 	enemigo->orientacion1 = "";
 	enemigo->orientacion2 = 0;
-	//enemigo->id=litEnemigo;  //agrego el id de enemigo, necesario para las funciones de grafica del nivel
+	enemigo->id=idEnemigo;  //agrego el id de enemigo, necesario para las funciones de grafica del nivel
 
 	//pthread_mutex_lock(&mx_enemigos);
-	numeroEnemigo++;
+	//numeroEnemigo++;
 	//pthread_mutex_unlock(&mx_enemigos);
 
 

@@ -41,7 +41,7 @@ char * buffer_log;
 int graficar;
 bool crearLosEnemigos;
 t_list * listaDeEnemigos;
-long sleepEnemigos;
+useconds_t sleepEnemigos;
 bool activarInterbloqueo;
 int ingresoAlSistema;
 
@@ -49,8 +49,6 @@ int ingresoAlSistema;
 int main (){
 	nivelTerminado=false;
 
-	crearLosEnemigos = false;
-	activarInterbloqueo = false;
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
@@ -66,7 +64,7 @@ int main (){
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	dibujar();
 
-	crearHiloInotify(hiloInotify);
+	//crearHiloInotify(hiloInotify);
 
 
 	socketDeEscucha=handshakeConPlataforma();
@@ -80,7 +78,7 @@ int main (){
 		crearHilosEnemigos();
 	}
 	if(activarInterbloqueo){
-	crearHiloInterbloqueo();
+		crearHiloInterbloqueo();
 	}
 
 	while(1){
@@ -153,6 +151,10 @@ int leerArchivoConfiguracion(){
 
 	distancia = config_get_int_value(config, "distancia");
 	log_info(logger, "El remaining distance para el %s es de %d",nombre,distancia);
+
+	crearLosEnemigos = config_get_int_value(config, "crearLosEnemigos");
+	activarInterbloqueo = config_get_int_value(config, "activarInterbloqueo");
+
 
 	// LEO LAS CAJAS DEL NIVEL //
 
@@ -725,7 +727,7 @@ void crearHilosEnemigos(){
 	int i;
 	pthread_t pid;
 	for(i = 0 ; i<enemigos ; i++){
-		pthread_create(&pid, NULL, (void*)&enemigo, NULL);
+		pthread_create(&pid, NULL, (void*)&enemigo, (int*) i );
 	}
 }
 

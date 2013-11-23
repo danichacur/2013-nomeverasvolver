@@ -135,10 +135,10 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 
 	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, "0");
 
-	if(meQuedanVidas() == EXIT_SUCCESS){
+	if(meQuedanVidas()){
 		descontarUnaVida();
-		//desconectarmeDePlataforma(ordNivel); TODO
-		//conectarAPlataforma(ordNivel); TODO
+		desconectarmeDePlataforma(ordNivel);
+		conectarAlNivel((int*) ordNivel);
 	}else{
 		char* respuesta = NULL;
 
@@ -570,7 +570,7 @@ void desconectarPlataforma(){
 	close(fdOrquestador);
 }
 
-int meQuedanVidas(){
+bool meQuedanVidas(){
 	return personaje->cantVidas > 0;
 }
 
@@ -671,7 +671,7 @@ void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volv
 void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensajeRecibido, int ordNivel){
 	enum tipo_paquete tipoMensaje;
 	char* mensaje = NULL;
-	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
+	//char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 	(*mensajeRecibido) = string_new();
 
 	int retorno;
@@ -686,14 +686,14 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 	if (!retorno) {
 		if( tipoMensaje != tipoEsperado){
 			if (tipoMensaje == PLA_teMatamos_PER){
-				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
+				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_ENEMIGO, ordNivel);
 			}else{
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
 		}else{
 			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") == 0){
-				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
+				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_INTERBLOQUEO, ordNivel);
 			}else
 				string_append(mensajeRecibido, mensaje);
@@ -764,4 +764,8 @@ char * obtenerProximoRecursosNecesario(int ordNivel){
 
 void capturarSeniales(){
 
+}
+
+void desconectarmeDePlataforma(int ordNivel){
+	close(obtenerFDPlanificador(ordNivel));
 }
