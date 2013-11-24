@@ -324,20 +324,18 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 	// log_info(logger_pla, "yo planificador debería liberar recursos? SI ");
 	enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, mensaje);
 
-	t_list *p_listos = dictionary_get(listos, str_nivel);
-
 	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 		return nuevo->fd == socket_l;
 	}
 	pthread_mutex_lock(&mutex_listos);
-	t_pers_por_nivel *aux = list_remove_by_condition(p_listos,
-			(void*) _esta_personaje); //el primer elemento de la lista
+	//t_pers_por_nivel *aux = list_remove_by_condition(p_listos, //matyx
+	//		(void*) _esta_personaje); //el primer elemento de la lista
 	pthread_mutex_unlock(&mutex_listos);
 	log_info(logger_pla,
-			"Nivel %d: El personaje %c murio, se lo saca de este nivel",
-			str_nivel, aux->personaje);
+			"Nivel %d: El personaje del socket %d murio, se lo saca de este nivel",
+			str_nivel, (int) valor);
 	supr_pers_de_estructuras(socket_l);
-	free(aux);
+	//free(aux);
 
 }
 int tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
@@ -382,6 +380,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 					nivel->nivel, personaje->personaje, m_mensaje);
 			bool resultado = plan_enviarMensaje(str_nivel, personaje->fd,
 					PLA_movimiento_PER, m_mensaje);
+
 			if (resultado) {
 				int res = tratamiento_recurso(personaje, str_nivel, nivel,
 						quantum);
@@ -404,6 +403,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 
 				tratamiento_asesinato(nivel->fd, personaje, m_mensaje,
 						str_nivel);
+				recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);//matyx
 			} else {
 				t_list *p_muertos = dictionary_get(anormales, str_nivel);
 				int32_t * valor = malloc(sizeof(int));
@@ -752,15 +752,13 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 	while (mensaje[i] != '\0') {
 
 		if (aux == NULL ) {
-			t_list *p_listos = dictionary_get(listos, str_nivel);
-
 			int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 				return nuevo->personaje == mensaje[i];
 			}
 
 			pthread_mutex_lock(&mutex_listos);
-			personaje = list_remove_by_condition(p_listos,
-					(void*) _esta_personaje);
+			//personaje = list_remove_by_condition(p_listos, // matyx
+	//							(void*) _esta_personaje);
 			pthread_mutex_unlock(&mutex_listos);
 
 			log_info(logger_pla,
@@ -794,7 +792,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 		plan_enviarMensaje(str_nivel, aux->fd,
 				PLA_teMatamos_PER, "0");
 
-		destruir_personaje(personaje);
+		//destruir_personaje(personaje);// matyx
 		i++;
 	}
 

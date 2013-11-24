@@ -133,11 +133,16 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		log_info(logger, "Perdí una vida porque estaba interbloqueado");
 	}
 
-	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, "0");
+	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, personaje->simbolo);
 
 	if(meQuedanVidas()){
 		descontarUnaVida();
 		desconectarmeDePlataforma(ordNivel);
+
+		//Reinicio parametros de ese nivel
+		reiniciarListasDeNivelARecomenzar(ordNivel);
+
+
 		conectarAlNivel((int*) ordNivel);
 	}else{
 		char* respuesta = NULL;
@@ -163,6 +168,21 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 	}
 }
 
+
+void reiniciarListasDeNivelARecomenzar(ordNivel){
+	t_posicion * pos = list_get(personaje->posicionesPorNivel, ordNivel);
+	pos = posicion_create_pos(0,0);
+	list_replace(personaje->posicionesPorNivel, ordNivel,pos);
+	/*t_posicion * pos2 = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
+	pos2 = posicion_create_pos(0,0);
+	list_replace(listaDeUbicacionProximaCajaNiveles, ordNivel,pos2);*/
+	t_list * listaRecActuales = list_get(personaje->recursosActualesPorNivel, ordNivel);
+	listaRecActuales = list_create();
+	list_replace(personaje->recursosActualesPorNivel, ordNivel,listaRecActuales);
+	char * ultimoMovimiento = list_get(personaje->ultimosMovimientosPorNivel, ordNivel);
+	ultimoMovimiento  = string_new();
+	list_replace(personaje->ultimosMovimientosPorNivel, ordNivel,ultimoMovimiento);
+}
 /*int todosNivelesFinalizados(){
 	if(list_size(personaje->niveles) ==
 			list_size(listaDeNivelesFinalizados)){
