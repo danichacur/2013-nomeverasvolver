@@ -13,6 +13,7 @@ int retardoSegundos;
 int rows;
 int cols; // TAMAÑO DEL MAPA
 char * nombre;
+char * buffer1;
 char * direccionIPyPuerto;
 char * algoritmo;
 int enemigos;
@@ -51,6 +52,7 @@ int ingresoAlSistema;
 int main (){
 	nivelTerminado=false;
 
+
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
@@ -66,7 +68,7 @@ int main (){
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	dibujar();
 
-	//crearHiloInotify(hiloInotify);
+	crearHiloInotify(hiloInotify);
 
 
 	socketDeEscucha=handshakeConPlataforma();
@@ -289,6 +291,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				}
 				pthread_mutex_lock(&mutex_mensajes);
+
+				enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
+
 				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
 				pthread_mutex_unlock(&mutex_mensajes);
 
@@ -685,15 +690,16 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 
 			 } else {
-				 log_info(logger, "Envio cambios archivo configuracion ");
+				 log_info(logger, "Guardo los cambios para ser mandados en el mensaje de movimiento de personaje ");
 				 pthread_mutex_lock(&mutex_mensajes);
 
 				 retardo=retardoAux;
 				 quantum=quantumAux;
 				 strcpy(algoritmo,algoritmoAux);
 
-				 sprintf(buffer,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
-				 enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer);
+
+				 buffer1=string_new();
+				 sprintf(buffer1,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
 
 				 pthread_mutex_unlock(&mutex_mensajes);
 
