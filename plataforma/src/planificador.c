@@ -408,7 +408,8 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				recibirMensaje(personaje->fd, &t_mensaje, &m_mensaje);//matyx
 
 				char * simbolo = string_new();
-				string_append(&simbolo,charToString(personaje->personaje));
+
+				string_append(&simbolo,string_from_format("%c", personaje->personaje));
 				tratamiento_muerte(personaje->fd, nivel->fd, simbolo, str_nivel);
 				enviarMensaje(personaje->fd, OK1,"0");
 			} else {
