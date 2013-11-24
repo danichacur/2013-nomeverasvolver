@@ -25,6 +25,9 @@ extern pthread_mutex_t mx_enemigos;
 extern pthread_mutex_t mutex_mensajes;
 extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
+
+pthread_mutex_t mx_borrar_enemigos;
+
 #include <stdbool.h>
 
 bool IMPRIMIR_INFO_ENEMIGO;
@@ -43,7 +46,7 @@ void enemigo(int* pIdEnemigo){
 	//pthread_mutex_init(&mx_enemigos,NULL);
 	//pthread_mutex_init(&mutex_mensajes,NULL);
 	//pthread_mutex_init(&mx_lista_personajes,NULL);
-	//pthread_mutex_init(&mx_lista_items,NULL);
+	pthread_mutex_init(&mx_borrar_enemigos,NULL);
 
 	t_enemigo * enemigo = crearseASiMismo(); //random, verifica que no se cree en el (0,0)
 
@@ -416,25 +419,14 @@ void avisarAlNivel(t_enemigo * enemigo){
 
 	int i;
 	ITEM_NIVEL * personaje;
+
+	pthread_mutex_lock(&mx_borrar_enemigos);
 	t_list * listaPersonajesAtacados = obtenerListaDePersonajesAbajoDeEnemigo(enemigo);
 	char * simbolosPersonajesAtacados = string_new();
 	for(i=0 ; i < list_size(listaPersonajesAtacados) ; i++){
 		personaje = list_get(listaPersonajesAtacados,i);
 		string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
 	}
-
-	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
-
-
-	//if (PRUEBA_CON_CONEXION)
-	if(true){
-		pthread_mutex_lock(&mutex_mensajes);
-		enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
-		pthread_mutex_unlock(&mutex_mensajes);
-	}
-
-
 	//TODO tengo que sacar los personajes de la lista de personajes?
 	while(list_size(listaPersonajesAtacados) > 0){
 		ITEM_NIVEL * persAtacado = list_get(listaPersonajesAtacados,0);
@@ -454,6 +446,20 @@ void avisarAlNivel(t_enemigo * enemigo){
 		}
 		list_remove(listaPersonajesAtacados,0);
 	}
+	pthread_mutex_unlock(&mx_borrar_enemigos);
+
+
+	if(IMPRIMIR_INFO_ENEMIGO)
+		log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
+
+
+	//if (PRUEBA_CON_CONEXION)
+	if(true){
+		pthread_mutex_lock(&mutex_mensajes);
+		enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
+		pthread_mutex_unlock(&mutex_mensajes);
+	}
+
 
 	free(simbolosPersonajesAtacados);
 	list_clean(listaPersonajesAtacados); //TODO, con esto libero todos los elementos de la lista o tengo q recorrerla e ir liberando?

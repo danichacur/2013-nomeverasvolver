@@ -98,6 +98,8 @@ char *estoyEnLineaRectaALaCaja(int ordNivel);
 void moverpersonajeEn(char * orientacion, int ordNivel);
 char * obtenerProximoRecursosNecesario(int ordNivel);
 void capturarSeniales();
+void recibirSenialGanarVida();
+void recibirSenialPierdeVida();
 void desconectarmeDePlataforma(int ordNivel);
 
 #endif /* PERSONAJE_H_ */

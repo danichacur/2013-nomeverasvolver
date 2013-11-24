@@ -404,6 +404,13 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				tratamiento_asesinato(nivel->fd, personaje, m_mensaje,
 						str_nivel);
 				recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);//matyx
+
+				recibirMensaje(personaje->fd, &t_mensaje, &m_mensaje);//matyx
+
+				char * simbolo = string_new();
+				string_append(&simbolo,charToString(personaje->personaje));
+				tratamiento_muerte(personaje->fd, nivel->fd, simbolo, str_nivel);
+				enviarMensaje(personaje->fd, OK1,"0");
 			} else {
 				t_list *p_muertos = dictionary_get(anormales, str_nivel);
 				int32_t * valor = malloc(sizeof(int));

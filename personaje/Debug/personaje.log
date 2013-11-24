@@ -5341,3 +5341,1025 @@
 [INFO] 21:59:07:714 PERSONAJE/(12855:12856): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
 [INFO] 21:59:08:786 PERSONAJE/(12855:12856): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
 [INFO] 21:59:08:786 PERSONAJE/(12855:12856): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:42:24:696 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:42:24:703 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:42:24:713 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:42:24:798 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:42:24:798 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:42:25:839 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:42:25:840 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:42:25:840 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:42:26:847 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 15:42:26:847 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 15:42:27:851 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 15:42:27:851 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 15:42:28:863 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 15:42:28:863 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 15:42:29:863 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 15:42:29:863 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 15:42:30:867 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 15:42:30:867 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 15:42:31:871 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 15:42:31:872 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 15:42:32:875 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 15:42:32:875 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 15:42:33:875 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 15:42:33:875 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 15:42:34:884 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 15:42:34:884 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 15:42:35:843 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 15:42:36:852 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 15:42:36:852 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 15:42:37:851 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 15:42:37:852 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 15:42:37:852 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 15:42:38:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 15:42:38:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:42:39:895 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 15:42:39:895 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 15:42:40:904 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 15:42:40:904 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 15:42:41:911 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 15:42:41:911 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 15:42:42:915 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 15:42:42:915 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 15:42:43:923 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 15:42:43:923 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 15:42:44:923 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 15:42:44:923 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 15:42:45:927 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 15:42:45:927 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 15:42:46:931 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 15:42:46:931 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 15:42:47:935 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 15:42:47:936 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 15:42:48:939 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 15:42:48:939 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 15:42:49:899 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 15:42:50:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 15:42:50:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:42:51:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:42:51:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 15:42:51:903 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 15:42:52:944 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 15:42:52:944 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 15:42:53:959 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 15:42:53:959 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 15:42:54:951 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 15:42:54:951 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 15:42:55:955 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 15:42:55:955 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 15:42:56:968 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 15:42:56:968 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 15:42:57:964 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 15:42:57:964 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 15:42:58:967 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 15:42:58:967 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 15:42:59:971 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 15:42:59:971 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 15:43:00:975 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 15:43:00:975 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:43:01:980 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 15:43:01:981 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 15:43:02:987 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 15:43:02:987 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 15:43:03:943 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 15:43:04:947 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: HFH. Necesita: HFHC
+[INFO] 15:43:04:947 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso C
+[INFO] 15:43:05:943 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso C, y es 3,3
+[INFO] 15:43:05:943 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 15:43:05:943 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 15:43:06:992 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 15:43:06:992 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:43:07:991 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 3,6. Direccion V
+[INFO] 15:43:07:991 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 15:43:08:999 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,5. Direccion V
+[INFO] 15:43:08:999 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,5 al Planificador
+[INFO] 15:43:09:992 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,5 a posicion 3,4. Direccion V
+[INFO] 15:43:09:992 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,4 al Planificador
+[INFO] 15:43:10:996 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,4 a posicion 3,3. Direccion V
+[INFO] 15:43:10:996 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,3 al Planificador
+[INFO] 15:43:11:968 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) solicita el recurso C
+[INFO] 15:43:12:967 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso C. Ahora tiene: HFHC. Necesita: HFHC
+[INFO] 15:43:12:967 PERSONAJE/(13023:13024): Personaje Mario (@) (nivel: Nivel1) informa que finalizó dicho nivel -------------------------------
+[INFO] 15:43:12:978 PERSONAJE/(13023:13023): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 15:43:15:979 PERSONAJE/(13023:13023): Personaje Mario (@) informa que finalizó su plan de niveles
+[INFO] 15:44:24:208 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:44:24:212 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:44:24:220 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:44:24:307 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:44:24:308 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:44:24:951 PERSONAJE/(13034:13035): Perdí una vida porque me alcanzó un enemigo
+[INFO] 15:44:24:955 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:44:24:955 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:44:24:958 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:44:25:43 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:44:25:43 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:44:25:311 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:44:25:311 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:44:25:311 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:44:26:935 PERSONAJE/(13034:13035): Perdí una vida porque me alcanzó un enemigo
+[INFO] 15:44:26:936 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:44:26:937 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:44:26:938 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:44:27:19 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:44:27:279 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:44:27:279 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:44:28:400 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 15:44:28:400 PERSONAJE/(13034:13035): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 15:46:13:889 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:46:13:895 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:46:13:903 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:46:13:983 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:46:13:983 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:46:14:127 PERSONAJE/(13064:13065): Perdí una vida porque me alcanzó un enemigo
+[INFO] 15:46:14:131 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:46:14:132 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:46:14:135 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:46:14:223 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:46:14:223 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:46:14:987 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:46:14:987 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:46:14:987 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:46:16:91 PERSONAJE/(13064:13065): Perdí una vida porque me alcanzó un enemigo
+[INFO] 15:46:16:93 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:46:16:95 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:46:16:99 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:46:16:183 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:46:16:954 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:46:16:955 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:46:18:83 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 15:46:18:83 PERSONAJE/(13064:13065): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 15:59:04:716 PERSONAJE/(13494:13494): Escucha de seniales levantada
+[INFO] 15:59:04:724 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 15:59:04:725 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 15:59:04:732 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 15:59:04:820 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 15:59:04:820 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:59:05:859 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:59:05:859 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 15:59:05:859 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 15:59:06:867 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 15:59:06:867 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 15:59:07:871 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 15:59:07:872 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 15:59:08:879 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 15:59:08:879 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 15:59:09:875 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 15:59:09:875 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 15:59:10:879 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 15:59:10:879 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 15:59:11:880 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 15:59:11:880 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 15:59:12:887 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 15:59:12:887 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 15:59:13:887 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 15:59:13:887 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 15:59:14:892 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 15:59:14:892 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 15:59:15:847 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 15:59:16:851 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 15:59:16:851 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 15:59:17:877 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 15:59:17:878 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 15:59:17:879 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 15:59:18:919 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 15:59:18:919 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:59:19:923 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 15:59:19:924 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 15:59:20:923 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 15:59:20:923 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 15:59:21:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 15:59:21:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 15:59:22:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 15:59:22:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 15:59:23:935 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 15:59:23:935 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 15:59:24:935 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 15:59:24:935 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 15:59:25:943 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 15:59:25:944 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 15:59:26:944 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 15:59:26:944 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 15:59:27:963 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 15:59:27:963 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 15:59:28:967 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 15:59:28:967 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 15:59:29:927 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 15:59:30:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 15:59:30:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 15:59:31:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 15:59:31:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 15:59:31:931 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 15:59:32:975 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 15:59:32:975 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 15:59:33:979 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 15:59:33:979 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 15:59:34:979 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 15:59:34:979 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 15:59:35:992 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 15:59:35:992 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 15:59:36:991 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 15:59:36:991 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 15:59:37:991 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 15:59:37:991 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 15:59:38:999 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 15:59:38:0 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 15:59:39:999 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 15:59:39:999 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 15:59:41:3 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 15:59:41:3 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:59:41:999 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 15:59:41:999 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 15:59:43:7 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 15:59:43:7 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 15:59:43:964 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 15:59:44:968 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: HFH. Necesita: HFHC
+[INFO] 15:59:44:968 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso C
+[INFO] 15:59:45:967 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso C, y es 3,3
+[INFO] 15:59:45:967 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 15:59:45:967 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 15:59:47:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 15:59:47:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 15:59:48:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 3,6. Direccion V
+[INFO] 15:59:48:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 15:59:49:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,5. Direccion V
+[INFO] 15:59:49:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,5 al Planificador
+[INFO] 15:59:50:15 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,5 a posicion 3,4. Direccion V
+[INFO] 15:59:50:15 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,4 al Planificador
+[INFO] 15:59:51:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,4 a posicion 3,3. Direccion V
+[INFO] 15:59:51:11 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,3 al Planificador
+[INFO] 15:59:51:975 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) solicita el recurso C
+[INFO] 15:59:52:975 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso C. Ahora tiene: HFHC. Necesita: HFHC
+[INFO] 15:59:52:975 PERSONAJE/(13494:13495): Personaje Mario (@) (nivel: Nivel1) informa que finalizó dicho nivel -------------------------------
+[INFO] 15:59:52:977 PERSONAJE/(13494:13494): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 15:59:55:979 PERSONAJE/(13494:13494): Personaje Mario (@) informa que finalizó su plan de niveles
+[INFO] 16:00:38:421 PERSONAJE/(13598:13598): Escucha de seniales levantada
+[INFO] 16:00:38:430 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:00:38:430 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:00:38:435 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:00:38:515 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:00:38:515 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:00:39:556 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:00:39:556 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:00:39:557 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:00:40:563 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:00:40:563 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:00:41:568 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:00:41:568 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:00:42:564 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:00:42:565 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:00:43:571 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 16:00:43:571 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 16:00:44:575 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 16:00:44:576 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 16:00:45:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 16:00:45:568 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 16:00:46:571 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 16:00:46:572 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 16:00:47:575 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 16:00:47:576 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:00:48:575 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:00:48:576 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:00:49:535 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:00:50:536 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 16:00:50:536 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 16:00:51:535 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 16:00:51:535 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:00:51:535 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:00:52:583 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:00:52:584 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:00:53:579 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 16:00:53:580 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 16:00:54:587 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 16:00:54:587 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:00:55:591 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 16:00:55:591 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 16:00:56:599 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 16:00:56:599 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:00:57:600 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 16:00:57:600 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 16:00:58:599 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 16:00:58:600 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:00:59:601 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 16:00:59:602 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 16:01:00:604 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 16:01:00:604 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:01:01:603 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 16:01:01:603 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 16:01:02:609 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 16:01:02:609 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 16:01:03:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 16:01:04:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 16:01:04:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:01:05:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:01:05:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 16:01:05:567 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 16:01:06:611 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 16:01:06:611 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:01:07:619 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 16:01:07:619 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 16:01:08:616 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 16:01:08:616 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:01:09:615 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 16:01:09:616 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 16:01:10:619 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 16:01:10:619 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:01:11:624 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 16:01:11:624 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 16:01:12:627 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 16:01:12:627 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:01:13:628 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 16:01:13:628 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:01:14:627 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 16:01:14:628 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:01:15:627 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 16:01:15:627 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:01:16:631 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:01:16:631 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:01:17:587 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:01:18:591 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: HFH. Necesita: HFHC
+[INFO] 16:01:18:591 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso C
+[INFO] 16:01:19:588 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso C, y es 3,3
+[INFO] 16:01:19:588 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:01:19:588 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:01:20:631 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:01:20:631 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:01:21:636 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 3,6. Direccion V
+[INFO] 16:01:21:636 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:01:22:635 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,5. Direccion V
+[INFO] 16:01:22:635 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,5 al Planificador
+[INFO] 16:01:23:635 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,5 a posicion 3,4. Direccion V
+[INFO] 16:01:23:635 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,4 al Planificador
+[INFO] 16:01:24:639 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,4 a posicion 3,3. Direccion V
+[INFO] 16:01:24:639 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,3 al Planificador
+[INFO] 16:01:25:595 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) solicita el recurso C
+[INFO] 16:01:26:599 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso C. Ahora tiene: HFHC. Necesita: HFHC
+[INFO] 16:01:26:600 PERSONAJE/(13598:13599): Personaje Mario (@) (nivel: Nivel1) informa que finalizó dicho nivel -------------------------------
+[INFO] 16:01:26:601 PERSONAJE/(13598:13598): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 16:01:29:603 PERSONAJE/(13598:13598): Personaje Mario (@) informa que finalizó su plan de niveles
+[INFO] 16:02:57:10 PERSONAJE/(13642:13642): Escucha de seniales levantada
+[INFO] 16:02:57:14 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:02:57:15 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:02:57:19 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:02:57:115 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:02:57:116 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:02:58:155 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:02:58:155 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:02:58:155 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:02:59:159 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:02:59:159 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:03:00:159 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:03:00:159 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:03:01:168 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:03:01:168 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:03:02:167 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 16:03:02:167 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 16:03:03:167 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 16:03:03:167 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 16:03:04:171 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 16:03:04:172 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 16:03:05:172 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 16:03:05:172 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 16:03:06:171 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 16:03:06:172 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:03:07:175 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:03:07:175 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:03:08:132 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:03:09:135 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 16:03:09:135 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 16:03:10:135 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 16:03:10:136 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:03:10:136 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:03:11:179 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:03:11:179 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:03:12:179 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 16:03:12:179 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 16:03:13:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 16:03:13:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:03:14:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 16:03:14:184 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 16:03:15:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 16:03:15:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:03:16:184 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 16:03:16:184 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 16:03:17:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 16:03:17:183 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:03:18:187 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 16:03:18:188 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 16:03:19:187 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 16:03:19:188 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:03:20:187 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 16:03:20:187 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 16:03:21:192 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 16:03:21:193 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 16:03:22:148 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 16:03:23:151 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 16:03:23:151 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:03:24:147 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:03:24:147 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 16:03:24:147 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 16:03:25:191 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 16:03:25:191 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:03:26:200 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 16:03:26:200 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 16:03:27:192 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 16:03:27:192 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:03:28:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 16:03:28:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 16:03:28:443 PERSONAJE/(13642:13642): El personaje Mario tiene una vida menos. Tenia 5 y ahora tiene 4
+[INFO] 16:03:29:195 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 16:03:29:195 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:03:30:200 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 16:03:30:200 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 16:03:31:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 16:03:31:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:03:32:203 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 16:03:32:204 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:03:33:204 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 16:03:33:204 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:03:34:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 16:03:34:199 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:03:35:207 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:03:35:208 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:03:36:171 PERSONAJE/(13642:13643): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:03:51:313 PERSONAJE/(13668:13668): Escucha de seniales levantada
+[INFO] 16:03:51:315 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:03:51:323 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:03:51:327 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:03:51:411 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:03:51:411 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:03:52:459 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:03:52:459 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:03:52:459 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:03:53:464 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:03:53:464 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:03:54:463 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:03:54:463 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:03:55:467 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:03:55:468 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:03:56:467 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 16:03:56:468 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 16:03:57:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 16:03:57:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 16:03:58:471 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 16:03:58:472 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 16:03:59:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 16:03:59:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 16:04:00:471 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 16:04:00:471 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:04:01:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:04:01:475 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:04:02:439 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:04:03:447 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 16:04:03:447 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 16:04:04:443 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 16:04:04:443 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:04:04:443 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:04:05:489 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:04:05:490 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:04:06:491 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 16:04:06:491 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 16:04:07:495 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 16:04:07:495 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:04:08:500 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 16:04:08:500 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 16:04:09:499 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 16:04:09:499 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:04:10:499 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 16:04:10:499 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 16:04:11:415 PERSONAJE/(13668:13668): El personaje Mario tiene una vida menos. Tenia 5 y ahora tiene 4
+[INFO] 16:04:11:503 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 16:04:11:504 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:04:12:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 16:04:12:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 16:04:13:507 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 16:04:13:507 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:04:14:507 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 16:04:14:507 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 16:04:15:509 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 16:04:15:509 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 16:04:16:463 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 16:04:17:471 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 16:04:17:471 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:04:18:468 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:04:18:468 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 16:04:18:468 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 16:04:19:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 16:04:19:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:04:20:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 16:04:20:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 16:04:21:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 16:04:21:511 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:04:22:527 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 16:04:22:527 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 16:04:23:520 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 16:04:23:520 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:04:24:519 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 16:04:24:520 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 16:04:25:520 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 16:04:25:520 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:04:26:519 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 16:04:26:519 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:04:27:527 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 16:04:27:527 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:04:28:528 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 16:04:28:528 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:04:29:532 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:04:29:532 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:04:30:492 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:04:31:494 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: HFH. Necesita: HFHC
+[INFO] 16:04:31:495 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso C
+[INFO] 16:04:32:491 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso C, y es 3,3
+[INFO] 16:04:32:491 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:04:32:491 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:04:33:535 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:04:33:535 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:04:34:545 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 3,6. Direccion V
+[INFO] 16:04:34:550 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:04:35:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,5. Direccion V
+[INFO] 16:04:35:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,5 al Planificador
+[INFO] 16:04:36:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,5 a posicion 3,4. Direccion V
+[INFO] 16:04:36:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,4 al Planificador
+[INFO] 16:04:37:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,4 a posicion 3,3. Direccion V
+[INFO] 16:04:37:539 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,3 al Planificador
+[INFO] 16:04:38:499 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) solicita el recurso C
+[INFO] 16:04:39:503 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso C. Ahora tiene: HFHC. Necesita: HFHC
+[INFO] 16:04:39:503 PERSONAJE/(13668:13669): Personaje Mario (@) (nivel: Nivel1) informa que finalizó dicho nivel -------------------------------
+[INFO] 16:04:39:505 PERSONAJE/(13668:13668): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 16:04:42:505 PERSONAJE/(13668:13668): Personaje Mario (@) informa que finalizó su plan de niveles
+[INFO] 16:05:18:210 PERSONAJE/(13697:13697): Escucha de seniales levantada
+[INFO] 16:05:18:219 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:05:18:219 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:05:18:226 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:05:18:311 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:05:18:311 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:05:19:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:05:19:352 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:05:19:352 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:05:20:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:05:20:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:05:21:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:05:21:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:05:22:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:05:22:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:05:23:359 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 2,3. Direccion V
+[INFO] 16:05:23:360 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,3 al Planificador
+[INFO] 16:05:24:364 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,3 a posicion 2,4. Direccion V
+[INFO] 16:05:24:364 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,4 al Planificador
+[INFO] 16:05:25:368 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,4 a posicion 2,5. Direccion V
+[INFO] 16:05:25:368 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,5 al Planificador
+[INFO] 16:05:26:379 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,5 a posicion 2,6. Direccion V
+[INFO] 16:05:26:379 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,6 al Planificador
+[INFO] 16:05:27:371 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,6 a posicion 2,7. Direccion V
+[INFO] 16:05:27:372 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:05:28:368 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:05:28:368 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:05:29:335 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:05:30:348 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: H. Necesita: HFHC
+[INFO] 16:05:30:348 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso F
+[INFO] 16:05:31:335 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso F, y es 8,2
+[INFO] 16:05:31:335 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:05:31:335 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:05:32:379 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:05:32:379 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:05:33:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 4,7. Direccion H
+[INFO] 16:05:33:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,7 al Planificador
+[INFO] 16:05:34:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,7 a posicion 4,6. Direccion V
+[INFO] 16:05:34:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:05:35:386 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 5,6. Direccion H
+[INFO] 16:05:35:387 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,6 al Planificador
+[INFO] 16:05:36:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,6 a posicion 5,5. Direccion V
+[INFO] 16:05:36:383 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:05:37:387 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 6,5. Direccion H
+[INFO] 16:05:37:388 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,5 al Planificador
+[INFO] 16:05:38:388 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,5 a posicion 6,4. Direccion V
+[INFO] 16:05:38:388 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:05:39:388 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 7,4. Direccion H
+[INFO] 16:05:39:388 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,4 al Planificador
+[INFO] 16:05:40:391 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,4 a posicion 7,3. Direccion V
+[INFO] 16:05:40:391 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:05:41:392 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 8,3. Direccion H
+[INFO] 16:05:41:392 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,3 al Planificador
+[INFO] 16:05:42:391 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,3 a posicion 8,2. Direccion V
+[INFO] 16:05:42:391 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 8,2 al Planificador
+[INFO] 16:05:43:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita el recurso F
+[INFO] 16:05:44:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso F. Ahora tiene: HF. Necesita: HFHC
+[INFO] 16:05:44:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:05:45:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:05:45:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 8,2 a posicion 7,2. Direccion H
+[INFO] 16:05:45:351 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,2 al Planificador
+[INFO] 16:05:46:399 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,2 a posicion 7,3. Direccion V
+[INFO] 16:05:46:399 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 7,3 al Planificador
+[INFO] 16:05:47:399 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 7,3 a posicion 6,3. Direccion H
+[INFO] 16:05:47:399 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,3 al Planificador
+[INFO] 16:05:48:403 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,3 a posicion 6,4. Direccion V
+[INFO] 16:05:48:403 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 6,4 al Planificador
+[INFO] 16:05:49:403 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 6,4 a posicion 5,4. Direccion H
+[INFO] 16:05:49:403 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,4 al Planificador
+[INFO] 16:05:50:415 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,4 a posicion 5,5. Direccion V
+[INFO] 16:05:50:415 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 5,5 al Planificador
+[INFO] 16:05:51:407 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 5,5 a posicion 4,5. Direccion H
+[INFO] 16:05:51:408 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,5 al Planificador
+[INFO] 16:05:52:407 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,5 a posicion 4,6. Direccion V
+[INFO] 16:05:52:407 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 4,6 al Planificador
+[INFO] 16:05:53:411 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 4,6 a posicion 3,6. Direccion H
+[INFO] 16:05:53:411 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:05:54:411 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,7. Direccion V
+[INFO] 16:05:54:411 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:05:55:415 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 2,7. Direccion H
+[INFO] 16:05:55:416 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,7 al Planificador
+[INFO] 16:05:56:415 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,7 a posicion 2,8. Direccion V
+[INFO] 16:05:56:415 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,8 al Planificador
+[INFO] 16:05:57:375 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita el recurso H
+[INFO] 16:05:58:379 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso H. Ahora tiene: HFH. Necesita: HFHC
+[INFO] 16:05:58:380 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso C
+[INFO] 16:05:59:375 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso C, y es 3,3
+[INFO] 16:05:59:375 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,8 a posicion 3,8. Direccion H
+[INFO] 16:05:59:375 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,8 al Planificador
+[INFO] 16:06:00:419 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,8 a posicion 3,7. Direccion V
+[INFO] 16:06:00:419 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,7 al Planificador
+[INFO] 16:06:01:423 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,7 a posicion 3,6. Direccion V
+[INFO] 16:06:01:423 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,6 al Planificador
+[INFO] 16:06:02:423 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,6 a posicion 3,5. Direccion V
+[INFO] 16:06:02:424 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,5 al Planificador
+[INFO] 16:06:03:423 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,5 a posicion 3,4. Direccion V
+[INFO] 16:06:03:424 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,4 al Planificador
+[INFO] 16:06:04:427 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 3,4 a posicion 3,3. Direccion V
+[INFO] 16:06:04:428 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,3 al Planificador
+[INFO] 16:06:05:384 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) solicita el recurso C
+[INFO] 16:06:06:387 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) obtuvo el recurso C. Ahora tiene: HFHC. Necesita: HFHC
+[INFO] 16:06:06:387 PERSONAJE/(13697:13698): Personaje Mario (@) (nivel: Nivel1) informa que finalizó dicho nivel -------------------------------
+[INFO] 16:06:06:389 PERSONAJE/(13697:13697): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 16:06:09:390 PERSONAJE/(13697:13697): Personaje Mario (@) informa que finalizó su plan de niveles
+[INFO] 16:17:04:424 PERSONAJE/(13910:13910): Escucha de seniales levantada
+[INFO] 16:17:04:427 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:17:04:429 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:17:04:430 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:17:06:931 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:17:11:9 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:17:12:75 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:17:12:75 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:17:12:75 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:17:13:119 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:17:13:119 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:17:13:603 PERSONAJE/(13910:13911): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:17:13:604 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:17:13:604 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:17:13:605 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:17:37:183 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:17:37:183 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:17:37:183 PERSONAJE/(13910:13911): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:20:36:571 PERSONAJE/(13965:13965): Escucha de seniales levantada
+[INFO] 16:20:36:578 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:20:36:579 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:20:36:579 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:20:39:791 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:20:48:714 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:20:49:799 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:20:49:800 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:20:49:800 PERSONAJE/(13965:13966): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:21:28:954 PERSONAJE/(14015:14015): Escucha de seniales levantada
+[INFO] 16:21:28:964 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:21:28:965 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:21:28:965 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:21:31:415 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:21:40:607 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:21:41:667 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:21:41:667 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:21:41:667 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:21:42:707 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:21:42:707 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:21:43:723 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:21:43:723 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:21:44:723 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:21:44:723 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:21:45:711 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 3,2. Direccion H
+[INFO] 16:21:45:711 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,2 al Planificador
+[INFO] 16:21:46:319 PERSONAJE/(14015:14016): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:21:46:320 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:21:46:320 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:21:46:321 PERSONAJE/(14015:14016): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:22:51:119 PERSONAJE/(14077:14077): Escucha de seniales levantada
+[INFO] 16:22:51:131 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:22:51:132 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:22:51:132 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:22:53:227 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:23:02:391 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:23:03:531 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:23:03:531 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:23:03:531 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:23:04:491 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:23:04:491 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:23:05:487 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:23:05:487 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:23:06:491 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:23:06:491 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:23:06:492 PERSONAJE/(14077:14078): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:23:06:492 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:23:06:493 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:23:06:496 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:23:13:336 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:25:21:393 PERSONAJE/(14077:14078): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:25:57:455 PERSONAJE/(14207:14207): Escucha de seniales levantada
+[INFO] 16:25:57:459 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:25:57:465 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:25:57:465 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:25:59:467 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:26:07:819 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:26:08:883 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:26:08:884 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:26:08:884 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:26:09:932 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:26:09:932 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:26:10:919 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:26:10:919 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:26:11:928 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:26:11:928 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:26:11:942 PERSONAJE/(14207:14208): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:26:11:942 PERSONAJE/(14207:14208): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:26:11:943 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:26:11:943 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:26:11:946 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:26:58:123 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:27:00:141 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:27:00:141 PERSONAJE/(14207:14208): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:27:41:686 PERSONAJE/(14263:14263): Escucha de seniales levantada
+[INFO] 16:27:41:692 PERSONAJE/(14263:14264): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:27:41:695 PERSONAJE/(14263:14264): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:27:41:696 PERSONAJE/(14263:14264): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:28:12:259 PERSONAJE/(14309:14309): Escucha de seniales levantada
+[INFO] 16:28:12:264 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:28:12:265 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:28:12:266 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:28:12:347 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:28:20:16 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:28:21:87 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:28:21:87 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:28:21:87 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:28:22:119 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:28:22:119 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:28:22:119 PERSONAJE/(14309:14310): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:28:22:119 PERSONAJE/(14309:14310): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:28:22:120 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:28:22:121 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:28:22:125 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:28:22:203 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:34:29:519 PERSONAJE/(14309:14310): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:34:47:833 PERSONAJE/(14461:14461): Escucha de seniales levantada
+[INFO] 16:34:47:842 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:34:47:843 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:34:47:843 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:34:47:923 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:34:55:775 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:34:56:847 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:34:56:847 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:34:56:848 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:34:57:879 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:34:57:879 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:34:57:879 PERSONAJE/(14461:14462): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:34:57:879 PERSONAJE/(14461:14462): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:34:57:880 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:34:57:880 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:34:57:886 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:34:57:963 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:35:31:136 PERSONAJE/(14461:14462): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:36:00:884 PERSONAJE/(14531:14531): Escucha de seniales levantada
+[INFO] 16:36:00:892 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:36:00:894 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:36:00:898 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:36:00:979 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:36:07:916 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:36:08:983 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:36:08:983 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:36:08:983 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:36:10:23 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:36:10:24 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:36:11:27 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:36:11:27 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:36:22:339 PERSONAJE/(14531:14532): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:36:22:339 PERSONAJE/(14531:14532): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:36:22:340 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:36:22:340 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:36:28:603 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:36:28:643 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:36:38:868 PERSONAJE/(14531:14532): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:39:01:738 PERSONAJE/(14638:14638): Escucha de seniales levantada
+[INFO] 16:39:01:763 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:39:01:763 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:39:01:779 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:39:01:859 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:39:01:859 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:39:02:911 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:39:02:911 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:39:02:911 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:39:03:959 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:39:03:960 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:39:04:951 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:39:04:951 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:39:09:387 PERSONAJE/(14638:14639): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:39:09:387 PERSONAJE/(14638:14639): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:39:09:388 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:39:09:388 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:39:11:52 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:39:11:91 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:42:30:442 PERSONAJE/(14638:14639): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:45:33:432 PERSONAJE/(14938:14938): Escucha de seniales levantada
+[INFO] 16:45:33:434 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:45:33:439 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:45:33:443 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:45:33:531 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:45:33:531 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:45:34:576 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:45:34:576 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:45:34:576 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:45:39:223 PERSONAJE/(14938:14939): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:45:39:224 PERSONAJE/(14938:14939): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:45:56:619 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:45:56:619 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:46:00:313 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:46:00:356 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:46:00:356 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:46:00:356 PERSONAJE/(14938:14939): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:46:40:927 PERSONAJE/(15012:15012): Escucha de seniales levantada
+[INFO] 16:46:40:935 PERSONAJE/(15012:15013): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:46:40:936 PERSONAJE/(15012:15013): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:46:40:943 PERSONAJE/(15012:15013): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:46:41:31 PERSONAJE/(15012:15013): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:46:41:32 PERSONAJE/(15012:15013): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:46:42:7 PERSONAJE/(15012:15013): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:46:42:7 PERSONAJE/(15012:15013): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:47:33:49 PERSONAJE/(15083:15083): Escucha de seniales levantada
+[INFO] 16:47:33:57 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:47:33:58 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:47:33:61 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:47:33:143 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:47:33:143 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:47:34:147 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 2,8
+[INFO] 16:47:34:147 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:47:34:147 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:47:46:535 PERSONAJE/(15083:15084): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:47:46:535 PERSONAJE/(15083:15084): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:49:19:823 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:49:19:824 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:49:21:607 PERSONAJE/(15083:15084): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:55:41:252 PERSONAJE/(15265:15265): Escucha de seniales levantada
+[INFO] 16:55:41:257 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:55:41:263 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:55:41:263 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:55:43:835 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:55:52:753 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:55:53:828 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:55:53:828 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:55:53:828 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:55:54:855 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:55:54:855 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:55:55:855 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:55:55:855 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:55:56:871 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:55:56:871 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:55:57:856 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 3,2. Direccion H
+[INFO] 16:55:57:856 PERSONAJE/(15265:15266): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,2 al Planificador
+[INFO] 16:56:04:451 PERSONAJE/(15265:15266): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:56:04:451 PERSONAJE/(15265:15266): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:58:35:916 PERSONAJE/(15433:15433): Escucha de seniales levantada
+[INFO] 16:58:35:924 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:58:35:925 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:58:35:925 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:58:37:811 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:58:46:691 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:58:47:763 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:58:47:763 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:58:47:763 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 16:58:48:791 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 16:58:48:791 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 16:58:49:787 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 16:58:49:788 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 16:58:50:791 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 16:58:50:792 PERSONAJE/(15433:15434): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 16:58:50:948 PERSONAJE/(15433:15434): Perdí una vida porque me alcanzó un enemigo
+[INFO] 16:58:50:948 PERSONAJE/(15433:15434): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 16:59:46:202 PERSONAJE/(15507:15507): Escucha de seniales levantada
+[INFO] 16:59:46:211 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 16:59:46:212 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 16:59:46:212 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 16:59:48:447 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 16:59:58:239 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 16:59:59:319 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 16:59:59:319 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 16:59:59:319 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:00:00:367 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 17:00:00:367 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 17:00:01:359 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 17:00:01:360 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 17:00:02:391 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 17:00:02:391 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 17:00:03:363 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,2 a posicion 3,2. Direccion H
+[INFO] 17:00:03:364 PERSONAJE/(15507:15508): Personaje Mario (@) (nivel: Nivel1) envió su posicion 3,2 al Planificador
+[INFO] 17:00:04:151 PERSONAJE/(15507:15508): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:00:04:151 PERSONAJE/(15507:15508): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:05:29:495 PERSONAJE/(15852:15852): Escucha de seniales levantada
+[INFO] 17:05:29:498 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:05:29:500 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:05:29:501 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:05:31:35 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:05:39:187 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 17:05:40:347 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 17:05:40:347 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:05:40:347 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:05:41:344 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 17:05:41:344 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 17:05:42:295 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 17:05:42:296 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 17:05:43:296 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 2,1 a posicion 2,2. Direccion V
+[INFO] 17:05:43:296 PERSONAJE/(15852:15853): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,2 al Planificador
+[INFO] 17:05:43:827 PERSONAJE/(15852:15853): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:05:43:827 PERSONAJE/(15852:15853): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:10:07:864 PERSONAJE/(16100:16100): Escucha de seniales levantada
+[INFO] 17:10:07:869 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:10:07:871 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:10:07:879 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:10:07:959 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:10:16:547 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 17:10:17:607 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 17:10:17:607 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:10:17:607 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:10:18:655 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 17:10:18:656 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 17:10:18:656 PERSONAJE/(16100:16101): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:10:18:656 PERSONAJE/(16100:16101): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:10:19:611 PERSONAJE/(16100:16101): Mensaje Inválido. Se esperaba OK1 y se recibió PLA_movimiento_PER
+[INFO] 17:10:19:613 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:10:19:613 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:10:19:616 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:10:19:695 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:10:19:695 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:10:19:695 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:10:20:639 PERSONAJE/(16100:16101): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:10:20:639 PERSONAJE/(16100:16101): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:10:21:619 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:10:21:619 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:10:21:621 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:10:21:699 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:10:21:699 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:10:21:700 PERSONAJE/(16100:16101): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:11:31:457 PERSONAJE/(16135:16135): Escucha de seniales levantada
+[INFO] 17:11:31:463 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:11:31:465 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:11:31:465 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:11:31:544 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:11:39:370 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) solicita la ubicacion de la caja del recurso H
+[INFO] 17:11:40:427 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibió la ubicacion del recurso H, y es 7,4
+[INFO] 17:11:40:428 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:11:40:428 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:11:41:475 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 17:11:41:475 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 17:11:42:475 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,1 a posicion 2,1. Direccion H
+[INFO] 17:11:42:475 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 2,1 al Planificador
+[INFO] 17:11:43:435 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:11:43:435 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:11:43:475 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:11:43:476 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:11:43:490 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:11:43:571 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:11:43:571 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:11:43:571 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:12:02:71 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:12:02:72 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:12:02:115 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:12:02:115 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:12:02:118 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:12:02:210 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:12:02:210 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:12:02:210 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:12:24:716 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:12:24:716 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:12:24:759 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:12:24:760 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:12:24:764 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:12:24:848 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:12:24:848 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:12:24:848 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:12:29:723 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:12:29:723 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:12:29:768 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:12:29:769 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:12:29:771 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:12:29:855 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:12:29:855 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:12:29:855 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:12:34:747 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:12:34:747 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:12:34:791 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se conectó correctamente al Orquestador
+[INFO] 17:12:34:791 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envía handshake al Orquestador con los siguientes datos: @
+[INFO] 17:12:34:794 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) recibe handshake del Orquestador
+[INFO] 17:12:34:880 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) pide al Orquestador conectarse al nivel: 1
+[INFO] 17:12:34:880 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 0,0 a posicion 1,0. Direccion H
+[INFO] 17:12:34:880 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,0 al Planificador
+[INFO] 17:12:38:443 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) se movio de posicion 1,0 a posicion 1,1. Direccion V
+[INFO] 17:12:38:443 PERSONAJE/(16135:16136): Personaje Mario (@) (nivel: Nivel1) envió su posicion 1,1 al Planificador
+[INFO] 17:12:38:747 PERSONAJE/(16135:16136): Perdí una vida porque me alcanzó un enemigo
+[INFO] 17:12:38:747 PERSONAJE/(16135:16136): envio mensaje PER_meMori_PLA con el mensaje @
+[INFO] 17:12:39:408 PERSONAJE/(16135:16136): Se ha matado el hilo Personaje Mario (@) del (nivel: Nivel1) 
+[INFO] 17:12:39:409 PERSONAJE/(16135:16135): Personaje Mario se conectó correctamente al Orquestador
+[INFO] 17:12:42:410 PERSONAJE/(16135:16135): Personaje Mario (@) informa que finalizó su plan de niveles
