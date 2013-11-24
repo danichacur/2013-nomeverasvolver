@@ -228,16 +228,28 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 									tratamiento_asesinato(nivel->fd, personaje,
 											mensaje, str_nivel);
 								} else {
-									t_list *p_muertos = dictionary_get(
-											anormales, str_nivel);
-									int32_t * valor = malloc(sizeof(int));
-									*valor = i;
-									list_add(p_muertos, valor);
-									proceso_desbloqueo(
-											personaje->recursos_obtenidos,
-											nivel->fd, str_nivel);
-									destruir_personaje(personaje);
-									supr_pers_de_estructuras(i);
+									if (tipoMensaje
+											== NIV_cambiosConfiguracion_PLA) {
+
+										//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+										char** n_mensaje = string_split(mensaje,
+												",");
+										nivel->algol = n_mensaje[0];
+										nivel->quantum = atoi(n_mensaje[1]);
+										nivel->retardo = atoi(n_mensaje[2]);
+
+									} else {
+										t_list *p_muertos = dictionary_get(
+												anormales, str_nivel);
+										int32_t * valor = malloc(sizeof(int));
+										*valor = i;
+										list_add(p_muertos, valor);
+										proceso_desbloqueo(
+												personaje->recursos_obtenidos,
+												nivel->fd, str_nivel);
+										destruir_personaje(personaje);
+										supr_pers_de_estructuras(i);
+									}
 								}
 							}
 
@@ -396,35 +408,46 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				destruir_personaje(personaje);
 			}
 		} else {
-			//TODO Danii, aca me parece que deberia poder recibir el mensaje de que el personaje murio por enemigo, es la unica forma que se me ocurre en caso de que el personaje se mueva y el enemigo lo agarre justo, si no puedo recibir aca el mensaje de que el enemigo lo mató, entonces nunca se le va a responder que el turno estaba bien o mal, porque va a recibir el mensaje del personaje muerto por enemigo
+			// Danii, aca me parece que deberia poder recibir el mensaje de que el personaje murio por enemigo, es la unica forma que se me ocurre en caso de que el personaje se mueva y el enemigo lo agarre justo, si no puedo recibir aca el mensaje de que el enemigo lo mató, entonces nunca se le va a responder que el turno estaba bien o mal, porque va a recibir el mensaje del personaje muerto por enemigo
 			if (t_mensaje == NIV_enemigosAsesinaron_PLA) {
 				log_info(logger_pla, "Nivel %d: Recibo el asesinato de: %s",
 						nivel->nivel, m_mensaje);
 
 				tratamiento_asesinato(nivel->fd, personaje, m_mensaje,
 						str_nivel);
-				recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);//matyx
+				recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);		//matyx
 
-				recibirMensaje(personaje->fd, &t_mensaje, &m_mensaje);//matyx
+				recibirMensaje(personaje->fd, &t_mensaje, &m_mensaje);	//matyx
 
 				char * simbolo = string_new();
 
-				string_append(&simbolo,string_from_format("%c", personaje->personaje));
-				tratamiento_muerte(personaje->fd, nivel->fd, simbolo, str_nivel);
-				enviarMensaje(personaje->fd, OK1,"0");
-			} else {
-				t_list *p_muertos = dictionary_get(anormales, str_nivel);
-				int32_t * valor = malloc(sizeof(int));
-				*valor = personaje->fd;
-				list_add(p_muertos, valor);
-				proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
+				string_append(&simbolo,
+						string_from_format("%c", personaje->personaje));
+				tratamiento_muerte(personaje->fd, nivel->fd, simbolo,
 						str_nivel);
+				enviarMensaje(personaje->fd, OK1, "0");
+			} else {
+				if (tipoMensaje == NIV_cambiosConfiguracion_PLA) {
 
-				supr_pers_de_estructuras(personaje->fd);
-				destruir_personaje(personaje);
+					//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+					char** n_mensaje = string_split(mensaje, ",");
+					nivel->algol = n_mensaje[0];
+					nivel->quantum = atoi(n_mensaje[1]);
+					nivel->retardo = atoi(n_mensaje[2]);
 
+				} else {
+					t_list *p_muertos = dictionary_get(anormales, str_nivel);
+					int32_t * valor = malloc(sizeof(int));
+					*valor = personaje->fd;
+					list_add(p_muertos, valor);
+					proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
+							str_nivel);
+
+					supr_pers_de_estructuras(personaje->fd);
+					destruir_personaje(personaje);
+				}
 //				supr_pers_de_estructuras(personaje->fd);
-				break;
+//				break;
 			}
 		}
 
@@ -454,6 +477,14 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		 char* m_mensaje = NULL;
 		 recibirMensaje(nivel->fd, &t_mensaje, &m_mensaje);
 		 */break;
+	}
+	case NIV_cambiosConfiguracion_PLA: {
+		//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+		char** n_mensaje = string_split(mensaje, ",");
+		nivel->algol = n_mensaje[0];
+		nivel->quantum = atoi(n_mensaje[1]);
+		nivel->retardo = atoi(n_mensaje[2]);
+		break;
 	}
 	default: {
 		log_info(logger_pla, "Nivel %d: El personaje %c se desconecto ",
@@ -535,11 +566,21 @@ int tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 				}
 
 			} else {
-				proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
-						str_nivel);
+				if (k_mensaje == NIV_cambiosConfiguracion_PLA) {
 
-				supr_pers_de_estructuras(personaje->fd);
-				destruir_personaje(personaje);
+					//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+					char** n_mensaje = string_split(j_mensaje, ",");
+					nivel->algol = n_mensaje[0];
+					nivel->quantum = atoi(n_mensaje[1]);
+					nivel->retardo = atoi(n_mensaje[2]);
+
+				} else {
+					proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
+							str_nivel);
+
+					supr_pers_de_estructuras(personaje->fd);
+					destruir_personaje(personaje);
+				}
 
 			}
 			if (string_equals_ignore_case(nivel->algol, "RR")) {
@@ -766,7 +807,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 
 			pthread_mutex_lock(&mutex_listos);
 			//personaje = list_remove_by_condition(p_listos, // matyx
-	//							(void*) _esta_personaje);
+			//							(void*) _esta_personaje);
 			pthread_mutex_unlock(&mutex_listos);
 
 			log_info(logger_pla,
@@ -797,8 +838,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 		log_info(logger_pla,
 				"Nivel %s: Aviso al personaje %c que los enemigos lo asesinaron",
 				str_nivel, aux->personaje);
-		plan_enviarMensaje(str_nivel, aux->fd,
-				PLA_teMatamos_PER, "0");
+		plan_enviarMensaje(str_nivel, aux->fd, PLA_teMatamos_PER, "0");
 
 		//destruir_personaje(personaje);// matyx
 		i++;
@@ -865,7 +905,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 	case NIV_perMuereInterbloqueo_PLA: {
 
 		//le aviso al nivel que el personaje murio
-		enviarMensaje(nivel->fd,PLA_perMuereInterbloqueo_NIV,mensaje);
+		enviarMensaje(nivel->fd, PLA_perMuereInterbloqueo_NIV, mensaje);
 
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
@@ -879,7 +919,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		pthread_mutex_unlock(&mutex_bloqueados);
 
 		//le aviso al personaje que murio
-		enviarMensaje(aux->fd,PLA_rtaRecurso_PER,"1");
+		enviarMensaje(aux->fd, PLA_rtaRecurso_PER, "1");
 
 		proceso_desbloqueo(aux->recursos_obtenidos, nivel->fd, str_nivel);
 
