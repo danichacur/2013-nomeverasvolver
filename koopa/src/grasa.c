@@ -399,7 +399,7 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 	ptrGBloque i;
 	char *Filename,*dir1,*dir2,*dir3;
 
-	//printf("obtenerNodo:%s\n",path);
+	printf("obtenerNodo:%s\n",path);
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -415,9 +415,10 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 	dir3 = dirname(dir3);
 	dir3 = basename(dir3);
 
-	//printf("dir1:%s\n",dir1);
-	//printf("dir2:%s\n",dir2);
-	//printf("filename:%s\n",Filename);
+	printf("dir1:%s\n",dir1);
+	printf("dir2:%s\n",dir2);
+	printf("dir3:%s\n",dir3);
+	printf("filename:%s\n",Filename);
 
 	//Directorio raiz
 	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(dir3, "/") == 0 && strcmp(Filename, "/") == 0){
@@ -444,10 +445,10 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 			if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(dir3, "/") != 0){
 				for (i = j; i < 1024; i++){
 					if ((strcmp(GTNodo[i].fname,Filename) == 0)&&
-						(strcmp(GTNodo[GTNodo[i].parent_dir_block-1].fname,dir2) == 0) &&
+						(strcmp(GTNodo[GTNodo[i].parent_dir_block-1].fname,dir3) == 0) &&
 						(GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block == 0) &&
 						(GTNodo[i].state != 0)){
-						//printf("2 NodoBuscado: %s, posi: %d\n",Filename,i);
+						printf("2 NodoBuscado: %s, posi: %d\n",Filename,i);
 						return i;
 					}
 				}
@@ -457,9 +458,9 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 					for (i = j; i < 1024; i++){
 						if (strcmp(GTNodo[i].fname,Filename) == 0 &&
 							GTNodo[i].state != 0 &&
-							strcmp(GTNodo[GTNodo[i].parent_dir_block-1].fname,dir2) == 0 &&
+							strcmp(GTNodo[GTNodo[i].parent_dir_block-1].fname,dir3) == 0 &&
 							GTNodo[GTNodo[i].parent_dir_block-1].state != 0 &&
-							strcmp(GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].fname,dir1) == 0 &&
+							strcmp(GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].fname,dir2) == 0 &&
 							GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block == 0 &&
 							GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].state != 0){
 							//printf("3 NodoBuscado: %s, posi: %d\n",Filename,i);
@@ -476,9 +477,9 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 									GTNodo[GTNodo[i].parent_dir_block-1].state != 0 &&
 									strcmp(GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].fname,dir2) == 0 &&
 									GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].state != 0 &&
-									strcmp(GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block].fname,dir1) == 0 &&
-									GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block].state != 0 &&
-									GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block].parent_dir_block == 0){
+									strcmp(GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block-1].fname,dir1) == 0 &&
+									GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block-1].state != 0 &&
+									GTNodo[GTNodo[GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block-1].parent_dir_block-1].parent_dir_block == 0){
 									//printf("3 NodoBuscado: %s, posi: %d\n",Filename,i);
 									return i;
 								}
@@ -497,7 +498,7 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 
 ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k){
 	ptrGBloque i;
-	char *Filename,*dir1,*dir2;
+	char *Filename,*dir1,*dir2,*dir3;
 
 	//printf("obtenerNodo:%s\n",path);
 
@@ -505,16 +506,22 @@ ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k)
 	dir1 = strdup(path);
 	dir1 = dirname(dir1);
 	dir1 = dirname(dir1);
+	dir1 = dirname(dir1);
+	dir1 = basename(dir1);
 	dir2 = strdup(path);
 	dir2 = dirname(dir2);
+	dir2 = dirname(dir2);
 	dir2 = basename(dir2);
+	dir3 = strdup(path);
+	dir3 = dirname(dir3);
+	dir3 = basename(dir3);
 
 //	printf("dir1:%s\n",dir1);
 //	printf("dir2:%s\n",dir2);
 //	printf("filename:%s\n",Filename);
 
 	//Directorio raiz
-	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(Filename, "/") == 0){
+	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(dir3, "/") == 0 && strcmp(Filename, "/") == 0){
 		for (i = j; i < 1024; i++){
 			if (GTNodo[i].parent_dir_block == 0 &&
 				GTNodo[i].state != 0){
