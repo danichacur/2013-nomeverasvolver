@@ -133,12 +133,20 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		log_info(logger, "Perdí una vida porque estaba interbloqueado");
 	}
 
-	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, "0");
+	log_info(logger, "envio mensaje PER_meMori_PLA con el mensaje %s", personaje->simbolo);
+	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, personaje->simbolo);
+	char * mensaje;
+	recibirUnMensaje(obtenerFDPlanificador(ordNivel), OK1, &mensaje,ordNivel);
 
-	if(meQuedanVidas() == EXIT_SUCCESS){
+	if(meQuedanVidas()){
 		descontarUnaVida();
-		//desconectarmeDePlataforma(ordNivel); TODO
-		//conectarAPlataforma(ordNivel); TODO
+		desconectarmeDePlataforma(ordNivel);
+
+		//Reinicio parametros de ese nivel
+		reiniciarListasDeNivelARecomenzar(ordNivel);
+
+
+		conectarAlNivel((int*) ordNivel);
 	}else{
 		char* respuesta = NULL;
 
@@ -163,6 +171,21 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 	}
 }
 
+
+void reiniciarListasDeNivelARecomenzar(int ordNivel){
+	t_posicion * pos = list_get(personaje->posicionesPorNivel, ordNivel);
+	pos = posicion_create_pos(0,0);
+	list_replace(personaje->posicionesPorNivel, ordNivel,pos);
+	/*t_posicion * pos2 = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
+	pos2 = posicion_create_pos(0,0);
+	list_replace(listaDeUbicacionProximaCajaNiveles, ordNivel,pos2);*/
+	t_list * listaRecActuales = list_get(personaje->recursosActualesPorNivel, ordNivel);
+	listaRecActuales = list_create();
+	list_replace(personaje->recursosActualesPorNivel, ordNivel,listaRecActuales);
+	char * ultimoMovimiento = list_get(personaje->ultimosMovimientosPorNivel, ordNivel);
+	ultimoMovimiento  = string_new();
+	list_replace(personaje->ultimosMovimientosPorNivel, ordNivel,ultimoMovimiento);
+}
 /*int todosNivelesFinalizados(){
 	if(list_size(personaje->niveles) ==
 			list_size(listaDeNivelesFinalizados)){
@@ -570,7 +593,7 @@ void desconectarPlataforma(){
 	close(fdOrquestador);
 }
 
-int meQuedanVidas(){
+bool meQuedanVidas(){
 	return personaje->cantVidas > 0;
 }
 
@@ -671,7 +694,7 @@ void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volv
 void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensajeRecibido, int ordNivel){
 	enum tipo_paquete tipoMensaje;
 	char* mensaje = NULL;
-	char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
+	//char * nomNivel = obtenerNombreNivelDesdeOrden(ordNivel);
 	(*mensajeRecibido) = string_new();
 
 	int retorno;
@@ -686,14 +709,14 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 	if (!retorno) {
 		if( tipoMensaje != tipoEsperado){
 			if (tipoMensaje == PLA_teMatamos_PER){
-				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
+				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_ENEMIGO, ordNivel);
 			}else{
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
 		}else{
 			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") == 0){
-				log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
+				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por interbloqueo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_INTERBLOQUEO, ordNivel);
 			}else
 				string_append(mensajeRecibido, mensaje);
@@ -763,5 +786,31 @@ char * obtenerProximoRecursosNecesario(int ordNivel){
 }
 
 void capturarSeniales(){
+	signal(SIGUSR1, recibirSenialGanarVida);
+	signal(SIGTERM, recibirSenialPierdeVida);
 
+	log_info(logger, "Escucha de seniales levantada");
+}
+
+void recibirSenialGanarVida(){
+	int cantVidasPrevias;
+	int cantVidasPosterior;
+	cantVidasPrevias = personaje->cantVidas;
+	personaje->cantVidas = personaje->cantVidas + 1;
+	cantVidasPosterior = personaje->cantVidas;
+	log_info(logger, "El personaje %s tiene una vida mas. Tenia %d y ahora tiene %d", personaje->nombre, cantVidasPrevias, cantVidasPosterior); //, personaje->cantVidas);
+}
+
+void recibirSenialPierdeVida(){
+	int cantVidasPrevias;
+	int cantVidasPosterior;
+	cantVidasPrevias = personaje->cantVidas;
+	personaje->cantVidas = personaje->cantVidas - 1;
+	cantVidasPosterior = personaje->cantVidas;
+	log_info(logger, "El personaje %s tiene una vida menos. Tenia %d y ahora tiene %d", personaje->nombre, cantVidasPrevias, cantVidasPosterior); //, personaje->cantVidas);
+}
+
+
+void desconectarmeDePlataforma(int ordNivel){
+	close(obtenerFDPlanificador(ordNivel));
 }

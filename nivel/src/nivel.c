@@ -18,6 +18,8 @@ char * algoritmo;
 int enemigos;
 bool nivelTerminado;
 int distancia;
+long tiempoDeadlock;
+int recovery;
 
 t_list * listaPersonajesRecursos;
 t_list * items;
@@ -41,7 +43,7 @@ char * buffer_log;
 int graficar;
 bool crearLosEnemigos;
 t_list * listaDeEnemigos;
-long sleepEnemigos;
+useconds_t sleepEnemigos;
 bool activarInterbloqueo;
 int ingresoAlSistema;
 
@@ -49,8 +51,6 @@ int ingresoAlSistema;
 int main (){
 	nivelTerminado=false;
 
-	crearLosEnemigos = false;
-	activarInterbloqueo = false;
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
@@ -66,7 +66,7 @@ int main (){
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
 	dibujar();
 
-	crearHiloInotify(hiloInotify);
+	//crearHiloInotify(hiloInotify);
 
 
 	socketDeEscucha=handshakeConPlataforma();
@@ -80,7 +80,7 @@ int main (){
 		crearHilosEnemigos();
 	}
 	if(activarInterbloqueo){
-	crearHiloInterbloqueo();
+		crearHiloInterbloqueo();
 	}
 
 	while(1){
@@ -127,13 +127,13 @@ int leerArchivoConfiguracion(){
 	quantum = config_get_int_value(config, "quantum");
 	log_info(logger, "El quantum para %s es de %d ut",nombre,quantum);
 
-	int recovery = config_get_int_value(config, "Recovery");
+	recovery = config_get_int_value(config, "Recovery");
 	log_info(logger, "El recovery para %s es de %d ut",nombre,recovery);
 
 	enemigos = config_get_int_value(config, "Enemigos");
 	log_info(logger, "La cantidad de enemigos de %s es %d",nombre,enemigos);
 
-	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
+	tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
 	log_info(logger, "El tiempo de espera para ejecucion del hilo de deadlock para %s es de %d ut",nombre,tiempoDeadlock);
 
 	sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
@@ -149,10 +149,14 @@ int leerArchivoConfiguracion(){
 
 
 	retardo = config_get_int_value(config, "retardo");
-	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardoSegundos);
+	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardo);
 
 	distancia = config_get_int_value(config, "distancia");
 	log_info(logger, "El remaining distance para el %s es de %d",nombre,distancia);
+
+	crearLosEnemigos = config_get_int_value(config, "crearLosEnemigos");
+	activarInterbloqueo = config_get_int_value(config, "activarInterbloqueo");
+
 
 	// LEO LAS CAJAS DEL NIVEL //
 
@@ -196,7 +200,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	char * IP=IPyPuerto[0];
 	log_info(logger, "Este es el nivel %d",numeroNivel);
 
-	char * buffer=malloc(sizeof(char*));
+	char * buffer=malloc(sizeof(char)*50);
 	int32_t puerto= atoi(IPyPuerto[1]);
 
 
@@ -309,7 +313,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El personaje %s ha muerto ",id);
+				log_info(logger, "El personaje %c ha muerto ",id);
 
 
 
@@ -477,8 +481,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-/* MATY: el planificador nunca le informa esto. Le informa los recursos disponibles y personajes desbloqueados, no un mensaje particular
-			case PLA_perMuereInterbloqueo_NIV:{ // corregido matyx!
+
+			case PLA_perMuereInterbloqueo_NIV:{
 				char id=elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
@@ -489,14 +493,14 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El personaje %s ha muerto por interbloqueo ",id);
+				log_info(logger, "El personaje %c ha muerto por interbloqueo ",id);
 
 				if(graficar)
 					nivel_gui_dibujar(items,nombre);
 
 				break;
 			}
-*/
+
 			{
 				default:
 				log_info(logger, "Recibi cualquier cosa ");
@@ -725,7 +729,7 @@ void crearHilosEnemigos(){
 	int i;
 	pthread_t pid;
 	for(i = 0 ; i<enemigos ; i++){
-		pthread_create(&pid, NULL, (void*)&enemigo, NULL);
+		pthread_create(&pid, NULL, (void*)&enemigo, (int*) i );
 	}
 }
 

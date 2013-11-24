@@ -10,8 +10,6 @@
 #ifndef ENEMIGO_H_
 #define ENEMIGO_H_
 
-void enemigo();
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////   nivel.h    //////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +33,7 @@ typedef struct {
         char id;
 } t_enemigo;
 
+void enemigo(int* pIdEnemigo);
 
 t_enemigo * crearseASiMismo();
 bool hayPersonajeAtacable();
@@ -42,7 +41,9 @@ t_personaje_niv * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo);
 char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje);
 void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv * personaje, char * orientacion);
 void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orientacion2);
+bool hayCajaOExcedeLimite(int x, int y);
 bool hayCaja(int x, int y);
+bool excedeLimite(int x, int y);
 int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv * personaje);
 t_personaje_niv * buscaPersonajeCercano(t_enemigo * enemigo);
 int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje);

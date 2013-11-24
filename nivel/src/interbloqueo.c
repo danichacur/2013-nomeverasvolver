@@ -8,10 +8,11 @@
 #include "interbloqueo.h"
 
 int sleepInterbloqueo;
-bool recovery;
 extern t_list * listaPersonajesRecursos;
-int32_t fdPlanificador;
 extern pthread_mutex_t mutex_mensajes;
+extern long tiempoDeadlock;
+extern int recovery;
+extern int32_t socketDeEscucha;
 
 t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
 	t_personaje_niv1 * new = malloc(sizeof(t_personaje_niv1));
@@ -24,14 +25,12 @@ t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuale
 
 void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 
-	//TODO: HARDCODEADO
-	recovery = false;
-	sleepInterbloqueo = 15;
-
 	t_list * listaInterbloqueados ;
 
+	int chequeo_interbloqueo = tiempoDeadlock/1000;
+
 	while(1){
-		sleep(sleepInterbloqueo);
+		sleep(chequeo_interbloqueo);
 		//log_info(logger, "Checkeo de interbloqueo activado");
 		//printf("%s", "Checkeo de interbloqueo activado \n");
 
@@ -40,9 +39,11 @@ void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 			//log_info(logger, "Se detectó un Interbloqueo. Los personajes involucrados son %s", obtenerIdsPersonajes(listaInterbloqueados));
 			printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
 
-			if(recovery){
+			if(recovery == 1){
 				t_personaje_niv1 * personaje = seleccionarVictima(listaInterbloqueados);
 				informarVictimaAPlanificador(personaje);
+				list_clean(listaInterbloqueados);
+				list_destroy(listaInterbloqueados);
 			}
 
 		}//else
@@ -57,7 +58,7 @@ t_list * obtenerPersonajesInterbloqueados(){
 
 	t_list * listaBloqueados = obtenerListaDePersonajesBloqueados();
 
-	t_list * listaInterbloqueados = list_create();;
+	t_list * listaInterbloqueados = list_create();
 	bool interbloqueo = false;
 	int ordenPersActual;
 
@@ -157,7 +158,7 @@ t_personaje_niv1 *seleccionarVictima(t_list *listaInterbloqueados) {
 
 void informarVictimaAPlanificador(t_personaje_niv1 * personaje){
 	pthread_mutex_lock(&mutex_mensajes);
-	enviarMensaje(fdPlanificador,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
+	enviarMensaje(socketDeEscucha,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
 	pthread_mutex_unlock(&mutex_mensajes);
 }
 
@@ -165,12 +166,12 @@ t_list * obtenerListaDePersonajesBloqueados(){
 	t_list * listaPersonajesBloqueados = list_create();
 
 	/*// poner un mutex
-	//enviarMensaje(fdPlanificador, NIV_recursosPersonajesBloqueados_PLA, "0");
+	//enviarMensaje(socketDeEscucha, NIV_recursosPersonajesBloqueados_PLA, "0");
 	char * mensaje;
 	//enum tipo_paquete tipoRecibido;
 
 	//: cambiar esto cuando tenga conexion
-	//recibirMensaje(fdPlanificador, &tipoRecibido, &mensaje);
+	//recibirMensaje(socketDeEscucha, &tipoRecibido, &mensaje);
 	//tipoRecibido = PLA_recursosPersonajesBloqueados_NIV;
 	mensaje = "$,T,J;#,H,F,M;@,J,H,F;%,F,M,H"; //$,T,J;
 

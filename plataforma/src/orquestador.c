@@ -14,7 +14,7 @@
 
 t_dictionary *listos;
 t_dictionary *bloqueados;
-//t_dictionary *anormales;
+t_dictionary *anormales;
 t_dictionary *monitoreo;
 
 pthread_mutex_t mutex_listos;
@@ -160,7 +160,7 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 	string_append(&cantidad, ",");
 	string_append(&cantidad, personajes_desbloqueados);
 
-	if (desbloquie || (j != 0)) {
+	if (desbloquie || (j != 0) || !string_equals_ignore_case(cantidad,"0,")) {
 		log_info(logger_pla,
 				"Nivel %s: Envio al nivel los personajes desbloqueados %s",
 				str_nivel, cantidad);
@@ -182,18 +182,21 @@ void supr_pers_de_estructuras(int32_t sockett) {
 	}
 	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema,
 			(void*) _esta_enSistema);
+	int32_t _esta_enNiveles(t_niveles_sistema *valor) {
+				return valor->fd == sockett;
+			}
+			t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
+					(void*) _esta_enNiveles);
+	if((aux == NULL) &&  (aux3 == NULL))
+		return;
+
 	char *str_nivel;
 
-	if (aux == NULL ) {
+	if (aux == NULL) {
 
 		//se cayo un nivel
-		int32_t _esta_enNiveles(t_niveles_sistema *valor) {
-			return valor->fd == sockett;
-		}
-		t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
-				(void*) _esta_enNiveles);
-
 		str_nivel = string_from_format("%d", aux3->nivel);
+		pthread_cancel(aux3->pla);
 		free(aux3);
 		log_info(logger, "Se cayo el nivel %s", str_nivel);
 
@@ -374,7 +377,7 @@ int main() {
 	personajes_para_koopa = list_create();
 	listos = dictionary_create();
 	bloqueados = dictionary_create();
-	//anormales = dictionary_create();
+	anormales = dictionary_create();
 	monitoreo = dictionary_create();
 	pthread_mutex_init(&mutex_listos, NULL );
 	pthread_mutex_init(&mutex_bloqueados, NULL );
@@ -477,12 +480,12 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
 		t_list *p_listos = list_create();
 		t_list *p_bloqueados = list_create();
-		//t_list *p_muertos = list_create();
+		t_list *p_muertos = list_create();
 		t_list *p_monitor = list_create();
 
 		dictionary_put(listos, n_mensaje[0], p_listos);
 		dictionary_put(bloqueados, n_mensaje[0], p_bloqueados);
-		//dictionary_put(anormales, n_mensaje[0], p_muertos);
+		dictionary_put(anormales, n_mensaje[0], p_muertos);
 		dictionary_put(monitoreo, n_mensaje[0], p_monitor);
 
 		t_niveles_sistema *nuevo = malloc(sizeof(t_niveles_sistema));
@@ -509,8 +512,8 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		log_info(logger,
 				"Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d ",
 				nivel, sockett);
-		pthread_t pla;
-		pthread_create(&pla, NULL, (void *) hilo_planificador, nuevo);
+		//pthread_t pla;
+		pthread_create(&nuevo->pla, NULL, (void *) hilo_planificador, nuevo);
 
 		log_info(logger, "Envío respuesta handshake al nivel (%d).", nivel);
 		enviarMensaje(sockett, ORQ_handshake_NIV, "0");

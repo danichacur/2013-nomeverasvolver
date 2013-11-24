@@ -63,6 +63,7 @@ static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas
 										t_list * ultimosMovimientosPorNivel);
 /*static void personaje_destroy(t_personaje *self);*/
 void* conectarAlNivel(int* nivel);
+void reiniciarListasDeNivelARecomenzar(int ordNivel);
 void conectarAlOrquestador();
 //int todosNivelesFinalizados();
 void avisarPlanNivelesConcluido();
@@ -82,7 +83,7 @@ char* obtenerRecursosNecesariosPorNivel(int ordNivel);
 void avisarNivelConcluido(int nivel);
 void desconectarPlataforma();
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel);
-int meQuedanVidas();
+bool meQuedanVidas();
 void descontarUnaVida();
 void interrumpirTodosPlanesDeNiveles();
 void finalizarTodoElProcesoPersonaje();
@@ -97,5 +98,8 @@ char *estoyEnLineaRectaALaCaja(int ordNivel);
 void moverpersonajeEn(char * orientacion, int ordNivel);
 char * obtenerProximoRecursosNecesario(int ordNivel);
 void capturarSeniales();
+void recibirSenialGanarVida();
+void recibirSenialPierdeVida();
+void desconectarmeDePlataforma(int ordNivel);
 
 #endif /* PERSONAJE_H_ */
