@@ -33,34 +33,34 @@
 typedef uint32_t ptrGBloque;
 
 typedef struct grasa_header_t { // un bloque
-	unsigned char grasa[5];
-	uint32_t version;
-	uint32_t blk_bitmap;
-	uint32_t size_bitmap; // en bloques
-	unsigned char padding[4073];
+        unsigned char grasa[5];
+        uint32_t version;
+        uint32_t blk_bitmap;
+        uint32_t size_bitmap; // en bloques
+        unsigned char padding[4073];
 } GHeader;
 
 typedef struct grasa_file_t { // un cuarto de bloque (256 bytes)
-	uint8_t state; // 0: borrado, 1: archivo, 2: directorio
-	char fname[GFILENAMELENGTH];
-	uint32_t parent_dir_block;
-	uint32_t file_size;
-	uint64_t c_date;
-	uint64_t m_date;
-	ptrGBloque blk_indirect[BLKINDIRECT];
+        uint8_t state; // 0: borrado, 1: archivo, 2: directorio
+        char fname[GFILENAMELENGTH];
+        uint32_t parent_dir_block;
+        uint32_t file_size;
+        uint64_t c_date;
+        uint64_t m_date;
+        ptrGBloque blk_indirect[BLKINDIRECT];
 } GFile;
 
 // Estructura Administracion Grasa
 typedef struct grasa_adm_t {
-	GHeader admHeader;
-	char admbitmap[BLOCK_SIZE];
-	GFile admTnodo[GFILEBYTABLE];
+        GHeader admHeader;
+        char admbitmap[BLOCK_SIZE];
+        GFile admTnodo[GFILEBYTABLE];
 } GAdm;
 
 //Estructura funcion obtenerNroBloque
 typedef struct grasa_obtenerNroBloque_t {
-	ptrGBloque BloqueDatos;
-	off_t offsetDatos;
+        ptrGBloque BloqueDatos;
+        off_t offsetDatos;
 } tObNroBloque;
 
 
@@ -90,4 +90,4 @@ static uint32_t grasa_unlink(const char *path); //Unlink(Borrar) Archivo
 static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
 static uint32_t grasa_truncate(const char *path, off_t newsize);//Truncar archivo
 static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_info *fi);//crear archivo vacio
-
+static uint32_t grasa_utimens(const char* path, const struct timespec ts[2]);
