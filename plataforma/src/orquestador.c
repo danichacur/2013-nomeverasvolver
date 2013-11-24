@@ -160,7 +160,7 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 	string_append(&cantidad, ",");
 	string_append(&cantidad, personajes_desbloqueados);
 
-	if (desbloquie || (j != 0)) {
+	if (desbloquie || (j != 0) || !string_equals_ignore_case(cantidad,"0,")) {
 		log_info(logger_pla,
 				"Nivel %s: Envio al nivel los personajes desbloqueados %s",
 				str_nivel, cantidad);

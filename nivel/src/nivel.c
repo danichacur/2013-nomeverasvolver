@@ -313,7 +313,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El personaje %s ha muerto ",id);
+				log_info(logger, "El personaje %c ha muerto ",id);
 
 
 
@@ -481,8 +481,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-/* MATY: el planificador nunca le informa esto. Le informa los recursos disponibles y personajes desbloqueados, no un mensaje particular
-			case PLA_perMuereInterbloqueo_NIV:{ // corregido matyx!
+
+			case PLA_perMuereInterbloqueo_NIV:{
 				char id=elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
@@ -493,14 +493,14 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
-				log_info(logger, "El personaje %s ha muerto por interbloqueo ",id);
+				log_info(logger, "El personaje %c ha muerto por interbloqueo ",id);
 
 				if(graficar)
 					nivel_gui_dibujar(items,nombre);
 
 				break;
 			}
-*/
+
 			{
 				default:
 				log_info(logger, "Recibi cualquier cosa ");

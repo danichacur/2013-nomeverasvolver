@@ -856,10 +856,9 @@ void planificador_analizar_mensaje(int32_t socket_r,
 	}
 	case NIV_perMuereInterbloqueo_PLA: {
 
-		t_list *p_muertos = dictionary_get(anormales, str_nivel);
-		int32_t * valor = malloc(sizeof(int));
-		*valor = socket_r;
-		list_add(p_muertos, valor);
+		//le aviso al nivel que el personaje murio
+		enviarMensaje(nivel->fd,PLA_perMuereInterbloqueo_NIV,mensaje);
+
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
 		int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
@@ -870,7 +869,16 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
 				(void*) _esta_personaje);
 		pthread_mutex_unlock(&mutex_bloqueados);
+
+		//le aviso al personaje que murio
+		enviarMensaje(aux->fd,PLA_rtaRecurso_PER,"1");
+
 		proceso_desbloqueo(aux->recursos_obtenidos, nivel->fd, str_nivel);
+
+		t_list *p_muertos = dictionary_get(anormales, str_nivel);
+		int32_t * valor = malloc(sizeof(int));
+		*valor = aux->fd;
+		list_add(p_muertos, valor);
 
 		destruir_personaje(aux);
 		break;
