@@ -63,7 +63,7 @@ static t_personaje *personaje_create(char *nombre,char *simbolo,int8_t cantVidas
 										t_list * ultimosMovimientosPorNivel);
 /*static void personaje_destroy(t_personaje *self);*/
 void* conectarAlNivel(int* nivel);
-void reiniciarListasDeNivelARecomenzar(ordNivel);
+void reiniciarListasDeNivelARecomenzar(int ordNivel);
 void conectarAlOrquestador();
 //int todosNivelesFinalizados();
 void avisarPlanNivelesConcluido();

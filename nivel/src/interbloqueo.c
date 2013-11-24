@@ -8,10 +8,11 @@
 #include "interbloqueo.h"
 
 int sleepInterbloqueo;
-bool recovery;
 extern t_list * listaPersonajesRecursos;
 int32_t fdPlanificador;
 extern pthread_mutex_t mutex_mensajes;
+extern long tiempoDeadlock;
+extern int recovery;
 
 t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
 	t_personaje_niv1 * new = malloc(sizeof(t_personaje_niv1));
@@ -24,14 +25,12 @@ t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuale
 
 void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 
-	//TODO: HARDCODEADO
-	recovery = false;
-	sleepInterbloqueo = 15;
-
 	t_list * listaInterbloqueados ;
 
+	int chequeo_interbloqueo = tiempoDeadlock/1000;
+
 	while(1){
-		sleep(sleepInterbloqueo);
+		sleep(chequeo_interbloqueo);
 		//log_info(logger, "Checkeo de interbloqueo activado");
 		//printf("%s", "Checkeo de interbloqueo activado \n");
 
@@ -40,7 +39,7 @@ void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 			//log_info(logger, "Se detectó un Interbloqueo. Los personajes involucrados son %s", obtenerIdsPersonajes(listaInterbloqueados));
 			printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
 
-			if(recovery){
+			if(recovery == 1){
 				t_personaje_niv1 * personaje = seleccionarVictima(listaInterbloqueados);
 				informarVictimaAPlanificador(personaje);
 			}

@@ -18,6 +18,8 @@ char * algoritmo;
 int enemigos;
 bool nivelTerminado;
 int distancia;
+long tiempoDeadlock;
+int recovery;
 
 t_list * listaPersonajesRecursos;
 t_list * items;
@@ -125,13 +127,13 @@ int leerArchivoConfiguracion(){
 	quantum = config_get_int_value(config, "quantum");
 	log_info(logger, "El quantum para %s es de %d ut",nombre,quantum);
 
-	int recovery = config_get_int_value(config, "Recovery");
+	recovery = config_get_int_value(config, "Recovery");
 	log_info(logger, "El recovery para %s es de %d ut",nombre,recovery);
 
 	enemigos = config_get_int_value(config, "Enemigos");
 	log_info(logger, "La cantidad de enemigos de %s es %d",nombre,enemigos);
 
-	long tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
+	tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
 	log_info(logger, "El tiempo de espera para ejecucion del hilo de deadlock para %s es de %d ut",nombre,tiempoDeadlock);
 
 	sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
@@ -147,7 +149,7 @@ int leerArchivoConfiguracion(){
 
 
 	retardo = config_get_int_value(config, "retardo");
-	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardoSegundos);
+	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardo);
 
 	distancia = config_get_int_value(config, "distancia");
 	log_info(logger, "El remaining distance para el %s es de %d",nombre,distancia);
@@ -198,7 +200,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	char * IP=IPyPuerto[0];
 	log_info(logger, "Este es el nivel %d",numeroNivel);
 
-	char * buffer=malloc(sizeof(char*));
+	char * buffer=malloc(sizeof(char)*50);
 	int32_t puerto= atoi(IPyPuerto[1]);
 
 
