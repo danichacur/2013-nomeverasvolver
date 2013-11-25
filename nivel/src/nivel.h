@@ -58,6 +58,12 @@ typedef struct {
 	        int ingresoSistema;
 	} t_personaje_niv1;
 
+static void personaje_destroy(t_personaje_niv1 * pers){
+	free(pers->posicion);
+	//list_destroy(pers->recursosActuales);
+	//free(pers->simbolo);
+	free(pers);
+}
 
 
 

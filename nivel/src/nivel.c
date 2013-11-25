@@ -630,7 +630,8 @@ void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 		return string_equals_ignore_case(personaje->simbolo,simbolo);
 	}
 
-	list_remove_by_condition(lista, (void*) _esta_el_personaje);
+	t_personaje_niv1 * pers = list_remove_by_condition(lista, (void*) _esta_el_personaje);
+	personaje_destroy(pers);
 
 
 
