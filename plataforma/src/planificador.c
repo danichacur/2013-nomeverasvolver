@@ -187,71 +187,13 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 							str_nivel, i);
 
 					if (i == fd_personaje_actual) {
-						if (tipoMensaje == PER_posCajaRecurso_PLA) { //no consume quantum
-							//pasamanos al nivel, sin procesar nada
-							log_info(logger_pla,
-									"Nivel %s: Envio al nivel solicitud posicion caja %s",
-									str_nivel, mensaje);
-							enviarMensaje(nivel->fd, PLA_posCaja_NIV, mensaje);
-							free(mensaje);
-							recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
-							log_info(logger_pla,
-									"Llego el tipo de paquete: %s .",
-									obtenerNombreEnum(tipoMensaje));
-							log_info(logger_pla, "Llego este mensaje: %s .",
-									mensaje);
-							if (tipoMensaje == NIV_posCaja_PLA) {
+						if (tipoMensaje == NIV_cambiosConfiguracion_PLA) {
 
-								log_info(logger_pla,
-										"Nivel %s: envio al personaje %c posicion de la caja %s",
-										str_nivel, personaje->personaje,
-										mensaje);
-								bool resultado = plan_enviarMensaje(str_nivel,
-										i, PLA_posCajaRecurso_PER, mensaje);
-								if (resultado)
-									personaje->pos_recurso = sumar_valores(
-											mensaje);
-								else {
-									proceso_desbloqueo(
-											personaje->recursos_obtenidos,
-											nivel->fd, str_nivel);
-									destruir_personaje(personaje);
-									supr_pers_de_estructuras(i);
-								}
-
-							} else {
-								if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
-									log_info(logger_pla,
-											"Nivel %s: Recibo el asesinato de: %s",
-											str_nivel, mensaje);
-
-									tratamiento_asesinato(nivel->fd, personaje,
-											mensaje, str_nivel);
-								} else {
-									if (tipoMensaje
-											== NIV_cambiosConfiguracion_PLA) {
-
-										//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
-										char** n_mensaje = string_split(mensaje,
-												",");
-										nivel->algol = n_mensaje[0];
-										nivel->quantum = atoi(n_mensaje[1]);
-										nivel->retardo = atoi(n_mensaje[2]);
-
-									} else {
-										t_list *p_muertos = dictionary_get(
-												anormales, str_nivel);
-										int32_t * valor = malloc(sizeof(int));
-										*valor = i;
-										list_add(p_muertos, valor);
-										proceso_desbloqueo(
-												personaje->recursos_obtenidos,
-												nivel->fd, str_nivel);
-										destruir_personaje(personaje);
-										supr_pers_de_estructuras(i);
-									}
-								}
-							}
+							//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+							char** n_mensaje = string_split(mensaje, ",");
+							nivel->algol = n_mensaje[0];
+							nivel->quantum = atoi(n_mensaje[1]);
+							nivel->retardo = atoi(n_mensaje[2]);
 
 							recibirMensaje(i, &tipoMensaje, &mensaje);
 
@@ -261,8 +203,131 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 							log_info(logger_pla,
 									"Nivel %s: Llego este mensaje: %s .",
 									str_nivel, mensaje);
-						}
 
+						} else {
+							if (tipoMensaje == PER_posCajaRecurso_PLA) { //no consume quantum
+								//pasamanos al nivel, sin procesar nada
+								log_info(logger_pla,
+										"Nivel %s: Envio al nivel solicitud posicion caja %s",
+										str_nivel, mensaje);
+								enviarMensaje(nivel->fd, PLA_posCaja_NIV,
+										mensaje);
+								free(mensaje);
+								recibirMensaje(nivel->fd, &tipoMensaje,
+										&mensaje);
+								log_info(logger_pla,
+										"Llego el tipo de paquete: %s .",
+										obtenerNombreEnum(tipoMensaje));
+								log_info(logger_pla, "Llego este mensaje: %s .",
+										mensaje);
+								if (tipoMensaje == NIV_posCaja_PLA) {
+
+									log_info(logger_pla,
+											"Nivel %s: envio al personaje %c posicion de la caja %s",
+											str_nivel, personaje->personaje,
+											mensaje);
+									bool resultado = plan_enviarMensaje(
+											str_nivel, i,
+											PLA_posCajaRecurso_PER, mensaje);
+									if (resultado)
+										personaje->pos_recurso = sumar_valores(
+												mensaje);
+									else {
+										proceso_desbloqueo(
+												personaje->recursos_obtenidos,
+												nivel->fd, str_nivel);
+										destruir_personaje(personaje);
+										supr_pers_de_estructuras(i);
+									}
+
+								} else {
+									if (tipoMensaje
+											== NIV_enemigosAsesinaron_PLA) {
+										log_info(logger_pla,
+												"Nivel %s: Recibo el asesinato de: %s",
+												str_nivel, mensaje);
+
+										tratamiento_asesinato(nivel->fd,
+												personaje, mensaje, str_nivel);
+									} else {
+										if (tipoMensaje
+												== NIV_cambiosConfiguracion_PLA) {
+
+											//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
+											char** n_mensaje = string_split(
+													mensaje, ",");
+											nivel->algol = n_mensaje[0];
+											nivel->quantum = atoi(n_mensaje[1]);
+											nivel->retardo = atoi(n_mensaje[2]);
+											enviarMensaje(nivel->fd,OK1,"0");
+											recibirMensaje(nivel->fd, &tipoMensaje,
+													&mensaje);
+
+											log_info(logger_pla,
+													"Nivel %s: Llego el tipo de paquete: %s .",
+													str_nivel,
+													obtenerNombreEnum(
+															tipoMensaje));
+											log_info(logger_pla,
+													"Nivel %s: Llego este mensaje: %s .",
+													str_nivel, mensaje);
+											if (tipoMensaje
+													== NIV_posCaja_PLA) {
+
+												log_info(logger_pla,
+														"Nivel %s: envio al personaje %c posicion de la caja %s",
+														str_nivel,
+														personaje->personaje,
+														mensaje);
+												bool resultado =
+														plan_enviarMensaje(
+																str_nivel, i,
+																PLA_posCajaRecurso_PER,
+																mensaje);
+												if (resultado)
+													personaje->pos_recurso =
+															sumar_valores(
+																	mensaje);
+												else {
+													proceso_desbloqueo(
+															personaje->recursos_obtenidos,
+															nivel->fd,
+															str_nivel);
+													destruir_personaje(
+															personaje);
+													supr_pers_de_estructuras(i);
+												}
+
+											}
+
+										} else {
+											t_list *p_muertos = dictionary_get(
+													anormales, str_nivel);
+											int32_t * valor = malloc(
+													sizeof(int));
+											*valor = i;
+											list_add(p_muertos, valor);
+											proceso_desbloqueo(
+													personaje->recursos_obtenidos,
+													nivel->fd, str_nivel);
+											destruir_personaje(personaje);
+											supr_pers_de_estructuras(i);
+										}
+									}
+								}
+
+								recibirMensaje(i, &tipoMensaje, &mensaje);
+
+								log_info(logger_pla,
+										"Nivel %s: Llego el tipo de paquete: %s .",
+										str_nivel,
+										obtenerNombreEnum(tipoMensaje));
+								log_info(logger_pla,
+										"Nivel %s: Llego este mensaje: %s .",
+										str_nivel, mensaje);
+							}
+
+						}
 						analizar_mensaje_rta(personaje, tipoMensaje, mensaje,
 								nivel, &quantum);
 						fd_personaje_actual = 0;
@@ -427,7 +492,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 						str_nivel);
 				enviarMensaje(personaje->fd, OK1, "0");
 			} else {
-				if (tipoMensaje == NIV_cambiosConfiguracion_PLA) {
+				/*if (tipoMensaje == NIV_cambiosConfiguracion_PLA) {
 
 					//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
 					char** n_mensaje = string_split(mensaje, ",");
@@ -435,7 +500,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 					nivel->quantum = atoi(n_mensaje[1]);
 					nivel->retardo = atoi(n_mensaje[2]);
 
-				} else {
+				} else {*/
 					t_list *p_muertos = dictionary_get(anormales, str_nivel);
 					int32_t * valor = malloc(sizeof(int));
 					*valor = personaje->fd;
@@ -445,7 +510,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 
 					supr_pers_de_estructuras(personaje->fd);
 					destruir_personaje(personaje);
-				}
+				//}
 //				supr_pers_de_estructuras(personaje->fd);
 //				break;
 			}
@@ -566,7 +631,7 @@ int tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 				}
 
 			} else {
-				if (k_mensaje == NIV_cambiosConfiguracion_PLA) {
+				/*if (k_mensaje == NIV_cambiosConfiguracion_PLA) {
 
 					//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
 					char** n_mensaje = string_split(j_mensaje, ",");
@@ -574,13 +639,13 @@ int tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 					nivel->quantum = atoi(n_mensaje[1]);
 					nivel->retardo = atoi(n_mensaje[2]);
 
-				} else {
+				} else {*/
 					proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
 							str_nivel);
 
 					supr_pers_de_estructuras(personaje->fd);
 					destruir_personaje(personaje);
-				}
+				//}
 
 			}
 			if (string_equals_ignore_case(nivel->algol, "RR")) {
