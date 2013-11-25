@@ -385,7 +385,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					if(unMensaje==OK1){
 
 						log_info(logger,"enviare la posicion de la caja");
-						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 
 						log_info(logger,"envie la posicion de la caja");
 					} else {
@@ -395,7 +395,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				} else {
 
 						log_info(logger,"enviare la posicion de la caja");
-						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 						log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
 
 					}
@@ -539,7 +539,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 			{
 				default:
-				log_info(logger, "Recibi cualquier cosa ");
+				log_info(logger, "Recibi mensaje inexistente, la ejecucion del nivel finalizara");
 				kill(getpid(), SIGKILL);
 				break;
 			}
@@ -580,7 +580,7 @@ bool determinarRecursoDisponible(char * recursoSolicitado){
 
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY UN RECURSO PEDIDO Y LO DEVUELVE
 	ITEM_NIVEL * item;
-	ITEM_NIVEL * unItem;                      //QUE PASA SI EL RECURSO NO EXISTE?? QUE DEVOLVERIA ITEM?
+	ITEM_NIVEL * unItem;
 	bool encontrado = false;
 
 	int i=0;
@@ -599,7 +599,7 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 	return item;
 }
 
-
+/*
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HAY UN PERSONAJE PEDIDO Y LO DEVUELVE
 	ITEM_NIVEL * item;
 	ITEM_NIVEL * unItem;
@@ -621,7 +621,7 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 	return item;
 }
 
-
+*/
 void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 
 

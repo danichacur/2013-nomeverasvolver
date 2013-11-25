@@ -24,7 +24,7 @@ char * cadenaVacia;
 extern pthread_mutex_t mutex_mensajes;
 extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
-
+pthread_mutex_t mx_sarasa;
 pthread_mutex_t mx_borrar_enemigos;
 
 bool IMPRIMIR_INFO_ENEMIGO;
@@ -56,6 +56,7 @@ void enemigo(int* pIdEnemigo){
 	//pthread_mutex_init(&mutex_mensajes,NULL);
 	//pthread_mutex_init(&mx_lista_personajes,NULL);
 	pthread_mutex_init(&mx_borrar_enemigos,NULL);
+	pthread_mutex_init(&mx_sarasa,NULL);
 
 	t_enemigo * enemigo = crearseASiMismo(idEnemigo); //random, verifica que no se cree en el (0,0)
 
@@ -66,22 +67,28 @@ void enemigo(int* pIdEnemigo){
 	while(1){ //cada x tiempo, configurado por archivo de configuracion
 		sleep(sleepEnemigos/1000);
 
-		if(false){ //hayPersonajeAtacable()){
+		if(hayPersonajeAtacable()){
+			pthread_mutex_lock(&mx_sarasa);
 			moverseHaciaElPersonajeDeFormaAlternada(enemigo);
+			pthread_mutex_unlock(&mx_sarasa);
+
 
 			if(estoyArribaDeAlgunPersonaje(enemigo)){
 				avisarAlNivel(enemigo);
 				//break; //TODO borrar esto, es para la prueba.
 			}
 		}else{
-			enemigo->posicion->posX = enemigo->posicion->posX +1;
+			/*enemigo->posicion->posX = enemigo->posicion->posX +1;
 			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
-			if(graficar)
-				nivel_gui_dibujar(items,nombre);
-			pthread_mutex_unlock(&mx_lista_items);
+			if(graficar)			movermeEnL(enemigo);
 
-			//movermeEnL(enemigo);
+				nivel_gui_dibujar(items,nombre);
+			pthread_mutex_unlock(&mx_lista_items);*/
+			pthread_mutex_lock(&mx_sarasa);
+			movermeEnL(enemigo);
+			pthread_mutex_unlock(&mx_sarasa);
+
 		}
 
 	}
@@ -574,7 +581,7 @@ t_enemigo * enemigo_create(int id){
 	t_enemigo * enemigo = malloc(sizeof(t_enemigo));
 
 	//enemigo->posicion = posicion_create_pos_rand(); //TODO le saco que cree random la posicion para realizar pruebas
-	enemigo->posicion = posicion_create_pos(10,10);
+	enemigo->posicion = posicion_create_pos(15,id);
 
 	enemigo->ultimoMovimiento = "V";
 	enemigo->cantTurnosEnL = 0;
