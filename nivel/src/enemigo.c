@@ -581,7 +581,7 @@ t_enemigo * enemigo_create(int id){
 	t_enemigo * enemigo = malloc(sizeof(t_enemigo));
 
 	//enemigo->posicion = posicion_create_pos_rand(); //TODO le saco que cree random la posicion para realizar pruebas
-	enemigo->posicion = posicion_create_pos(15,id);
+	enemigo->posicion = posicion_create_pos(10,id);
 
 	enemigo->ultimoMovimiento = "V";
 	enemigo->cantTurnosEnL = 0;
