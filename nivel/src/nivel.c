@@ -18,6 +18,7 @@ char * direccionIPyPuerto;
 char * algoritmo;
 int enemigos;
 bool nivelTerminado;
+bool huboCambios;
 int distancia;
 long tiempoDeadlock;
 int recovery;
@@ -51,7 +52,7 @@ int ingresoAlSistema;
 ////////////////////////////////////////////////////PROGRAMA PRINCIPAL////////////////////////////////////////////////////
 int main (){
 	nivelTerminado=false;
-
+	huboCambios=false;
 
 	listaDeEnemigos = list_create();
 	items = list_create(); // CREO LA LISTA DE ITEMS
@@ -292,7 +293,6 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				}
 				pthread_mutex_lock(&mutex_mensajes);
 
-				enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
 
 				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
 				pthread_mutex_unlock(&mutex_mensajes);
@@ -366,16 +366,47 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, string_from_format("%d",caja->posy));
 
 				pthread_mutex_lock(&mutex_mensajes);
-				int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+
+
+				if(huboCambios==true){
+					log_info(logger,"envio los cambios de configuracion");
+					enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
+					huboCambios=false;
+
+					char* elMensaje=NULL;
+
+					log_info(logger,"me preparo para recibir el ok");
+
+					recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+
+					log_info(logger,"recibi el ok");
+
+
+					if(unMensaje==OK1){
+
+						log_info(logger,"enviare la posicion de la caja");
+						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+
+						log_info(logger,"envie la posicion de la caja");
+					} else {
+						log_info(logger,"recibi cualquiera");
+
+					}
+				} else {
+
+						log_info(logger,"enviare la posicion de la caja");
+						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+						log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
+
+					}
+
+
+
+
+
 				pthread_mutex_unlock(&mutex_mensajes);
 
-				if(mensaje==0){
-					log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
 
-				} else {
-					log_info(logger, "El envio de posicion del recurso ha fallado ");
-
-				}
 				free(pos);
 
 
@@ -669,7 +700,8 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 		 if (length < 0) {
 			 log_info(logger, "Archivo invalido");
-		 	 }
+
+		 }
 
 		 sleep(1);
 
@@ -687,8 +719,6 @@ void crearHiloInotify(pthread_t hiloNotify){
 				 log_info(logger,"Hubo cambios en el archivo pero no sobre las variables en consideracion ");
 
 
-
-
 			 } else {
 				 log_info(logger, "Guardo los cambios para ser mandados en el mensaje de movimiento de personaje ");
 				 pthread_mutex_lock(&mutex_mensajes);
@@ -697,9 +727,11 @@ void crearHiloInotify(pthread_t hiloNotify){
 				 quantum=quantumAux;
 				 strcpy(algoritmo,algoritmoAux);
 
-
-				 buffer1=string_new();
+				 free(buffer1);
+				 buffer1=malloc(sizeof(char)*50);
 				 sprintf(buffer1,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
+
+				 huboCambios=true;
 
 				 pthread_mutex_unlock(&mutex_mensajes);
 
