@@ -7,7 +7,7 @@
 
 #include "planificador.h"
 
-#define PATH_LOG_PLA "../planificador.log"
+#define PATH_LOG_PLA "./planificador.log"
 
 extern t_dictionary *bloqueados;
 extern t_dictionary *listos;
@@ -222,17 +222,18 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 										mensaje);
 								if (tipoMensaje == NIV_posCaja_PLA) {
 
-									log_info(logger_pla,
-											"Nivel %s: envio al personaje %c posicion de la caja %s",
-											str_nivel, personaje->personaje,
-											mensaje);
+
 									bool resultado = plan_enviarMensaje(
 											str_nivel, i,
 											PLA_posCajaRecurso_PER, mensaje);
-									if (resultado)
+									if (resultado){
 										personaje->pos_recurso = sumar_valores(
 												mensaje);
-									else {
+										log_info(logger_pla,
+												"Nivel %s: envio al personaje %c posicion de la caja %s",
+												str_nivel, personaje->personaje,
+												mensaje);
+									}else {
 										proceso_desbloqueo(
 												personaje->recursos_obtenidos,
 												nivel->fd, str_nivel);
@@ -396,21 +397,21 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 	int32_t * valor = malloc(sizeof(int));
 	*valor = socket_l;
 	list_add(p_muertos, valor);
-	log_info(logger_pla, "le aviso al nivel que el personaje %c murio ",
-			mensaje[0]);
+	log_info(logger_pla, "Nivel %s: Le aviso al nivel que el personaje %c murio ",
+			str_nivel,mensaje[0]);
 	// log_info(logger_pla, "yo planificador debería liberar recursos? SI ");
 	enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, mensaje);
 
-	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+/*	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 		return nuevo->fd == socket_l;
 	}
 	pthread_mutex_lock(&mutex_listos);
 	//t_pers_por_nivel *aux = list_remove_by_condition(p_listos, //matyx
 	//		(void*) _esta_personaje); //el primer elemento de la lista
 	pthread_mutex_unlock(&mutex_listos);
-	log_info(logger_pla,
-			"Nivel %d: El personaje del socket %d murio, se lo saca de este nivel",
-			str_nivel, (int) valor);
+*/	log_info(logger_pla,
+			"Nivel %s: El personaje del socket %d murio, se lo saca de este nivel",
+			str_nivel, socket_l);
 	supr_pers_de_estructuras(socket_l);
 	//free(aux);
 
@@ -855,6 +856,8 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 		char* mensaje, char* str_nivel) {
 
 	t_list *p_muertos = dictionary_get(anormales, str_nivel);
+	t_list *p_listos = dictionary_get(listos, str_nivel);
+
 	int32_t * valor = malloc(sizeof(int));
 	*valor = personaje->fd;
 	list_add(p_muertos, valor);
@@ -871,12 +874,11 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 			}
 
 			pthread_mutex_lock(&mutex_listos);
-			//personaje = list_remove_by_condition(p_listos, // matyx
-			//							(void*) _esta_personaje);
+			aux = list_remove_by_condition(p_listos,(void*) _esta_personaje);
 			pthread_mutex_unlock(&mutex_listos);
 
 			log_info(logger_pla,
-					"Nivel %s: Se saca a %c de la lista de listos por haber muerto interbloqueado",
+					"Nivel %s: Se saca a %c de la lista de listos por haber sido asesinado",
 					str_nivel, aux->personaje);
 			imprimir_lista(LISTA_BLOQUEADOS, str_nivel);
 		}
@@ -904,7 +906,8 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 				"Nivel %s: Aviso al personaje %c que los enemigos lo asesinaron",
 				str_nivel, aux->personaje);
 		plan_enviarMensaje(str_nivel, aux->fd, PLA_teMatamos_PER, "0");
-
+		destruir_personaje(aux);
+		aux = NULL;
 		//destruir_personaje(personaje);// matyx
 		i++;
 	}
@@ -964,7 +967,8 @@ void planificador_analizar_mensaje(int32_t socket_r,
 
 		log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s", str_nivel,
 				mensaje);
-		tratamiento_asesinato(nivel->fd, NULL, mensaje, str_nivel);
+		t_pers_por_nivel* personaje= NULL;
+		tratamiento_asesinato(nivel->fd, personaje, mensaje, str_nivel);
 		break;
 	}
 	case NIV_perMuereInterbloqueo_PLA: {
