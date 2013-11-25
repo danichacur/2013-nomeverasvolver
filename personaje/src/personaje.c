@@ -41,7 +41,7 @@ bool CON_CONEXION;
 
 //TODO borrar esto, es para las pruebas.
 t_list * listaDeNumeroCajaPorNivel;
-
+bool finalizoCorrectamente;
 
 //PROCESO PERSONAJE
 int main(){
@@ -60,12 +60,21 @@ int main(){
 	capturarSeniales(); // TODO
 
 	int ordenNivel;
-	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++)
-		pthread_create(&tabla_thr[ordenNivel], NULL, (void*)&conectarAlNivel, (int*)ordenNivel);
+	while(1){
+		finalizoCorrectamente = true;
 
-	for (ordenNivel = list_size(personaje->niveles)-1 ; ordenNivel >= 0  ; ordenNivel--)
-		pthread_join(tabla_thr[ordenNivel],NULL);
+		for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++){
+			pthread_t algo;// = tabla_thr[ordenNivel];
+			pthread_create(&algo, NULL, (void*)&conectarAlNivel, (int*)ordenNivel);
+			tabla_thr[ordenNivel] = algo;
+		}
 
+		for (ordenNivel = list_size(personaje->niveles)-1 ; ordenNivel >= 0  ; ordenNivel--)
+			pthread_join(tabla_thr[ordenNivel],NULL);
+
+		if (finalizoCorrectamente)
+			break;
+	}
 	conectarAlOrquestador(-1);
 	avisarPlanNivelesConcluido();
 
@@ -148,40 +157,53 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 
 		conectarAlNivel((int*) ordNivel);
 	}else{
-		char* respuesta = NULL;
-
-		interrumpirTodosPlanesDeNiveles();
-		printf("Usted ha perdido todas sus vidas. Usted ya reintentó %d veces. Desea volver a comenzar? [S/N]\n", cantidadIntentosFallidos);
+		char* respuesta = malloc(sizeof(char));
+		finalizoCorrectamente = false;
+		interrumpirTodosPlanesDeNivelesMenosActual(ordNivel);
+		log_info(logger, "Usted ha perdido todas sus vidas. Usted ya reintentó %d veces. Desea volver a comenzar? [S/N]\n", cantidadIntentosFallidos);
 
 		while(1){
 			scanf("%s",respuesta);
-			if(strcmp(respuesta,"S") == 0 || strcmp(respuesta,"N") == 0){
+			if(string_equals_ignore_case(respuesta,"S") || string_equals_ignore_case(respuesta,"N")){
 				break;
 			}else{
-				printf("Dale flaco, te dije [S/N] ¬¬ \n");
+				log_info(logger,"Dale flaco, te dije [S/N] ¬¬ \n");
 			}
 		}
 		if(strcmp(respuesta,"S") == 0){
 			log_info(logger,"Se reinicia plan de niveles");
+			personaje->cantVidas = cantVidasDelArchivoDeConfiguracion;
 			cantidadIntentosFallidos += 1;
 		}else{
 			log_info(logger,"bueno che, nos vimos en Disney");
 			finalizarTodoElProcesoPersonaje();
 		}
 	}
+
+	//aca mato el hilo que restaba
+	interrumpirUnNivel(ordNivel);
 }
 
 
 void reiniciarListasDeNivelARecomenzar(int ordNivel){
+	//Pongo en 0,0 la posicion del personaje en el nivel
 	t_posicion * pos = list_get(personaje->posicionesPorNivel, ordNivel);
 	pos = posicion_create_pos(0,0);
 	list_replace(personaje->posicionesPorNivel, ordNivel,pos);
-	/*t_posicion * pos2 = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
-	pos2 = posicion_create_pos(0,0);
-	list_replace(listaDeUbicacionProximaCajaNiveles, ordNivel,pos2);*/
+
+	//pongo en 0,0 la posicion de la caja que el peronsaje va a buscar
+	t_nivelProximaCaja * nivelProximaCaja = list_get(listaDeUbicacionProximaCajaNiveles, ordNivel);
+	nivelProximaCaja->posicionCaja = malloc(sizeof(t_posicion));
+	nivelProximaCaja->posicionCaja->posX = 0;
+	nivelProximaCaja->posicionCaja->posY = 0;
+	list_replace(listaDeUbicacionProximaCajaNiveles, ordNivel,nivelProximaCaja);
+
+	//creo una lista nueva para la lista de recursos Actuales del personaje en ese nivel
 	t_list * listaRecActuales = list_get(personaje->recursosActualesPorNivel, ordNivel);
 	listaRecActuales = list_create();
 	list_replace(personaje->recursosActualesPorNivel, ordNivel,listaRecActuales);
+
+	//pongo una cadena vacia en el ultimo movimiento del personaje de ese nivel
 	char * ultimoMovimiento = list_get(personaje->ultimosMovimientosPorNivel, ordNivel);
 	ultimoMovimiento  = string_new();
 	list_replace(personaje->ultimosMovimientosPorNivel, ordNivel,ultimoMovimiento);
@@ -238,7 +260,7 @@ void levantarArchivoConfiguracion(){
 		t_list *listaConPosicionesEnCero;
 		t_list * listaUltimosMovimientosPorNivel;
 		////t_nivel *miNivel;
-		int8_t cantVidas;
+		int cantVidas;
 		char * ipOrquestador = string_new();
 		int32_t puertoOrquestador;
 		char *remain = string_new();
@@ -601,19 +623,31 @@ void descontarUnaVida(){
 	personaje->cantVidas = personaje->cantVidas - 1;
 }
 
-void interrumpirTodosPlanesDeNiveles(){
+void interrumpirTodosPlanesDeNivelesMenosActual(int nivelActual){
 	int ordenNivel;
-	int32_t idHilo;
 	for (ordenNivel = 0 ; ordenNivel < list_size(personaje->niveles) ; ordenNivel++){
-		idHilo = tabla_thr[ordenNivel];
-
-		int v = pthread_cancel(idHilo);
-		if (v == 0){
-			log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
-		}else
-			log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordenNivel));
+		if(nivelActual != ordenNivel){
+			interrumpirUnNivel(ordenNivel);
+		}
 	}
 }
+
+void interrumpirUnNivel(int nivel){
+
+	reiniciarListasDeNivelARecomenzar(nivel);
+
+	pthread_t idHilo;
+	idHilo = tabla_thr[nivel];
+
+	int v = pthread_cancel(idHilo);
+	if (v == 0){
+		log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+	}else
+		log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+
+}
+
+
 
 void finalizarTodoElProcesoPersonaje(){
 	log_info(logger, "Personaje %s (%s) finaliza totalmente.", personaje->nombre, personaje->simbolo);
@@ -641,7 +675,7 @@ void enviarHandshake(int ordNivel){
 	//string_append(&mensaje,personaje->remain);
 	if (CON_CONEXION)
 		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_handshake_ORQ, mensaje);
-	log_info(logger, "Personaje %s (%s) (nivel: %s) envía handshake al Orquestador con los siguientes datos: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
+	log_info(logger, "P1ersonaje %s (%s) (nivel: %s) envía handshake al Orquestador con los siguientes datos: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 
 	free(mensaje);
 	free(nomNivel);
@@ -677,15 +711,15 @@ void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volv
 		while(1){
 			enviarMensaje(obtenerFDPlanificador(ordNivel), PER_conexionNivel_ORQ, mensaje);
 			//mensaje = NULL;
+			log_info(logger, "Personaje %s (%s) (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 			recibirMensaje(obtenerFDPlanificador(ordNivel), &tipoMensaje, &rta);
 			if( strcmp(rta,"0") == 0)
 				break;
 			else
-				sleep(10);
+				sleep(5);
 			//validar que si es 1 vuelva a conectar
 		}
 	}
-	log_info(logger, "Personaje %s (%s) (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
 
 	free(mensaje);
 	free(nomNivel);
@@ -711,6 +745,9 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 			if (tipoMensaje == PLA_teMatamos_PER){
 				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_ENEMIGO, ordNivel);
+			}else if (tipoMensaje == PLA_nivelCaido_PER){
+				log_info(logger, "Nivel Caido. Finalizo todo abruptamente");
+				finalizarTodoElProcesoPersonaje();
 			}else{
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
 			}
@@ -723,6 +760,8 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 		}
 	}
 }
+
+
 
 int32_t obtenerFDPlanificador(int ordNivel){
 	//t_descriptorPorNivel * descriptorNivel = list_get(listaDeFilesDescriptorsPorNivel, ordNivel);
