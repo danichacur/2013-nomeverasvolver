@@ -68,7 +68,7 @@ typedef struct grasa_obtenerNroBloque_t {
 GAdm *GAdmin;
 GFile *GTNodo;
 t_bitarray *GBitmap;
-ptrGBloque *blqindatos;
+ptrGBloque cantBloquesDatos;
 char * mapeo; //Disco mapeado Global
 
 //Prototipos
