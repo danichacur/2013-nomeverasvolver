@@ -43,16 +43,10 @@ int32_t sumar_valores(char *mensaje) {
 }
 
 void *hilo_planificador(t_niveles_sistema *nivel) {
-//log_info(logger_pla,
+
 	int32_t miNivel = nivel->nivel;
 	int32_t miFd = nivel->fd;
 	char *str_nivel = string_from_format("%d", miNivel);
-	//char* cadena = "PLANIFICADOR_Nivel_";
-	//char * nueva_cadena = calloc(strlen("PLANIFICADOR_Nivel: "), sizeof(char));
-	//strcpy(nueva_cadena, cadena);
-	//string_append(&nueva_cadena, str_nivel);
-	//inicialización
-	//logger_pla = log_create(PATH_LOG_PLA, nueva_cadena, true, LOG_LEVEL_INFO);
 
 	logger_pla = log_create(PATH_LOG_PLA, "PLANIFICADOR", true, LOG_LEVEL_INFO);
 
@@ -80,8 +74,12 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
+	int32_t _esta_nivel(t_monitoreo *valor) {
+			return valor->es_personaje == false;
+		}
+
 	pthread_mutex_lock(&mutex_monitoreo);
-	t_monitoreo *aux = list_remove(p_monitoreo, 0); //el primer elemento de la lista
+	t_monitoreo *aux = list_remove_by_condition(p_monitoreo, (void*)_esta_nivel); //el elemento nivel
 	pthread_mutex_unlock(&mutex_monitoreo);
 	FD_SET(aux->fd, &master);
 	fdmax = aux->fd;

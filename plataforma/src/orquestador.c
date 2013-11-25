@@ -451,10 +451,19 @@ int main() {
 								obtenerNombreEnum(tipoMensaje));
 						log_info(logger, "Llego este mensaje: %s .", mensaje);
 
-						if ((tipoMensaje == PER_conexionNivel_ORQ)
-								|| (tipoMensaje == NIV_handshake_ORQ))
-							FD_CLR(i, &master); // eliminar del conjunto maestro
+						if (tipoMensaje == PER_conexionNivel_ORQ){
+//								|| (tipoMensaje == NIV_handshake_ORQ))
 
+							t_list *p_monitor = dictionary_get(monitoreo, mensaje);
+									if (p_monitor != NULL ) {
+										FD_CLR(i, &master); // eliminar del conjunto maestro
+									}
+
+						}else{
+							if (tipoMensaje == NIV_handshake_ORQ){
+								FD_CLR(i, &master); // eliminar del conjunto maestro
+							}
+						}
 						orquestador_analizar_mensaje(i, tipoMensaje, mensaje);
 
 					} // fin seccion recibir OK los datos
