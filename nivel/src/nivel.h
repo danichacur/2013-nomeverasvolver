@@ -62,6 +62,7 @@ typedef struct {
 
 
 
+
 void crearHiloInotify();
 void eliminarEstructuras();
 void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo);
@@ -81,5 +82,9 @@ void crearHiloInterbloqueo();
 void crearHilosEnemigos();
 int dibujar (void);
 bool existePersonajeEnListaItems(char idPers);
+//t_personaje_niv1 * personaje_create_posicion(char * simbolo, t_posicion * posicion );
+
+
+
 
 #endif /* NIVEL_H_ */

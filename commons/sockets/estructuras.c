@@ -62,13 +62,13 @@ tRecursosNivel * recurso_create(char * nombre, char * simbolo, int instancias, i
 	return recurso;
 }
 
-t_personaje_niv * personaje_create_pos(char * simbolo, t_posicion * posicion ){
-	t_personaje_niv * personaje = malloc(sizeof(t_personaje_niv));
-	personaje->posicion = posicion;
-	personaje->simbolo = simbolo;
-
-	return personaje;
+/*void recurso_destroy(tRecursosNivel * recurso){
+	free(recurso->simbolo);
+	free(recurso->nombre);
+	free(recurso);
 }
+*/
+
 
 /*
 static t_posicion * posicion_create(int posX, int posY){

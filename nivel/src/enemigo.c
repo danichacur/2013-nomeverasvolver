@@ -32,6 +32,20 @@ pthread_mutex_t mx_borrar_enemigos;
 
 bool IMPRIMIR_INFO_ENEMIGO;
 
+
+
+t_personaje_niv1 * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo);
+char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje_niv1 * personaje);
+void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * orientacion);
+int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv1 * personaje);
+t_personaje_niv1 * buscaPersonajeCercano(t_enemigo * enemigo);
+int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv1 * personaje);
+bool personajeEstaEnCaja(t_personaje_niv1 * personaje, int posX, int posY);
+void recurso_destroy(tRecursosNivel * recurso);
+
+
+
+
 void enemigo(int* pIdEnemigo){
 
 	IMPRIMIR_INFO_ENEMIGO = true;
@@ -101,8 +115,8 @@ bool hayPersonajeAtacable(){
 	return hay;
 }
 
-t_personaje_niv * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
-	t_personaje_niv * personaje = buscaPersonajeCercano(enemigo);
+t_personaje_niv1 * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
+	t_personaje_niv1 * personaje = buscaPersonajeCercano(enemigo);
 	if(IMPRIMIR_INFO_ENEMIGO)
 		log_info(logger,"Buscando al personaje mas cercano.. Es %s ", personaje->simbolo);
 
@@ -122,7 +136,7 @@ t_personaje_niv * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
 	return personaje;
 }
 
-char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje){
+char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje_niv1 * personaje){
 	t_posicion * posicionActual = enemigo->posicion;
 	t_posicion * posicionBuscada = personaje->posicion;
 
@@ -138,7 +152,7 @@ char * estoyEnLineaRectaAlPersonaje(t_enemigo * enemigo, t_personaje_niv * perso
 }
 
 
-void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv * personaje, char * orientacion){
+void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * orientacion){
 		/* //TODO no estaría esquivando la caja
 
 	if(orientacion == horizontal)
@@ -279,6 +293,8 @@ bool hayCaja(int x, int y){
 		i++;
 	}
 
+	list_destroy_and_destroy_elements(listaRecursosNivel, (void*)recurso_destroy);
+
 	return hay;
 }
 
@@ -286,7 +302,7 @@ bool excedeLimite(int x, int y){
 	return (x<0 || y<0);
 }
 
-int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv * personaje){
+int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv1 * personaje){
 	int valor;
 	if (orientacion == vertical){
 		if(enemigo->posicion->posY > personaje->posicion->posY)
@@ -303,9 +319,9 @@ int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_person
 	return valor;
 }
 
-t_personaje_niv * buscaPersonajeCercano(t_enemigo * enemigo){
+t_personaje_niv1 * buscaPersonajeCercano(t_enemigo * enemigo){
 	t_list * listaPersonajesAtacables = buscarPersonajesAtacables();
-	t_personaje_niv * personajeCercano = list_get(listaPersonajesAtacables,0);
+	t_personaje_niv1 * personajeCercano = list_get(listaPersonajesAtacables,0);
 	int distancia1;
 	int distancia2;
 	int i;
@@ -323,7 +339,7 @@ t_personaje_niv * buscaPersonajeCercano(t_enemigo * enemigo){
 	return personajeCercano;
 }
 
-int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje){
+int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv1 * personaje){
 	int distancia;
 	distancia = abs(enemigo->posicion->posX - personaje->posicion->posX) +
 			abs(enemigo->posicion->posY - personaje->posicion->posY);
@@ -334,7 +350,7 @@ int distanciaAPersonaje(t_enemigo * enemigo, t_personaje_niv * personaje){
 t_list * buscarPersonajesAtacables(){
 	int i;
 	int j;
-	t_personaje_niv * personaje;
+	t_personaje_niv1 * personaje;
 	tRecursosNivel * caja;
 	bool encontrado;
 	t_list * listaPersonajesAtacablesUbicaciones;
@@ -367,6 +383,8 @@ t_list * buscarPersonajesAtacables(){
 		}
 	}
 
+	list_clean(listaPersonajesAtacablesUbicaciones);
+	list_destroy_and_destroy_elements(listaRecursosNivel, (void*)recurso_destroy);
 	return lista;
 }
 
@@ -378,7 +396,11 @@ t_list * obtenerListaPersonajesAtacables(){
 		elemento = list_get(items,i);
 		if (elemento->item_type == PERSONAJE_ITEM_TYPE){
 			t_posicion * pos = posicion_create_pos(elemento->posx, elemento->posy);
-			t_personaje_niv * personaje = personaje_create_pos(charToString(elemento->id), pos);
+
+			t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
+			personaje->posicion = pos;
+			personaje->simbolo = charToString(elemento->id);
+
 			list_add(personajes, personaje);
 		}
 	}
@@ -401,7 +423,7 @@ t_list * obtenerListaCajas(){
 	return cajas;
 }
 
-bool personajeEstaEnCaja(t_personaje_niv * personaje, int posX, int posY){
+bool personajeEstaEnCaja(t_personaje_niv1 * personaje, int posX, int posY){
 	return (personaje->posicion->posX == posX && personaje->posicion->posY == posY);
 }
 
@@ -551,4 +573,9 @@ t_enemigo * enemigo_create(){
 
 
 	return enemigo;
+}
+
+void recurso_destroy(tRecursosNivel * recurso){
+	free(recurso->simbolo);
+	free(recurso);
 }
