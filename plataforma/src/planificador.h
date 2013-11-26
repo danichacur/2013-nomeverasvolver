@@ -25,6 +25,6 @@ int32_t remain_distance;
 void *hilo_planificador(t_niveles_sistema *nivel);
 char * transformarListaCadena(t_list *recursosDisponibles);
 bool plan_enviarMensaje(char* str_nivel, int32_t fd, enum tipo_paquete paquete, char* mensaje);
-
+void agregar_anormales(char* str_nivel, int32_t fd);
 
 #endif /* PLANIFICADOR_H_ */

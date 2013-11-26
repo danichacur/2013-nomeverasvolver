@@ -35,7 +35,7 @@ typedef struct {
 
 void enemigo(int* pIdEnemigo);
 
-t_enemigo * crearseASiMismo();
+t_enemigo * crearseASiMismo(int id);
 bool hayPersonajeAtacable();
 void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orientacion2);
 bool hayCajaOExcedeLimite(int x, int y);
@@ -49,7 +49,7 @@ bool estoyArribaDeAlgunPersonaje(t_enemigo * enemigo);
 void avisarAlNivel(t_enemigo * enemigo);
 t_list * obtenerListaDePersonajesAbajoDeEnemigo(t_enemigo * enemigo);
 void movermeEnL(t_enemigo * enemigo);
-t_enemigo * enemigo_create();
+t_enemigo * enemigo_create(int id);
 
 
 #endif /* ENEMIGO_H_ */

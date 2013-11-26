@@ -92,7 +92,7 @@ int main (){
 
 		}else{
 			log_info(logger, "Hubo un error al leer el socket y el programa finalizara su ejecucion");
-			kill(getpid(), SIGKILL);
+			eliminarEstructuras();
 			break;
 		}
 
@@ -109,6 +109,8 @@ int leerArchivoConfiguracion(){
 	char *PATH_LOG = config_get_string_value(config, "PATH_LOG");
 	graficar = config_get_int_value(config, "graficar");
 
+	nombre= config_get_string_value(config, "Nombre");
+
 	if(graficar){
 
 		logger = log_create(PATH_LOG, "NIVEL", false, LOG_LEVEL_INFO);
@@ -121,10 +123,8 @@ int leerArchivoConfiguracion(){
 		log_info(logger, "La config de graficado para el  %s es %d",nombre,graficar);
 	}
 
-
 	log_info(logger, "Voy a leer mi archivo de configuracion");
 
-	nombre= config_get_string_value(config, "Nombre");
 	log_info(logger, "Encontramos los atributos de %s",nombre);
 
 	quantum = config_get_int_value(config, "quantum");
@@ -222,7 +222,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	pthread_mutex_unlock(&mutex_mensajes);
 
 
-	enum tipo_paquete unMensaje;
+	enum tipo_paquete unMensaje = PER_handshake_ORQ;
 	char* elMensaje=NULL;
 
 	pthread_mutex_lock(&mutex_mensajes);
@@ -239,7 +239,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 
 			}else{
 
-				log_info(logger, "El %s no pudo enviar handshake a plataformaen %s, el nivel se cierra ",nombre,direccionIPyPuerto);
+				log_info(logger, "El %s no pudo enviar handshake a plataforma en %s, el nivel se cierra ",nombre,direccionIPyPuerto);
 				kill(getpid(), SIGKILL);
 
 
@@ -257,7 +257,7 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 }
 
 void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POSTERIOR RESPUESTA DE MENSAJES DEL ORQUESTADOR
-	enum tipo_paquete unMensaje;
+	enum tipo_paquete unMensaje = PER_conexionNivel_ORQ;
 	char* elMensaje=NULL;
 
 
@@ -385,7 +385,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					if(unMensaje==OK1){
 
 						log_info(logger,"enviare la posicion de la caja");
-						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 
 						log_info(logger,"envie la posicion de la caja");
 					} else {
@@ -395,7 +395,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				} else {
 
 						log_info(logger,"enviare la posicion de la caja");
-						int32_t mensaje= enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
+						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 						log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
 
 					}
@@ -539,8 +539,8 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 			{
 				default:
-				log_info(logger, "Recibi cualquier cosa ");
-				kill(getpid(), SIGKILL);
+				log_info(logger, "Recibi mensaje inexistente, la ejecucion del nivel finalizara");
+				eliminarEstructuras();
 				break;
 			}
 
@@ -580,7 +580,7 @@ bool determinarRecursoDisponible(char * recursoSolicitado){
 
 ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY UN RECURSO PEDIDO Y LO DEVUELVE
 	ITEM_NIVEL * item;
-	ITEM_NIVEL * unItem;                      //QUE PASA SI EL RECURSO NO EXISTE?? QUE DEVOLVERIA ITEM?
+	ITEM_NIVEL * unItem;
 	bool encontrado = false;
 
 	int i=0;
@@ -599,7 +599,7 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 	return item;
 }
 
-
+/*
 ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HAY UN PERSONAJE PEDIDO Y LO DEVUELVE
 	ITEM_NIVEL * item;
 	ITEM_NIVEL * unItem;
@@ -621,7 +621,7 @@ ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HA
 	return item;
 }
 
-
+*/
 void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 
 
@@ -630,13 +630,17 @@ void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 		return string_equals_ignore_case(personaje->simbolo,simbolo);
 	}
 
-	list_remove_by_condition(lista, (void*) _esta_el_personaje);
+	t_personaje_niv1 * pers = list_remove_by_condition(lista, (void*) _esta_el_personaje);
+	personaje_destroy(pers);
 
 
+}
 
-
-
-
+void personaje_destroy(t_personaje_niv1 * pers){
+	free(pers->posicion);
+	//list_destroy(pers->recursosActuales);
+	//free(pers->simbolo);
+	free(pers);
 }
 
 t_personaje_niv1 * buscarPersonajeListaPersonajes(t_list * lista, char * simbolo){
@@ -662,15 +666,14 @@ void eliminarEstructuras() { //TERMINAR
 
 	config_destroy(config);
 	log_info(logger,"el nivel ha terminado satisfactoriamente");
+
+	if(graficar){
+		nivel_gui_terminar();
+
+	}
+	log_destroy(logger);
+
 	kill(getpid(), SIGKILL);
-
-
-
-if(graficar){
-	nivel_gui_terminar();
-
-}
-log_destroy(logger);
 
 }
 

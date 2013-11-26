@@ -1,34 +1,31 @@
 #include "enemigo.h"
 #include <commons/log.h>
-
+#include <stdbool.h>
 
 //esta lista de enemigos la agrego para que el nivel los conozca y obtenga sus posiciones para graficarlos
 extern t_list * items;
-extern t_list * listaDeEnemigos; //TODO, hacer el create_list
+extern t_list * listaDeEnemigos;
 extern int32_t socketDeEscucha;
 extern useconds_t sleepEnemigos;
 extern t_log * logger;
 extern bool graficar;
 extern char * nombre;
-t_list * listaDePersonajes;
+
 char * horizontal;
 char * vertical;
 char * cadenaVacia;
-char idEnemigo;
 
 
 //#define PRUEBA_CON_CONEXION false
 //#define IMPRIMIR_INFO_ENEMIGO true
 
 ////////////SEMAFOROS
-extern pthread_mutex_t mx_enemigos;
+//extern pthread_mutex_t mx_enemigos;
 extern pthread_mutex_t mutex_mensajes;
 extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
-
+pthread_mutex_t mx_sarasa;
 pthread_mutex_t mx_borrar_enemigos;
-
-#include <stdbool.h>
 
 bool IMPRIMIR_INFO_ENEMIGO;
 
@@ -53,16 +50,15 @@ void enemigo(int* pIdEnemigo){
 	vertical = "V";
 	cadenaVacia = "";
 
-	char * cadena = string_new();
-	string_append_with_format(&cadena,"%d", (int) pIdEnemigo);
-	idEnemigo = cadena[0];
+	int idEnemigo = (int) pIdEnemigo;
 
 	//pthread_mutex_init(&mx_enemigos,NULL);
 	//pthread_mutex_init(&mutex_mensajes,NULL);
 	//pthread_mutex_init(&mx_lista_personajes,NULL);
 	pthread_mutex_init(&mx_borrar_enemigos,NULL);
+	pthread_mutex_init(&mx_sarasa,NULL);
 
-	t_enemigo * enemigo = crearseASiMismo(); //random, verifica que no se cree en el (0,0)
+	t_enemigo * enemigo = crearseASiMismo(idEnemigo); //random, verifica que no se cree en el (0,0)
 
 	if(IMPRIMIR_INFO_ENEMIGO)
 		log_info(logger,"Posicion inicial del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
@@ -72,35 +68,55 @@ void enemigo(int* pIdEnemigo){
 		sleep(sleepEnemigos/1000);
 
 		if(hayPersonajeAtacable()){
+			pthread_mutex_lock(&mx_sarasa);
 			moverseHaciaElPersonajeDeFormaAlternada(enemigo);
+			pthread_mutex_unlock(&mx_sarasa);
+
 
 			if(estoyArribaDeAlgunPersonaje(enemigo)){
 				avisarAlNivel(enemigo);
 				//break; //TODO borrar esto, es para la prueba.
 			}
 		}else{
+			/*enemigo->posicion->posX = enemigo->posicion->posX +1;
+			pthread_mutex_lock(&mx_lista_items);
+			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			if(graficar)			movermeEnL(enemigo);
+
+				nivel_gui_dibujar(items,nombre);
+			pthread_mutex_unlock(&mx_lista_items);*/
+			pthread_mutex_lock(&mx_sarasa);
 			movermeEnL(enemigo);
+			pthread_mutex_unlock(&mx_sarasa);
+
 		}
+
 	}
 
 	free(enemigo);
 }
 
-t_enemigo * crearseASiMismo(){
+t_enemigo * crearseASiMismo(int id){
 	bool igualACeroCero;
 	t_enemigo * enemigo;
 	while(1){
-		enemigo = enemigo_create();
+		enemigo = enemigo_create(id);
 		igualACeroCero = (enemigo->posicion->posX == 0 && enemigo->posicion->posY == 0);
 		if(!igualACeroCero)
 			break;
 	}
 
 	list_add(listaDeEnemigos, enemigo);
+	pthread_mutex_lock(&mx_lista_items);
 	CrearEnemigo(items,enemigo->id, enemigo->posicion->posX, enemigo->posicion->posY); //cuidado con esto, el enemigo deberia tener id individuales
+	pthread_mutex_unlock(&mx_lista_items);
 
-	if(graficar)
+	if(graficar){
+		pthread_mutex_lock(&mx_lista_items);
 		nivel_gui_dibujar(items,nombre);
+		pthread_mutex_unlock(&mx_lista_items);
+	}
+
 	return enemigo;
 }
 
@@ -379,11 +395,13 @@ t_list * buscarPersonajesAtacables(){
 
 			if(!encontrado)
 				list_add(lista,personaje);
+			else
+				personaje_destroy(personaje);
 
 		}
 	}
 
-	list_clean(listaPersonajesAtacablesUbicaciones);
+	list_destroy(listaPersonajesAtacablesUbicaciones);
 	list_destroy_and_destroy_elements(listaRecursosNivel, (void*)recurso_destroy);
 	return lista;
 }
@@ -459,10 +477,10 @@ void avisarAlNivel(t_enemigo * enemigo){
 			if (elem->item_type == PERSONAJE_ITEM_TYPE)
 				if (strcmp(charToString(persAtacado->id), charToString(elem->id)) == 0){
 					encontrado = true;
-					pthread_mutex_lock(&mx_lista_personajes);
+					pthread_mutex_lock(&mx_lista_items);
 					list_remove(items,i);
 					//TODO ver si no hay que actulizar el mapa
-					pthread_mutex_unlock(&mx_lista_personajes);
+					pthread_mutex_unlock(&mx_lista_items);
 				}
 			i++;
 		}
@@ -555,17 +573,21 @@ void movermeEnL(t_enemigo * enemigo){
 
 
 
-t_enemigo * enemigo_create(){
+t_enemigo * enemigo_create(int id){
+
+	char * idEnemigo = string_new();
+	string_append_with_format(&idEnemigo,"%d",id);
+
 	t_enemigo * enemigo = malloc(sizeof(t_enemigo));
 
 	//enemigo->posicion = posicion_create_pos_rand(); //TODO le saco que cree random la posicion para realizar pruebas
-	enemigo->posicion = posicion_create_pos(10,10);
+	enemigo->posicion = posicion_create_pos(10,id);
 
 	enemigo->ultimoMovimiento = "V";
 	enemigo->cantTurnosEnL = 0;
 	enemigo->orientacion1 = "";
 	enemigo->orientacion2 = 0;
-	enemigo->id=idEnemigo;  //agrego el id de enemigo, necesario para las funciones de grafica del nivel
+	enemigo->id=idEnemigo[0];  //agrego el id de enemigo, necesario para las funciones de grafica del nivel
 
 	//pthread_mutex_lock(&mx_enemigos);
 	//numeroEnemigo++;

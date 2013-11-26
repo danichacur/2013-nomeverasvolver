@@ -20,7 +20,9 @@ t_dictionary *monitoreo;
 pthread_mutex_t mutex_listos;
 pthread_mutex_t mutex_bloqueados;
 pthread_mutex_t mutex_monitoreo;
+pthread_mutex_t mutex_anormales;
 pthread_mutex_t mutex_personajes_para_koopa;
+pthread_mutex_t mutex_log;
 
 int32_t puerto;
 t_config *config;
@@ -122,9 +124,11 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 
 				per->estoy_bloqueado = false;
 				rec->cantidad--;
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger_pla,
 						"Nivel %s: Envio al personaje %c que obtuvo su recurso %c",
 						str_nivel, per->personaje, rec->recurso);
+				pthread_mutex_unlock(&mutex_log);
 				enviarMensaje(per->fd, PLA_rtaRecurso_PER, "0");
 				pthread_mutex_lock(&mutex_listos);
 				list_add(p_listos, per);
@@ -138,15 +142,14 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 				j++;
 				if (rec->cantidad == 0) {
 					free(rec);
-//                                        break;
+
 				} else {
 
 					list_add(recursos_obtenidos, rec);
-					//                                    j--;
+
 				}
 
 			}
-//                        j++;
 
 		}
 
@@ -160,17 +163,19 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 	string_append(&cantidad, ",");
 	string_append(&cantidad, personajes_desbloqueados);
 
-	if (desbloquie || (j != 0) || !string_equals_ignore_case(cantidad,"0,")) {
+	if (desbloquie || (j != 0) || !string_equals_ignore_case(cantidad, "0,")) {
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %s: Envio al nivel los personajes desbloqueados %s",
 				str_nivel, cantidad);
+		pthread_mutex_unlock(&mutex_log);
 
 		enviarMensaje(nivel_fd, PLA_personajesDesbloqueados_NIV, cantidad);
 	}
 	return recursos_libres;
 }
 
-void supr_pers_de_estructuras(int32_t sockett) {
+void suprimir_de_estructuras(int32_t sockett) {
 	//si se desconecta un nivel, automaticamente se caen los personajes que estaban conectados
 	//si se cae un personaje, el mensaje le llega al planificador directamente
 
@@ -180,63 +185,176 @@ void supr_pers_de_estructuras(int32_t sockett) {
 	int32_t _esta_enListas(t_pers_por_nivel *valor) {
 		return valor->fd == sockett;
 	}
+
+	int32_t _esta_enNiveles(t_niveles_sistema *valor) {
+		return valor->fd == sockett;
+	}
+
 	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema,
 			(void*) _esta_enSistema);
-	int32_t _esta_enNiveles(t_niveles_sistema *valor) {
-				return valor->fd == sockett;
-			}
-			t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
-					(void*) _esta_enNiveles);
-	if((aux == NULL) &&  (aux3 == NULL))
-		return;
+
+	t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
+			(void*) _esta_enNiveles);
+
+	if ((aux == NULL )&& (aux3 == NULL))return;
 
 	char *str_nivel;
 
-	if (aux == NULL) {
+	if (aux == NULL ) {
 
 		//se cayo un nivel
 		str_nivel = string_from_format("%d", aux3->nivel);
-		pthread_cancel(aux3->pla);
-		free(aux3);
-		log_info(logger, "Se cayo el nivel %s", str_nivel);
+
+		log_info(logger, "Se cayo el nivel %s.", str_nivel);
 
 		t_list *l_listos = dictionary_remove(listos, str_nivel);
 		t_list *l_bloqueados = dictionary_remove(bloqueados, str_nivel);
-		//t_list *l_anormales = dictionary_remove(anormales, str_nivel);
+		t_list *l_anormales = dictionary_remove(anormales, str_nivel);
 		t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
 
-		//int m;
-		t_pers_por_nivel *elemento = NULL;
-		t_monitoreo *elem = NULL;
-		while (!list_is_empty(l_listos)&&(l_listos != NULL)) {
-			elemento = list_remove(l_listos, 0);
-			enviarMensaje(elemento->fd, PLA_nivelCaido_PER, "0");
-			destruir_personaje(elemento);
+		t_pers_por_nivel *elemento_personaje = NULL;
+		t_monitoreo *elemento_monitoreo = NULL;
+		int32_t *anormal = NULL;
+
+		pthread_mutex_lock(&mutex_listos);
+		while (!list_is_empty(l_listos) && (l_listos != NULL )) {
+			elemento_personaje = list_remove(l_listos, 0);
+			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+											elemento_personaje->personaje,str_nivel);
+			enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+			close(elemento_personaje->fd);
+			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_listos);
-		while (!list_is_empty(l_bloqueados)&&(l_bloqueados != NULL)) {
-			elemento = list_remove(l_bloqueados, 0);
-			enviarMensaje(elemento->fd, PLA_nivelCaido_PER, "0");
-			destruir_personaje(elemento);
+		pthread_mutex_unlock(&mutex_listos);
+
+		pthread_mutex_lock(&mutex_bloqueados);
+		while (!list_is_empty(l_bloqueados) && (l_bloqueados != NULL )) {
+			elemento_personaje = list_remove(l_bloqueados, 0);
+			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+											elemento_personaje->personaje,str_nivel);
+			enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+			close(elemento_personaje->fd);
+			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_bloqueados);
-		/*for (m = 0; !list_is_empty(l_anormales); m++) {
-		 elemento = list_remove(l_anormales, m);
-		 free(elemento);
-		 }
-		 list_destroy(l_anormales);*/
-		while (!list_is_empty(l_monitoreo)&&(l_monitoreo != NULL)) {
-			elem = list_remove(l_monitoreo, 0);
-			if(elem->es_personaje)
-			enviarMensaje(elemento->fd, PLA_nivelCaido_PER, "0");
+		pthread_mutex_unlock(&mutex_bloqueados);
+
+		pthread_mutex_lock(&mutex_anormales);
+		while (!list_is_empty(l_anormales) && (l_anormales != NULL )) {
+			anormal = list_remove(l_anormales, 0);
+			free(anormal);
+		}
+		list_destroy(l_anormales);
+		pthread_mutex_unlock(&mutex_anormales);
+
+		pthread_mutex_lock(&mutex_monitoreo);
+		while (!list_is_empty(l_monitoreo) && (l_monitoreo != NULL )) {
+			elemento_monitoreo = list_remove(l_monitoreo, 0);
+			if (elemento_monitoreo->es_personaje){
+				log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+								elemento_personaje->personaje,str_nivel);
+				enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+				close(elemento_personaje->fd);
+			}
+			free(elemento_monitoreo);
 		}
 		list_destroy(l_monitoreo);
+		pthread_mutex_unlock(&mutex_monitoreo);
+
+		log_info(logger, "Se cancela el hilo planificador del nivel %s",
+				str_nivel);
+		pthread_cancel(aux3->pla);
+		free(aux3);
 
 	} else {
 		//era un personaje lo que se desconecto
 
 		if (aux->nivel != 0) {
-			t_monitoreo *aux1;
+
+			int32_t _buscar_nivel(t_niveles_sistema *valor) {
+				return valor->nivel == aux->nivel;
+			}
+
+			t_niveles_sistema * nivel_es = list_find(niveles_del_sistema,
+					(void *) _buscar_nivel);
+
+			str_nivel = string_from_format("%d", aux->nivel);
+
+			agregar_anormales(str_nivel, sockett);
+
+			t_list *p_listos = dictionary_get(listos, str_nivel);
+			t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+			t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
+
+			t_monitoreo *aux1 = NULL;
+			t_pers_por_nivel * aux2 = NULL;
+
+			if (p_monitoreo != NULL ) {
+				pthread_mutex_lock(&mutex_monitoreo);
+				aux1 = list_remove_by_condition(p_monitoreo,
+						(void*) _esta_enSistema);
+				pthread_mutex_unlock(&mutex_monitoreo);
+				free(aux1);
+
+			}
+
+			if (p_bloqueados != NULL ) {
+				pthread_mutex_lock(&mutex_bloqueados);
+				aux2 = list_remove_by_condition(p_bloqueados,
+						(void*) _esta_enListas);
+				pthread_mutex_unlock(&mutex_bloqueados);
+			}
+
+			if (aux2 == NULL ) {
+				if (p_listos != NULL ) {
+					pthread_mutex_lock(&mutex_listos);
+					aux2 = list_remove_by_condition(p_listos,
+							(void*) _esta_enListas);
+					pthread_mutex_unlock(&mutex_listos);
+				}
+			}
+
+			if (aux2 != NULL ) {
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger_pla, "Nivel %s: El personaje %c del soket %d se desconecto ",
+						str_nivel, aux2->personaje, aux2->fd);
+				pthread_mutex_unlock(&mutex_log);
+
+				if (!list_is_empty(aux2->recursos_obtenidos)) {
+					proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd,
+							str_nivel);
+				}
+				close(aux2->fd);
+				destruir_personaje(aux2);
+				free(aux2);
+			}
+		}
+	}
+	free(aux);
+}
+
+void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
+
+	int32_t _esta_enSistema(t_monitoreo *valor) {
+		return valor->fd == personaje->fd;
+	}
+	int32_t _esta_enListas(t_pers_por_nivel *valor) {
+		return valor->fd == personaje->fd;
+	}
+	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema,
+			(void*) _esta_enSistema);
+
+	char *str_nivel;
+
+	if (aux == NULL ) {
+		log_info(logger,
+				"suprimir_personaje_de_estructuras: el personaje ya fue borrado");
+
+	} else {
+
+		if (aux->nivel != 0) { //o sea que no se desconecto apenas entro.. aca nunca va a pasar
+
 			int32_t _buscar_nivel(t_niveles_sistema *valor) {
 				return valor->nivel == aux->nivel;
 			}
@@ -244,48 +362,50 @@ void supr_pers_de_estructuras(int32_t sockett) {
 					(void *) _buscar_nivel);
 
 			str_nivel = string_from_format("%d", aux->nivel);
+			t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 			t_list *p_listos = dictionary_get(listos, str_nivel);
 			t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
-			//t_list *p_anormales = dictionary_get(anormales, str_nivel);
-			t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 
-			if (p_monitoreo != NULL){
-			pthread_mutex_lock(&mutex_monitoreo);
-			aux1 = list_remove_by_condition(p_monitoreo,
-					(void*) _esta_enSistema);
-			pthread_mutex_unlock(&mutex_monitoreo);
-			free(aux1);
-
-			}
+			t_monitoreo *aux1;
 			t_pers_por_nivel * aux2 = NULL;
-			if (p_bloqueados != NULL){
-			pthread_mutex_lock(&mutex_bloqueados);
-			aux2 = list_remove_by_condition(p_bloqueados,
-					(void*) _esta_enListas);
-			pthread_mutex_unlock(&mutex_bloqueados);
-			}
-			if (aux2 == NULL ) {
 
-				if (p_listos != NULL){
+			if (p_monitoreo != NULL ) {
+				pthread_mutex_lock(&mutex_monitoreo);
+				aux1 = list_remove_by_condition(p_monitoreo,
+						(void*) _esta_enSistema);
+				pthread_mutex_unlock(&mutex_monitoreo);
+				free(aux1);
+
+			}
+
+			if (p_bloqueados != NULL ) {
+				pthread_mutex_lock(&mutex_bloqueados);
+				aux2 = list_remove_by_condition(p_bloqueados,
+						(void*) _esta_enListas);
+				pthread_mutex_unlock(&mutex_bloqueados);
+			}
+
+			if (p_listos != NULL ) {
 				pthread_mutex_lock(&mutex_listos);
 				aux2 = list_remove_by_condition(p_listos,
 						(void*) _esta_enListas);
 				pthread_mutex_unlock(&mutex_listos);
-				}
-				//if (aux2 == NULL ) {
+			}
 
-				//si no estaba en listos, se estaba planificando en el momento.. lolaa
-				// no hay tratamiento para eso
-				// o se desconecto porque termino su plan de niveles
-				//  log_info(logger,
-				//        "EL personaje muerto se estaba planificando. Rompe todo!!!. O , termino el nivel correctamente");
-				// }
-				//}
+			pthread_mutex_lock(&mutex_log);
+			log_info(logger_pla, "Nivel %s: El personaje %c del socket %d se desconecto ",
+					str_nivel, personaje->personaje, personaje->fd);
+			pthread_mutex_unlock(&mutex_log);
+
+			agregar_anormales(str_nivel, personaje->fd);
+
+			if (!list_is_empty(personaje->recursos_obtenidos)) {
+				proceso_desbloqueo(personaje->recursos_obtenidos, nivel_es->fd,
+						str_nivel);
 			}
-			if ((aux2 != NULL) && (!list_is_empty(aux2->recursos_obtenidos))) {
-				proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd, str_nivel);
-				destruir_personaje(aux2);
-			}
+
+			destruir_personaje(personaje);
+			free(aux2);
 		}
 	}
 	free(aux);
@@ -299,8 +419,11 @@ void imprimir_lista(int32_t tipo, char *str_nivel) {
 	if (tipo == LISTA_LISTOS) {
 		//lista de listos
 		t_list *p_listos = dictionary_get(listos, str_nivel);
-		log_info(logger_pla, "Nivel %s: Se imprime lista de personajes listos *************",
+		pthread_mutex_lock(&mutex_log);
+		log_info(logger_pla,
+				"Nivel %s: Se imprime lista de personajes listos *************",
 				str_nivel);
+		pthread_mutex_unlock(&mutex_log);
 		pthread_mutex_lock(&mutex_listos);
 		for (i = 0; i < list_size(p_listos); i++) {
 			elemento = list_get(p_listos, i);
@@ -308,23 +431,29 @@ void imprimir_lista(int32_t tipo, char *str_nivel) {
 			list_add_all(auxiliar, elemento->recursos_obtenidos);
 			cadena = transformarListaCadena(auxiliar);
 			list_destroy(auxiliar);
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger_pla,
 					"Nivel %s: Personaje: %c, posee los recursos: %s, remaining distance: %d",
 					str_nivel, elemento->personaje, cadena,
 					abs(elemento->pos_recurso - elemento->pos_inicial));
+			pthread_mutex_unlock(&mutex_log);
 			free(cadena);
 		}
 
 		pthread_mutex_unlock(&mutex_listos);
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %s: Fin de impresión de la lista de personajes listos *************",
 				str_nivel);
+		pthread_mutex_unlock(&mutex_log);
 	} else {
 		// lista de bloqueados
 		t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %s: Se imprime lista de personajes bloqueados -------------",
 				str_nivel);
+		pthread_mutex_unlock(&mutex_log);
 		pthread_mutex_lock(&mutex_bloqueados);
 		for (i = 0; i < list_size(p_bloqueados); i++) {
 			elemento = list_get(p_bloqueados, i);
@@ -333,16 +462,20 @@ void imprimir_lista(int32_t tipo, char *str_nivel) {
 			cadena = transformarListaCadena(auxiliar);
 			list_destroy(auxiliar);
 			int remain = abs(elemento->pos_recurso - elemento->pos_inicial);
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger_pla,
 					"Nivel %s: Personaje: %c, bloqueado por: %c, posee los recursos: %s, remaining distance: %d",
 					str_nivel, elemento->personaje, elemento->recurso_bloqueo,
 					cadena, remain);
+			pthread_mutex_unlock(&mutex_log);
 			free(cadena);
 		}
 		pthread_mutex_unlock(&mutex_bloqueados);
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %s: Fin de impresión de la lista de personajes bloqueados -------------",
 				str_nivel);
+		pthread_mutex_unlock(&mutex_log);
 	}
 
 }
@@ -382,6 +515,8 @@ int main() {
 	pthread_mutex_init(&mutex_listos, NULL );
 	pthread_mutex_init(&mutex_bloqueados, NULL );
 	pthread_mutex_init(&mutex_monitoreo, NULL );
+	pthread_mutex_init(&mutex_log, NULL );
+	pthread_mutex_init(&mutex_anormales, NULL );
 	pthread_mutex_init(&mutex_personajes_para_koopa, NULL );
 	//inicialización
 
@@ -432,7 +567,7 @@ int main() {
 					}
 				} else {
 
-					enum tipo_paquete tipoMensaje;
+					enum tipo_paquete tipoMensaje = PER_posCajaRecurso_PLA;
 					char* mensaje = NULL;
 
 					// gestionar datos del cliente del socket i!
@@ -440,7 +575,7 @@ int main() {
 							&mensaje)!= EXIT_SUCCESS) {
 
 						//eliminarlo de las estructuras
-						supr_pers_de_estructuras(i);
+						suprimir_de_estructuras(i);
 						//eliminarlo de las estructuras
 
 						close(i); // ¡Hasta luego!
@@ -451,10 +586,20 @@ int main() {
 								obtenerNombreEnum(tipoMensaje));
 						log_info(logger, "Llego este mensaje: %s .", mensaje);
 
-						if ((tipoMensaje == PER_conexionNivel_ORQ)
-								|| (tipoMensaje == NIV_handshake_ORQ))
-							FD_CLR(i, &master); // eliminar del conjunto maestro
+						if (tipoMensaje == PER_conexionNivel_ORQ) {
+//								|| (tipoMensaje == NIV_handshake_ORQ))
 
+							t_list *p_monitor = dictionary_get(monitoreo,
+									mensaje);
+							if (p_monitor != NULL ) {
+								FD_CLR(i, &master); // eliminar del conjunto maestro
+							}
+
+						} else {
+							if (tipoMensaje == NIV_handshake_ORQ) {
+								FD_CLR(i, &master); // eliminar del conjunto maestro
+							}
+						}
 						orquestador_analizar_mensaje(i, tipoMensaje, mensaje);
 
 					} // fin seccion recibir OK los datos
@@ -494,7 +639,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		nuevo->algol = n_mensaje[1];
 		nuevo->quantum = atoi(n_mensaje[2]);
 		nuevo->retardo = atoi(n_mensaje[3]);
-        nuevo->remain_distance = atoi(n_mensaje[4]);
+		nuevo->remain_distance = atoi(n_mensaje[4]);
 		//nuevo->remain_distance = 4;
 
 		list_add(niveles_del_sistema, nuevo);
@@ -610,7 +755,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		t_monitoreo *item = per_monitor_crear(true, personaje, 0, sockett);
 		list_add(personajes_del_sistema, item);
 		//estructura: personajes_del_sistema
-		//estructura: personajes en el sistema
+
 		int32_t _esta_personaje(t_pers_koopa *koopa) {
 			return koopa->personaje == personaje;
 		}
@@ -621,17 +766,14 @@ void orquestador_analizar_mensaje(int32_t sockett,
 			aux->termino_plan = true;
 		else
 			log_info(logger, "error al buscar el personaje");
-		//todo: hacer tratamiento de errores
+		// hacer tratamiento de errores
 		pthread_mutex_unlock(&mutex_personajes_para_koopa);
 
 		//pregunto si _ya_terminaron terminaron todos
 		int32_t _ya_terminaron(t_pers_koopa *koopa) {
 			return (koopa->termino_plan);
 		}
-		/*t_list* pendientes = list_filter(personajes_del_sistema,
-		 (void*) _esta_pendiente);
-		 if (list_is_empty(pendientes))*/
-		//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
+
 		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron)) {
 			log_info(logger, "Se lanza koopa =)");
 
@@ -640,7 +782,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 				char * const paramList[] =
 						{ ruta_koopa, ruta_disco, ruta_script };
 				execv(ruta_koopa, paramList);
-				  exit(0);
+				exit(0);
 			} else { //si es el padre
 				int retorno = 0;
 				wait(&retorno);
@@ -648,12 +790,11 @@ void orquestador_analizar_mensaje(int32_t sockett,
 						"La ejecucion de koopa retorno el valor %d, el pid del proceso era %d",
 						retorno, pid);
 				//if (retorno == pid)
-					log_info(logger,
-							"Ambos valores son iguales. FIN DEL JUEGO");
+				log_info(logger, "Ambos valores son iguales. FIN DEL JUEGO");
 				exit(0);
 			}
 		}
-		//list_destroy(pendientes);
+
 		//pregunto si ya terminaron todos
 		break;
 	}

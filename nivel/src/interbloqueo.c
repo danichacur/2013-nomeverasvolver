@@ -37,14 +37,15 @@ void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 		listaInterbloqueados = obtenerPersonajesInterbloqueados();
 		if(hayInterbloqueo(listaInterbloqueados)){
 			//log_info(logger, "Se detectó un Interbloqueo. Los personajes involucrados son %s", obtenerIdsPersonajes(listaInterbloqueados));
-			printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
 
 			if(recovery == 1){
 				t_personaje_niv1 * personaje = seleccionarVictima(listaInterbloqueados);
 				informarVictimaAPlanificador(personaje);
 				list_clean(listaInterbloqueados);
 				list_destroy(listaInterbloqueados);
-			}
+			}else
+				printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
+
 
 		}//else
 			//log_info(logger, "No se detectaron interbloqueos.");

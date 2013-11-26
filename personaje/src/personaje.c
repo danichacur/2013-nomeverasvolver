@@ -142,10 +142,10 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		log_info(logger, "Perdí una vida porque estaba interbloqueado");
 	}
 
-	log_info(logger, "envio mensaje PER_meMori_PLA con el mensaje %s", personaje->simbolo);
-	enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, personaje->simbolo);
-	char * mensaje;
-	recibirUnMensaje(obtenerFDPlanificador(ordNivel), OK1, &mensaje,ordNivel);
+	//log_info(logger, "envio mensaje PER_meMori_PLA con el mensaje %s", personaje->simbolo);
+	//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_meMori_PLA, personaje->simbolo);
+	//char * mensaje;
+	//recibirUnMensaje(obtenerFDPlanificador(ordNivel), OK1, &mensaje,ordNivel);
 
 	if(meQuedanVidas()){
 		descontarUnaVida();
