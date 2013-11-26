@@ -61,6 +61,8 @@ typedef struct grasa_adm_t {
 typedef struct grasa_obtenerNroBloque_t {
         ptrGBloque BloqueDatos;
         off_t offsetDatos;
+        ptrGBloque entero;
+        ptrGBloque indirecto;
 } tObNroBloque;
 
 

@@ -19,7 +19,7 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 	int res=0;
 	uint32_t i;
 
-	printf("grasa_getattr|path:%s\n",path);
+	//printf("grasa_getattr|path:%s\n",path);
 
 	memset(stbuf, 0, sizeof(struct stat));
 
@@ -56,8 +56,8 @@ static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 	if (i == 1024)
 		return -ENOENT;
 
-	if ((fi->flags & 3) != O_RDONLY)
-		return -EACCES;
+	//if ((fi->flags & 3) != O_RDONLY)
+	//	return -EACCES;
 
 	return 0;
 }
@@ -67,12 +67,14 @@ static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
         (void) fi;
         size_t aCopiar=0,aLeer=0;
+        off_t off;
         tObNroBloque NroBloque;
         uint32_t i;
+        char * bufaux;
 
         i = obtenerNodo(path,0);
 
-        printf("grasa_read,size:%d,offset%d,fsize:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
+        printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
 
         if (i == 1024)
                 return -ENOENT;
@@ -83,10 +85,11 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         if (offset <= GTNodo[i].file_size) {
 
         	aLeer = GTNodo[i].file_size;
+        	off   = offset;
 
-        	while(offset < GTNodo[i].file_size){
+        	while(off < GTNodo[i].file_size){
 
-        		NroBloque = obtenerNroBloque(i,offset);
+        		NroBloque = obtenerNroBloque(i,off);
 
         		if (aLeer >= BLOCK_SIZE){
         			aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
@@ -95,14 +98,22 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         			aCopiar = aLeer;
         		}
 
-        		printf("offset:%d,aCopiar:%d\n",(int)offset,(int)aCopiar);
-        		printf("offsetDa:%d,nB:%d\n",(int)NroBloque.offsetDatos,(int)NroBloque.BloqueDatos);
+        		printf("offset:%d,aCopiar:%d\n",(int)off,(int)aCopiar);
+        		printf("offsetdelbloquedeDatos:%d,NroBloquedatos:%d\n",(int)NroBloque.offsetDatos,(int)NroBloque.BloqueDatos);
 
-        		memcpy(&buf[offset],obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
+        		bufaux = (char *) mapeo + (NroBloque.BloqueDatos*BLOCK_SIZE + NroBloque.offsetDatos);
+        		printf("strlen buf acopiar:%d\n",strlen(bufaux));
 
-        		//buf += aCopiar;
+        		//memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
+        		memcpy(buf,bufaux,aCopiar);
+
+        		printf("strlen buffer_fuse:%d\n",strlen(buf));
+
+        		buf += aCopiar;
         		aLeer-=aCopiar;
-        		offset += aCopiar;
+        		off += aCopiar;
+
+        		printf("aLeer:%d,nuevo offset:%d\n",(int)aLeer,(int)off);
             }
             //TODO ver si usar size o filesize
             buf -= GTNodo[i].file_size;
@@ -120,7 +131,7 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	(void) fi;
 	uint32_t i=0,j=0,k=0,l=0;
 
-	printf("grasa_readdir|path:%s\n",path);
+	//printf("grasa_readdir|path:%s\n",path);
 
 	// "." y ".." son entradas validas, la primera es una referencia al directorio donde estamos parados
 	// y la segunda indica el directorio padre
@@ -168,8 +179,6 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 			i=1024;
 		}
 	}
-
-	printf("jota:%d,\n",(int)j);
 
 	if(j < 1024){
 
@@ -237,7 +246,8 @@ static uint32_t grasa_rmdir(const char *path){
 // - grasa_unlink -
 
 static uint32_t grasa_unlink(const char *path){
-	ptrGBloque i=0,j=0,k;
+	ptrGBloque i=0,j=0,k,entero,*blqindatos;
+	size_t fsize;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 	printf("grasa_unlink|path:%s\n",path);
@@ -251,21 +261,33 @@ static uint32_t grasa_unlink(const char *path){
 		return -EFAULT;
 
 	pthread_mutex_lock( &mutex1 );
+		fsize = GTNodo[k].file_size;
 		GTNodo[k].parent_dir_block = 0;
 		GTNodo[k].file_size = 0;
 		GTNodo[k].state = 0;
 		GTNodo[k].c_date = 0;
 		GTNodo[k].m_date = 0;
 
-		//Liberar inodo, se coloca +2 ya que el NroNodo es relativo a la tabla de Nodos
-		//bitarray_clean_bit(GBitmap,k+2);
+		entero = fsize/BLOCK_SIZE;
+		if(fsize%BLOCK_SIZE && entero < GFILEBYTABLE )
+			entero++;
 
-		j = GTNodo[k].blk_indirect[i];
-		while (bitarray_test_bit(GBitmap,j) && i > 1024){
-			bitarray_clean_bit(GBitmap,j);
+		while (i < BLKINDIRECT && GTNodo[k].blk_indirect[i] != 0 ){
+			j=0;
+			while (j < GFILEBYTABLE && entero ){
+		    	blqindatos = (ptrGBloque*)(mapeo + GTNodo[k].blk_indirect[i]*BLOCK_SIZE);
+				if (bitarray_test_bit(GBitmap,*(blqindatos+j)))
+					bitarray_clean_bit(GBitmap,*(blqindatos+j));
+				*(blqindatos+j) = 0;
+				j++;
+				entero--;
+			}
+			if (bitarray_test_bit(GBitmap,GTNodo[k].blk_indirect[i]))
+				bitarray_clean_bit(GBitmap,GTNodo[k].blk_indirect[i]);
+			GTNodo[k].blk_indirect[i] = 0;
 			i++;
-			j = GTNodo[k].blk_indirect[i];
 		}
+
 	pthread_mutex_unlock( &mutex1 );
 
 	return 0;
@@ -317,7 +339,6 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 		}
 	}
 
-		printf("j:%d\n", (int)j);
 
 	if(j < 1024){
 		pthread_mutex_lock( &mutex1 );
@@ -356,41 +377,84 @@ static uint32_t grasa_utimens(const char* path, const struct timespec ts[2]){
 static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi){
 	(void) fi;
 	(void) offset;
-	uint32_t i;
-	size_t aCopiar=0;
+	uint32_t i,j;
+	size_t aCopiar=0,aGrabar=0,off=0;
 	tObNroBloque NroBloque;
+	ptrGBloque *bloqueDatosIndirecto;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_write\n");
+	printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
 
 	i = obtenerNodo(path,0);
+
+	printf("iNodo:%d\n",(int)i);
 
 	if (i == 1024)
 		return -ENOENT;
 
 	if (offset + size > BLOCK_SIZE*BLKINDIRECT)
-		return 0;
+		return -ENOMEM;
+
+	aGrabar = size;
+	off = offset;
 
 	pthread_mutex_lock( &mutex1 );
 
-	while(offset <= offset + size){
+	while(off < offset + size){
 
-		NroBloque = obtenerNroBloque(i,offset);
+		NroBloque = obtenerNroBloque(i,off);
 
-		if (bitarray_test_bit(GBitmap,NroBloque.BloqueDatos))
-				bitarray_set_bit(GBitmap,NroBloque.BloqueDatos);
+		printf("Nb:%d,Off:%d,ind:%d,ent:%d,cantbloqd:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,NroBloque.indirecto,NroBloque.entero,(int)cantBloquesDatos);
 
-		aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
+		if(NroBloque.BloqueDatos == 0){
+			if (NroBloque.indirecto == 0 && NroBloque.entero == 0){
+				for (j=1026; j < (cantBloquesDatos*8)-1; j++){
+					if (!bitarray_test_bit(GBitmap,j)){
+						bitarray_set_bit(GBitmap,j);
+						GTNodo[i].blk_indirect[NroBloque.indirecto] = j;
+						for (j=0; j < 1024; j++){
+								bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
+								*(bloqueDatosIndirecto + j) = 0;
+							}
+						printf("indirecto:%d,\n",(int)GTNodo[i].blk_indirect[NroBloque.indirecto]);
+						break;
+					}
+				}
+			}
+
+			for (j=1026; j < (cantBloquesDatos*8)-1; j++){
+				if (!bitarray_test_bit(GBitmap,j)){
+					bitarray_set_bit(GBitmap,j);
+					bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
+					*(bloqueDatosIndirecto + NroBloque.entero) = j;
+					NroBloque.BloqueDatos = j;
+					printf("blqdatos:%d,\n",(int)*(bloqueDatosIndirecto + NroBloque.entero));
+					break;
+				}
+			}
+		}
+
+		printf("Nb:%d,Off:%d,agrabar:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,aGrabar,aCopiar);
+
+		if (aGrabar >= BLOCK_SIZE){
+			aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
+		}
+		else{
+			aCopiar = aGrabar;
+		}
 
 		memcpy(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),buf,aCopiar);
 
+		printf("sizebuf:%d,buf:%s,sizedat:%d,bufdat:%s\n",strlen(buf),buf,strlen(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos)),obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos));
+
 		buf += aCopiar;
-		offset += aCopiar;
+		aGrabar-=aCopiar;
+		off += aCopiar;
 	}
 	//TODO ver si usar size o filesize
-	GTNodo[i].file_size = offset + size;
+	GTNodo[i].file_size = size + offset;
 	GTNodo[i].m_date = (uint64_t)time(NULL);
-	buf -= size;
+	buf -=size + offset;
 
 	pthread_mutex_unlock( &mutex1 );
 
@@ -456,7 +520,7 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 						(strcmp(GTNodo[GTNodo[i].parent_dir_block-1].fname,dir3) == 0) &&
 						(GTNodo[GTNodo[i].parent_dir_block-1].parent_dir_block == 0) &&
 						(GTNodo[i].state != 0)){
-						printf("2 NodoBuscado: %s, posi: %d\n",Filename,i);
+						//printf("2 NodoBuscado: %s, posi: %d\n",Filename,i);
 						return i;
 					}
 				}
@@ -554,27 +618,32 @@ ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k)
 
 // - obtenerNroBloque -
 //Entrada: dado el nro de inodo y un offset del archivo a procesar.
-//Salida: offset del bloque de datos y bloque de datos.
+//Salida: offset del bloque de datos,bloque de datos, posicion array indirectos y posicion entera dentro del array de 1024.
 
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
-        off_t entero,indirecto;
-        tObNroBloque admNroBloque;
-        ptrGBloque *blqindatos;
+	ptrGBloque entero,indirecto,*blqindatos;
+    tObNroBloque admNroBloque;
 
-        printf("obtenerNroBloque\n");
+    printf("obtenerNroBloque\n");
 
-        entero = offsetArchivo / BLOCK_SIZE;
-        indirecto = entero / GFILEBYTABLE;
+    entero = offsetArchivo / BLOCK_SIZE;
+    indirecto = entero / GFILEBYTABLE;
 
-        //Se calcula el resto y se resta 1 para contar desde 0.
-        admNroBloque.offsetDatos = offsetArchivo % BLOCK_SIZE;
-        //if (entero) --admNroBloque.offsetDatos;
+    //Se calcula el resto y se resta 1 para contar desde 0.
+    admNroBloque.offsetDatos = offsetArchivo % BLOCK_SIZE;
+    //if (entero) --admNroBloque.offsetDatos;
 
-    blqindatos = (ptrGBloque*)(mapeo + GTNodo[NroNodo].blk_indirect[indirecto]*BLOCK_SIZE);
+	admNroBloque.BloqueDatos = 0;
+    admNroBloque.indirecto = indirecto;
+    admNroBloque.entero= entero;
+    printf("obtNroBlqfsize:%d\n",(int)GTNodo[NroNodo].file_size);
 
-    admNroBloque.BloqueDatos = *(blqindatos+entero);
+    if(GTNodo[NroNodo].file_size != 0){
+    	blqindatos = (ptrGBloque*)(mapeo + GTNodo[NroNodo].blk_indirect[indirecto]*BLOCK_SIZE);
+    	admNroBloque.BloqueDatos = *(blqindatos+entero);
+    }
 
-        return admNroBloque;
+    return admNroBloque;
 
 }
 
