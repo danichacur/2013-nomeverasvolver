@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // aca esta memset
+#include <string.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <errno.h>
@@ -66,21 +66,27 @@ typedef struct grasa_obtenerNroBloque_t {
 } tObNroBloque;
 
 
-//Variable Global estructura FS Grasa
+//VARIABLES GLOBALES - MANEJO DE ESTRUCTURAS
+
 GAdm *GAdmin;
 GFile *GTNodo;
 t_bitarray *GBitmap;
 ptrGBloque cantBloquesDatos;
 char * mapeo; //Disco mapeado Global
 
-//Prototipos
-//Funciones auxiliares
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//PROTOTIPOS
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//FUNCIONES AUXILIARES
+
 //tNodoBuscado obtenerNodo(const char *path,uint32_t j);
 ptrGBloque obtenerNodo(const char *path,uint32_t j);
 ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k);
 tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo);
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque);
-/*fuse functions */
+
+//FUSE FUNCTIONS
 
 static uint32_t grasa_getattr(const char *path, struct stat *statbuf); //Obtener atributos
 static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,struct fuse_file_info *fi); //Leer contenido de directorio

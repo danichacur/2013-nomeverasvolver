@@ -10,7 +10,9 @@
 
 #include "grasa.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTACION DE FUNCIONES FUSE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //grasa_getattr
 
@@ -27,10 +29,6 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 
 	if (i == 1024)
 		return -ENOENT;
-
-	//printf("path: %s\n",path);
-	//printf("Nodo.name: %s\n",GTNodo[i].fname);
-	//printf("Nodo.state: %d\n",GTNodo[i].state);
 
 	if (GTNodo[i].state == 2) {
 		stbuf->st_mode = S_IFDIR | 0755;
@@ -70,7 +68,6 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         off_t off;
         tObNroBloque NroBloque;
         uint32_t i;
-        char * bufaux;
 
         i = obtenerNodo(path,0);
 
@@ -82,12 +79,12 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         if (offset + size > GTNodo[i].file_size)
                 size = GTNodo[i].file_size - offset;
 
-        if (offset <= GTNodo[i].file_size) {
+        if (offset < GTNodo[i].file_size) {
 
         	aLeer = GTNodo[i].file_size;
         	off   = offset;
 
-        	while(off < GTNodo[i].file_size){
+        	while(off < offset + size){
 
         		NroBloque = obtenerNroBloque(i,off);
 
@@ -98,26 +95,13 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         			aCopiar = aLeer;
         		}
 
-        		printf("offset:%d,aCopiar:%d\n",(int)off,(int)aCopiar);
-        		printf("offsetdelbloquedeDatos:%d,NroBloquedatos:%d\n",(int)NroBloque.offsetDatos,(int)NroBloque.BloqueDatos);
-
-        		bufaux = (char *) mapeo + (NroBloque.BloqueDatos*BLOCK_SIZE + NroBloque.offsetDatos);
-        		printf("strlen buf acopiar:%d\n",strlen(bufaux));
-
-        		//memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
-        		memcpy(buf,bufaux,aCopiar);
-
-        		printf("strlen buffer_fuse:%d\n",strlen(buf));
+        		memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
 
         		buf += aCopiar;
         		aLeer-=aCopiar;
         		off += aCopiar;
-
-        		printf("aLeer:%d,nuevo offset:%d\n",(int)aLeer,(int)off);
             }
-            //TODO ver si usar size o filesize
-            buf -= GTNodo[i].file_size;
-            size = GTNodo[i].file_size;
+            buf -= size;
         } else
                 size = 0;
 
@@ -145,7 +129,6 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 		if (l != 1024){
 			filler(buf,GTNodo[l].fname, NULL, 0);
 			i = l;
-			//printf("filedir:%s,i:%d,Nn:%d\n",GTNodo[l].fname,i,l);
 			j = 1;
 		}
 		i++;
@@ -356,7 +339,6 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 			GTNodo[j].c_date = (uint64_t)time(NULL);
 			GTNodo[j].m_date = (uint64_t)time(NULL);
 
-			//bitarray_set_bit(GBitmap,j);
 		pthread_mutex_unlock( &mutex1 );
 
 		return 0;
@@ -386,8 +368,6 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
 
 	i = obtenerNodo(path,0);
-
-	printf("iNodo:%d\n",(int)i);
 
 	if (i == 1024)
 		return -ENOENT;
@@ -451,7 +431,6 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 		aGrabar-=aCopiar;
 		off += aCopiar;
 	}
-	//TODO ver si usar size o filesize
 	GTNodo[i].file_size = size + offset;
 	GTNodo[i].m_date = (uint64_t)time(NULL);
 	buf -=size + offset;
@@ -461,7 +440,9 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	return size;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //FUNCIONES AUXILIARES
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // - obtenerNodo -
 //Entrada: Dado el path y el numero de inodo a partir del cual se quiere buscar (consecutivo)
@@ -486,11 +467,6 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 	dir3 = strdup(path);
 	dir3 = dirname(dir3);
 	dir3 = basename(dir3);
-
-	//printf("dir1:%s\n",dir1);
-	//printf("dir2:%s\n",dir2);
-	//printf("dir3:%s\n",dir3);
-	//printf("filename:%s\n",Filename);
 
 	//Directorio raiz
 	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(dir3, "/") == 0 && strcmp(Filename, "/") == 0){
@@ -588,10 +564,6 @@ ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k)
 	dir3 = dirname(dir3);
 	dir3 = basename(dir3);
 
-//	printf("dir1:%s\n",dir1);
-//	printf("dir2:%s\n",dir2);
-//	printf("filename:%s\n",Filename);
-
 	//Directorio raiz
 	if (strcmp(dir1, "/") == 0  && strcmp(dir2, "/") == 0 && strcmp(dir3, "/") == 0 && strcmp(Filename, "/") == 0){
 		for (i = j; i < 1024; i++){
@@ -629,9 +601,7 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
     entero = offsetArchivo / BLOCK_SIZE;
     indirecto = entero / GFILEBYTABLE;
 
-    //Se calcula el resto y se resta 1 para contar desde 0.
     admNroBloque.offsetDatos = offsetArchivo % BLOCK_SIZE;
-    //if (entero) --admNroBloque.offsetDatos;
 
 	admNroBloque.BloqueDatos = 0;
     admNroBloque.indirecto = indirecto;
@@ -685,10 +655,6 @@ int main(int argc, char *argv[]) {
 
 	path = "/home/utnso/Escritorio/tmp/disk.bin";
 
-	//memcpy (pathf,argv[1],strlen(argv[1]));
-	//pathf[strlen(argv[1])] = '\0';
-	//strcat(path,pathm);
-
     printf("File: %s\n",path);
 
     fd = open(path,O_RDWR);
@@ -711,38 +677,6 @@ int main(int argc, char *argv[]) {
     GTNodo = GAdmin->admTnodo;
     cantBloquesDatos = sbuf.st_size/BLOCK_SIZE/8;
     GBitmap = bitarray_create(GAdmin->admbitmap,cantBloquesDatos);
-
-//    printf("File0: %s\n",GTNodo[0].fname);
-    //    printf("File: %d\n",GTNodo[0].parent_dir_block);
-    //printf("File1: %s\n",GTNodo[1].fname);
-    //printf("File: %d\n",GTNodo[1].parent_dir_block);
-    //printf("File2: %s\n",GTNodo[2].fname);
-    //printf("File: %d\n",GTNodo[2].parent_dir_block);
-    //printf("File3: %s\n",GTNodo[3].fname);
-    //printf("File: %d\n",GTNodo[3].parent_dir_block);
-    //printf("File4: %s\n",GTNodo[4].fname);
-    //printf("File: %d\n",GTNodo[4].parent_dir_block);
-    //printf("File5: %s\n",GTNodo[5].fname);
-    //printf("File: %d\n",GTNodo[5].parent_dir_block);
-    //printf("File6: %s\n",GTNodo[6].fname);
-    //printf("File: %d\n",GTNodo[6].parent_dir_block);
-    //printf("File7: %s\n",GTNodo[7].fname);
-    //printf("File: %d\n",GTNodo[7].parent_dir_block);
-    //printf("File8: %s\n",GTNodo[8].fname);
-    //printf("File: %d\n",GTNodo[8].parent_dir_block);
-    //printf("File9: %s\n",GTNodo[9].fname);
-    //printf("File: %d\n",GTNodo[9].parent_dir_block);
-    //printf("File10: %s\n",GTNodo[10].fname);
-    //printf("File: %d\n",GTNodo[10].parent_dir_block);
-    //printf("File11: %s\n",GTNodo[11].fname);
-    //printf("File: %d\n",GTNodo[11].parent_dir_block);
-    //printf("File12: %s\n",GTNodo[12].fname);
-    //printf("File: %d\n",GTNodo[12].parent_dir_block);
-    //printf("File13: %s\n",GTNodo[13].fname);
-    //printf("File: %d\n",GTNodo[13].parent_dir_block);
-    //printf("File14: %s\n",GTNodo[14].fname);
-    //printf("File: %d\n",GTNodo[14].parent_dir_block);
-
 
 	// Esta es la funcion principal de FUSE, es la que se encarga
 	// de realizar el montaje, comunicarse con el kernel, delegar
