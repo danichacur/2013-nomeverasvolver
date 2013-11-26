@@ -219,7 +219,10 @@ void suprimir_de_estructuras(int32_t sockett) {
 		pthread_mutex_lock(&mutex_listos);
 		while (!list_is_empty(l_listos) && (l_listos != NULL )) {
 			elemento_personaje = list_remove(l_listos, 0);
+			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+											elemento_personaje->personaje,str_nivel);
 			enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+			close(elemento_personaje->fd);
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_listos);
@@ -228,7 +231,10 @@ void suprimir_de_estructuras(int32_t sockett) {
 		pthread_mutex_lock(&mutex_bloqueados);
 		while (!list_is_empty(l_bloqueados) && (l_bloqueados != NULL )) {
 			elemento_personaje = list_remove(l_bloqueados, 0);
+			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+											elemento_personaje->personaje,str_nivel);
 			enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+			close(elemento_personaje->fd);
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_bloqueados);
@@ -245,8 +251,12 @@ void suprimir_de_estructuras(int32_t sockett) {
 		pthread_mutex_lock(&mutex_monitoreo);
 		while (!list_is_empty(l_monitoreo) && (l_monitoreo != NULL )) {
 			elemento_monitoreo = list_remove(l_monitoreo, 0);
-			if (elemento_monitoreo->es_personaje)
+			if (elemento_monitoreo->es_personaje){
+				log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+								elemento_personaje->personaje,str_nivel);
 				enviarMensaje(elemento_personaje->fd, PLA_nivelCaido_PER, "0");
+				close(elemento_personaje->fd);
+			}
 			free(elemento_monitoreo);
 		}
 		list_destroy(l_monitoreo);
@@ -307,15 +317,15 @@ void suprimir_de_estructuras(int32_t sockett) {
 
 			if (aux2 != NULL ) {
 				pthread_mutex_lock(&mutex_log);
-				log_info(logger_pla, "Nivel %s: El personaje %c se desconecto ",
-						str_nivel, aux2->personaje);
+				log_info(logger_pla, "Nivel %s: El personaje %c del soket %d se desconecto ",
+						str_nivel, aux2->personaje, aux2->fd);
 				pthread_mutex_unlock(&mutex_log);
 
 				if (!list_is_empty(aux2->recursos_obtenidos)) {
 					proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd,
 							str_nivel);
 				}
-
+				close(aux2->fd);
 				destruir_personaje(aux2);
 				free(aux2);
 			}
@@ -383,8 +393,8 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 			}
 
 			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla, "Nivel %s: El personaje %c se desconecto ",
-					str_nivel, personaje->personaje);
+			log_info(logger_pla, "Nivel %s: El personaje %c del socket %d se desconecto ",
+					str_nivel, personaje->personaje, personaje->fd);
 			pthread_mutex_unlock(&mutex_log);
 
 			agregar_anormales(str_nivel, personaje->fd);
@@ -557,7 +567,7 @@ int main() {
 					}
 				} else {
 
-					enum tipo_paquete tipoMensaje;
+					enum tipo_paquete tipoMensaje = PER_posCajaRecurso_PLA;
 					char* mensaje = NULL;
 
 					// gestionar datos del cliente del socket i!
@@ -745,7 +755,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		t_monitoreo *item = per_monitor_crear(true, personaje, 0, sockett);
 		list_add(personajes_del_sistema, item);
 		//estructura: personajes_del_sistema
-		//estructura: personajes en el sistema
+
 		int32_t _esta_personaje(t_pers_koopa *koopa) {
 			return koopa->personaje == personaje;
 		}
@@ -756,17 +766,14 @@ void orquestador_analizar_mensaje(int32_t sockett,
 			aux->termino_plan = true;
 		else
 			log_info(logger, "error al buscar el personaje");
-		//todo: hacer tratamiento de errores
+		// hacer tratamiento de errores
 		pthread_mutex_unlock(&mutex_personajes_para_koopa);
 
 		//pregunto si _ya_terminaron terminaron todos
 		int32_t _ya_terminaron(t_pers_koopa *koopa) {
 			return (koopa->termino_plan);
 		}
-		/*t_list* pendientes = list_filter(personajes_del_sistema,
-		 (void*) _esta_pendiente);
-		 if (list_is_empty(pendientes))*/
-		//bool list_all_satisfy(t_list* self, bool(*condition)(void*));
+
 		if (list_all_satisfy(personajes_para_koopa, (void*) _ya_terminaron)) {
 			log_info(logger, "Se lanza koopa =)");
 
@@ -787,7 +794,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 				exit(0);
 			}
 		}
-		//list_destroy(pendientes);
+
 		//pregunto si ya terminaron todos
 		break;
 	}
