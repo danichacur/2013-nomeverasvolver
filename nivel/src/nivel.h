@@ -58,15 +58,6 @@ typedef struct {
 	        int ingresoSistema;
 	} t_personaje_niv1;
 
-static void personaje_destroy(t_personaje_niv1 * pers){
-	free(pers->posicion);
-	//list_destroy(pers->recursosActuales);
-	//free(pers->simbolo);
-	free(pers);
-}
-
-
-
 
 
 void crearHiloInotify();
@@ -89,7 +80,7 @@ void crearHilosEnemigos();
 int dibujar (void);
 bool existePersonajeEnListaItems(char idPers);
 //t_personaje_niv1 * personaje_create_posicion(char * simbolo, t_posicion * posicion );
-
+void personaje_destroy(t_personaje_niv1 * pers);
 
 
 
