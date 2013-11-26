@@ -920,12 +920,12 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 					str_nivel, aux->personaje);
 			pthread_mutex_unlock(&mutex_log);
 			plan_enviarMensaje(str_nivel, fd_prueba, PLA_teMatamos_PER, "0");
-			/*pthread_mutex_lock(&mutex_log); log_info(logger_pla,
+			pthread_mutex_lock(&mutex_log); log_info(logger_pla,
 					"Nivel %s: Aviso al nivel que los enemigos asesinaron a %c",
 					str_nivel, aux->personaje);
 			char* per = string_from_format("%c", personaje->personaje);
-			enviarMensaje(aux->fd, PLA_perMuereInterbloqueo_NIV, per);
-			 */
+			enviarMensaje(aux->fd, PLA_personajeMuerto_NIV, per);
+
 
 			aux = NULL;
 
