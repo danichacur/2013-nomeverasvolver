@@ -192,9 +192,10 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 			finalizarTodoElProcesoPersonaje();
 		}
 	}
+	if (ordNivel != -1)
+	               //aca mato el hilo que restaba
+	               interrumpirUnNivel(ordNivel);
 
-	//aca mato el hilo que restaba
-	interrumpirUnNivel(ordNivel);
 }
 
 
@@ -642,7 +643,7 @@ void interrumpirTodosPlanesDeNivelesMenosActual(int nivelActual){
 		if(nivelActual != ordenNivel){
 			interrumpirUnNivel(ordenNivel);
 		}
-	}
+}
 }
 
 void interrumpirUnNivel(int nivel){
