@@ -50,6 +50,7 @@ enum tipo_paquete{
 	NIV_recursosPersonajesBloqueados_PLA,
 	PLA_recursosPersonajesBloqueados_NIV,
 	PLA_nivelCaido_PER,
+	PLA_perMuereNaturalmente_NIV,
 };
 
 

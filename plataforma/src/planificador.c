@@ -98,7 +98,7 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 					str_nivel, personaje->personaje, mensaje);
 			pthread_mutex_unlock(&mutex_log);
 			char* muerto = string_from_format("%c", personaje->personaje);
-			enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+			enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 
 			suprimir_personaje_de_estructuras(personaje);
 			free(mensaje);
@@ -194,7 +194,7 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 				str_nivel, personaje->personaje, mensaje);
 		pthread_mutex_unlock(&mutex_log);
 		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 		free(mensaje);
 	}
@@ -344,7 +344,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 						pthread_mutex_unlock(&mutex_log);
 						suprimir_personaje_de_estructuras(personaje);
 						char* muerto = string_from_format("%c", personaje->personaje);
-						enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV,
+						enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV,
 								muerto);
 
 					} else {
@@ -578,7 +578,7 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 			str_nivel, mensaje[0]);
 	pthread_mutex_unlock(&mutex_log);
 
-	enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, mensaje);
+	enviarMensaje(nivel_fd, PLA_perMuereNaturalmente_NIV, mensaje);
 	t_pers_por_nivel* v = NULL;
 	suprimir_de_estructuras(socket_l, v);
 
@@ -737,7 +737,7 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		 str_nivel, personaje->personaje);
 
 		 char* muerto = string_from_format("%c", personaje->fd);
-		 enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+		 enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 		 suprimir_personaje_de_estructuras(personaje);
 		 *quantum = nivel->quantum;
 		 *quantum */
@@ -772,7 +772,7 @@ void rta_movimiento(t_pers_por_nivel* personaje, char* str_nivel,
 					str_nivel, personaje->personaje, coordenadas);
 			pthread_mutex_unlock(&mutex_log);
 			char* muerto = string_from_format("%c", personaje->personaje);
-			enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+			enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 			suprimir_personaje_de_estructuras(personaje);
 
 		}
@@ -847,7 +847,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				str_nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
 		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 		break;
 	}
@@ -1036,7 +1036,7 @@ void tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 				str_nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
 		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
+		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 	}
 
@@ -1103,7 +1103,7 @@ void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
 		pthread_mutex_unlock(&mutex_log);
 		char* muerto = string_from_format("%c", personaje->personaje);
 
-		enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, muerto);
+		enviarMensaje(nivel_fd, PLA_perMuereNaturalmente_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 	} else {
 		pthread_mutex_lock(&mutex_log);

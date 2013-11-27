@@ -544,6 +544,27 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				break;
 			}
 
+			case PLA_perMuereNaturalmente_NIV: {
+				char id = elMensaje[0];
+				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
+
+				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,
+						string_substring_until(elMensaje, 1));
+
+				pthread_mutex_lock(&mutex_listas);
+				liberarRecursosDelPersonaje(personaje->recursosActuales);
+				BorrarItem(items, id);
+				borrarPersonajeListaPersonajes(listaPersonajesRecursos, elMensaje);
+				pthread_mutex_unlock(&mutex_listas);
+
+				log_info(logger, "El personaje %c ha muerto por causas externas", id);
+
+				if (graficar)
+					nivel_gui_dibujar(items, nombre);
+
+				break;
+			}
+
 			{
 				default:
 				log_info(logger, "Recibi mensaje inexistente, la ejecucion del nivel finalizara");
