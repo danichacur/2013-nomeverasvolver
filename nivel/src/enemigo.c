@@ -72,11 +72,12 @@ void enemigo(int* pIdEnemigo){
 			moverseHaciaElPersonajeDeFormaAlternada(enemigo);
 			pthread_mutex_unlock(&mx_sarasa);
 
-
+			pthread_mutex_lock(&mx_borrar_enemigos);
 			if(estoyArribaDeAlgunPersonaje(enemigo)){
 				avisarAlNivel(enemigo);
-				//break; //TODO borrar esto, es para la prueba.
 			}
+			pthread_mutex_unlock(&mx_borrar_enemigos);
+
 		}else{
 			/*enemigo->posicion->posX = enemigo->posicion->posX +1;
 			pthread_mutex_lock(&mx_lista_items);
@@ -460,7 +461,6 @@ void avisarAlNivel(t_enemigo * enemigo){
 	int i;
 	ITEM_NIVEL * personaje;
 
-	pthread_mutex_lock(&mx_borrar_enemigos);
 	t_list * listaPersonajesAtacados = obtenerListaDePersonajesAbajoDeEnemigo(enemigo);
 	char * simbolosPersonajesAtacados = string_new();
 	for(i=0 ; i < list_size(listaPersonajesAtacados) ; i++){
@@ -491,7 +491,7 @@ void avisarAlNivel(t_enemigo * enemigo){
 		list_remove(listaPersonajesAtacados,0);
 	}
 
-	pthread_mutex_unlock(&mx_borrar_enemigos);
+
 
 
 	if(IMPRIMIR_INFO_ENEMIGO)
