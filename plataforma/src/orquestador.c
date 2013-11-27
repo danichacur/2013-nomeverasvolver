@@ -214,24 +214,26 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		t_list *l_anormales = dictionary_remove(anormales, str_nivel);
 		t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
 
-		t_pers_por_nivel *elemento_personaje = NULL;
+		t_pers_por_nivel *elemento_personaje = personaje;
 		t_monitoreo *elemento_monitoreo = NULL;
 		int32_t *anormal = NULL;
 
-		if (personaje != NULL ) {
+		if (elemento_personaje != NULL ) {
 			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-					personaje->personaje, str_nivel);
+					elemento_personaje->personaje, str_nivel);
 			plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-			close(personaje->fd);
+			close(elemento_personaje->fd);
 		}
 
 		pthread_mutex_lock(&mutex_listos);
 		while (!list_is_empty(l_listos) && (l_listos != NULL )) {
 			elemento_personaje = list_remove(l_listos, 0);
-			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-					elemento_personaje->personaje, str_nivel);
-			plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-			close(elemento_personaje->fd);
+			if (elemento_personaje != NULL ) {
+					log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+							elemento_personaje->personaje, str_nivel);
+					plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
+					close(elemento_personaje->fd);
+				}
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_listos);
@@ -240,10 +242,12 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		pthread_mutex_lock(&mutex_bloqueados);
 		while (!list_is_empty(l_bloqueados) && (l_bloqueados != NULL )) {
 			elemento_personaje = list_remove(l_bloqueados, 0);
-			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-					elemento_personaje->personaje, str_nivel);
-			plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-			close(elemento_personaje->fd);
+			if (elemento_personaje != NULL ) {
+					log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
+							elemento_personaje->personaje, str_nivel);
+					plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
+					close(elemento_personaje->fd);
+				}
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_bloqueados);
