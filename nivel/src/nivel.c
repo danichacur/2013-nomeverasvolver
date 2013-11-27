@@ -315,7 +315,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
-				BorrarItem(items,id);
+				//BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %c ha muerto ",id);

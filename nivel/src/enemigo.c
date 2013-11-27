@@ -468,9 +468,29 @@ void avisarAlNivel(t_enemigo * enemigo){
 		string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
 	}
 	//TODO tengo que sacar los personajes de la lista de personajes?
+	//while(list_size(listaPersonajesAtacados) > 0){
+	//	list_remove(listaPersonajesAtacados,0);
+	//}
+	//TODO tengo que sacar los personajes de la lista de personajes?
 	while(list_size(listaPersonajesAtacados) > 0){
+		ITEM_NIVEL * persAtacado = list_get(listaPersonajesAtacados,0);
+		int i = 0;
+		bool encontrado = false;
+		while(i<list_size(items) && !encontrado){
+			ITEM_NIVEL * elem = list_get(items,i);
+			if (elem->item_type == PERSONAJE_ITEM_TYPE)
+				if (strcmp(charToString(persAtacado->id), charToString(elem->id)) == 0){
+					encontrado = true;
+					pthread_mutex_lock(&mx_lista_items);
+					list_remove(items,i);
+					//TODO ver si no hay que actulizar el mapa
+					pthread_mutex_unlock(&mx_lista_items);
+				}
+			i++;
+		}
 		list_remove(listaPersonajesAtacados,0);
 	}
+
 	pthread_mutex_unlock(&mx_borrar_enemigos);
 
 
