@@ -343,7 +343,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 								str_nivel);
 						pthread_mutex_unlock(&mutex_log);
 						suprimir_personaje_de_estructuras(personaje);
-						char* muerto = string_from_format("%c", personaje->personaje);
+						char* muerto = string_from_format("%c",
+								personaje->personaje);
 						enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV,
 								muerto);
 
@@ -440,7 +441,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 									while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
 
-										if (mensaje[i] == personaje->personaje) {
+										if (mensaje[i]
+												== personaje->personaje) {
 											fd_personaje_actual = 0;
 											break;
 										}
