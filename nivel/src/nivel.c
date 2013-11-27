@@ -261,7 +261,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	char* elMensaje=NULL;
 
 
-	sleep(1);
+	sleep(2);
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
@@ -319,6 +319,10 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %c ha muerto ",id);
+				if(graficar){
+					nivel_gui_dibujar(items,nombre);
+
+				}
 
 
 
