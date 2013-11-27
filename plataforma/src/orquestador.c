@@ -218,11 +218,26 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		t_monitoreo *elemento_monitoreo = NULL;
 		int32_t *anormal = NULL;
 
+
 		if (elemento_personaje != NULL ) {
+
+			int32_t _esta_enSistema2(t_monitoreo *valor) {
+				return valor->fd == personaje->fd;
+			}
+
+			pthread_mutex_lock(&mutex_personajes_sistema);
+			elemento_monitoreo = list_remove_by_condition(personajes_del_sistema,
+					(void*) _esta_enSistema2);
+			pthread_mutex_unlock(&mutex_personajes_sistema);
+
+			if(elemento_monitoreo != NULL){
 			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
 					elemento_personaje->personaje, str_nivel);
 			plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
 			close(elemento_personaje->fd);
+			elemento_monitoreo = NULL;
+			}
+
 		}
 
 		pthread_mutex_lock(&mutex_listos);
