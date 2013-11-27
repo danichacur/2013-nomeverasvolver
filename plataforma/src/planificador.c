@@ -97,7 +97,7 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 					"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 					str_nivel, personaje->personaje, mensaje);
 			pthread_mutex_unlock(&mutex_log);
-			char* muerto = string_from_format("%c", personaje->fd);
+			char* muerto = string_from_format("%c", personaje->personaje);
 			enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
 
 			suprimir_personaje_de_estructuras(personaje);
@@ -193,7 +193,7 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 				str_nivel, personaje->personaje, mensaje);
 		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->fd);
+		char* muerto = string_from_format("%c", personaje->personaje);
 		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 		free(mensaje);
@@ -343,7 +343,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 								str_nivel);
 						pthread_mutex_unlock(&mutex_log);
 						suprimir_personaje_de_estructuras(personaje);
-						char* muerto = string_from_format("%c", personaje->fd);
+						char* muerto = string_from_format("%c", personaje->personaje);
 						enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV,
 								muerto);
 
@@ -771,7 +771,7 @@ void rta_movimiento(t_pers_por_nivel* personaje, char* str_nivel,
 					"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 					str_nivel, personaje->personaje, coordenadas);
 			pthread_mutex_unlock(&mutex_log);
-			char* muerto = string_from_format("%c", personaje->fd);
+			char* muerto = string_from_format("%c", personaje->personaje);
 			enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
 			suprimir_personaje_de_estructuras(personaje);
 
@@ -846,7 +846,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 				str_nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->fd);
+		char* muerto = string_from_format("%c", personaje->personaje);
 		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 		break;
@@ -1035,7 +1035,7 @@ void tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 				str_nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->fd);
+		char* muerto = string_from_format("%c", personaje->personaje);
 		enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
 	}
@@ -1101,7 +1101,7 @@ void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
 				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
 				str_nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->fd);
+		char* muerto = string_from_format("%c", personaje->personaje);
 
 		enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, muerto);
 		suprimir_personaje_de_estructuras(personaje);
