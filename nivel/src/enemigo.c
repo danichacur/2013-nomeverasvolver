@@ -462,51 +462,53 @@ void avisarAlNivel(t_enemigo * enemigo){
 	ITEM_NIVEL * personaje;
 
 	t_list * listaPersonajesAtacados = obtenerListaDePersonajesAbajoDeEnemigo(enemigo);
-	char * simbolosPersonajesAtacados = string_new();
-	for(i=0 ; i < list_size(listaPersonajesAtacados) ; i++){
-		personaje = list_get(listaPersonajesAtacados,i);
-		string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
-	}
-	//TODO tengo que sacar los personajes de la lista de personajes?
-	//while(list_size(listaPersonajesAtacados) > 0){
-	//	list_remove(listaPersonajesAtacados,0);
-	//}
-	//TODO tengo que sacar los personajes de la lista de personajes?
-	while(list_size(listaPersonajesAtacados) > 0){
-		ITEM_NIVEL * persAtacado = list_get(listaPersonajesAtacados,0);
-		int i = 0;
-		bool encontrado = false;
-		while(i<list_size(items) && !encontrado){
-			ITEM_NIVEL * elem = list_get(items,i);
-			if (elem->item_type == PERSONAJE_ITEM_TYPE)
-				if (strcmp(charToString(persAtacado->id), charToString(elem->id)) == 0){
-					encontrado = true;
-					pthread_mutex_lock(&mx_lista_items);
-					list_remove(items,i);
-					//TODO ver si no hay que actulizar el mapa
-					pthread_mutex_unlock(&mx_lista_items);
-				}
-			i++;
+	if (list_size(listaPersonajesAtacados) > 0){
+		char * simbolosPersonajesAtacados = string_new();
+		for(i=0 ; i < list_size(listaPersonajesAtacados) ; i++){
+			personaje = list_get(listaPersonajesAtacados,i);
+			string_append(&simbolosPersonajesAtacados, charToString(personaje->id));
 		}
-		list_remove(listaPersonajesAtacados,0);
+		//TODO tengo que sacar los personajes de la lista de personajes?
+		//while(list_size(listaPersonajesAtacados) > 0){
+		//	list_remove(listaPersonajesAtacados,0);
+		//}
+		//TODO tengo que sacar los personajes de la lista de personajes?
+		while(list_size(listaPersonajesAtacados) > 0){
+			ITEM_NIVEL * persAtacado = list_get(listaPersonajesAtacados,0);
+			int i = 0;
+			bool encontrado = false;
+			while(i<list_size(items) && !encontrado){
+				ITEM_NIVEL * elem = list_get(items,i);
+				if (elem->item_type == PERSONAJE_ITEM_TYPE)
+					if (strcmp(charToString(persAtacado->id), charToString(elem->id)) == 0){
+						encontrado = true;
+						pthread_mutex_lock(&mx_lista_items);
+						list_remove(items,i);
+						//TODO ver si no hay que actulizar el mapa
+						pthread_mutex_unlock(&mx_lista_items);
+					}
+				i++;
+			}
+			list_remove(listaPersonajesAtacados,0);
+		}
+
+
+
+
+		if(IMPRIMIR_INFO_ENEMIGO)
+			log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
+
+
+		//if (PRUEBA_CON_CONEXION)
+		if(true){
+			pthread_mutex_lock(&mutex_mensajes);
+			enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
+			pthread_mutex_unlock(&mutex_mensajes);
+		}
+
+
+		free(simbolosPersonajesAtacados);
 	}
-
-
-
-
-	if(IMPRIMIR_INFO_ENEMIGO)
-		log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
-
-
-	//if (PRUEBA_CON_CONEXION)
-	if(true){
-		pthread_mutex_lock(&mutex_mensajes);
-		enviarMensaje(socketDeEscucha, NIV_enemigosAsesinaron_PLA, simbolosPersonajesAtacados);
-		pthread_mutex_unlock(&mutex_mensajes);
-	}
-
-
-	free(simbolosPersonajesAtacados);
 	list_clean(listaPersonajesAtacados); //TODO, con esto libero todos los elementos de la lista o tengo q recorrerla e ir liberando?
 
 }
