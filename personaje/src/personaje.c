@@ -649,12 +649,16 @@ void interrumpirUnNivel(int nivel){
 
 	reiniciarListasDeNivelARecomenzar(nivel);
 
+	log_info(logger, "Interrumpo el nivel %d", nivel);
+
 	pthread_t idHilo;
 	idHilo = tabla_thr[nivel];
 	int32_t fd= tabla_fd[nivel];
+
+	log_info(logger, "cierro el fd %d", fd);
 	close(fd);
 
-	close(tabla_fd[nivel]);
+	log_info(logger, "cancelo el hilo");
 	int v = pthread_cancel(idHilo);
 	if (v == 0){
 		log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
