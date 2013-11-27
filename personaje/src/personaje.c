@@ -651,6 +651,8 @@ void interrumpirUnNivel(int nivel){
 
 	pthread_t idHilo;
 	idHilo = tabla_thr[nivel];
+	int32_t fd= tabla_fd[nivel];
+	close(fd);
 
 	close(tabla_fd[nivel]);
 	int v = pthread_cancel(idHilo);
