@@ -158,7 +158,7 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		conectarAlNivel((int*) ordNivel);
 	}else{
 
-		int32_t fd;
+		/*int32_t fd;
 		if( motivoMuerte == MUERTE_POR_QUEDAR_SIN_VIDAS){
 			fd = obtenerFDPlanificador(0);
 		}else{
@@ -169,7 +169,7 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		enviarMensaje(fd, PER_meMori_PLA, "0");
 		char * mens;
 		recibirUnMensaje(fd, OK1, &mens, ordNivel);
-
+*/
 		char* respuesta = malloc(sizeof(char));
 		finalizoCorrectamente = false;
 		interrumpirTodosPlanesDeNivelesMenosActual(ordNivel);
@@ -652,6 +652,7 @@ void interrumpirUnNivel(int nivel){
 	pthread_t idHilo;
 	idHilo = tabla_thr[nivel];
 
+	close(tabla_fd[nivel]);
 	int v = pthread_cancel(idHilo);
 	if (v == 0){
 		log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));

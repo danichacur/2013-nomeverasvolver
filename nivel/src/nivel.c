@@ -261,8 +261,6 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	char* elMensaje=NULL;
 
 
-	sleep(2);
-
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
 
