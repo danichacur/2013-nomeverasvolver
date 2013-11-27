@@ -263,8 +263,13 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
+	sleep(1);
 
+		log_info(logger, "Llego el tipo de paquete: %s .",
+				obtenerNombreEnum(unMensaje));
 
+		log_info(logger, "Llego este mensaje: %s .",
+				elMensaje);
 
 		switch (unMensaje) {
 
