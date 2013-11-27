@@ -54,6 +54,7 @@ typedef struct {
 enum tipoMuertes{
 	MUERTE_POR_ENEMIGO,
 	MUERTE_POR_INTERBLOQUEO,
+	MUERTE_POR_QUEDAR_SIN_VIDAS,
 };
 
 void levantarArchivoConfiguracion();

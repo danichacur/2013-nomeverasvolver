@@ -157,6 +157,19 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		sleep(3);//dani asi me das tiempo a borrarte de las estructuras =p
 		conectarAlNivel((int*) ordNivel);
 	}else{
+
+		int32_t fd;
+		if( motivoMuerte == MUERTE_POR_QUEDAR_SIN_VIDAS){
+			fd = obtenerFDPlanificador(0);
+		}else{
+			fd = obtenerFDPlanificador(ordNivel);
+		}
+
+		log_info(logger, "Personaje %s (%s) se quedó sin vidas, aviso al Planificador", personaje->nombre, personaje->simbolo);
+		enviarMensaje(fd, PER_meMori_PLA, "0");
+		char * mens;
+		recibirUnMensaje(fd, OK1, &mens, ordNivel);
+
 		char* respuesta = malloc(sizeof(char));
 		finalizoCorrectamente = false;
 		interrumpirTodosPlanesDeNivelesMenosActual(ordNivel);
@@ -845,8 +858,13 @@ void recibirSenialPierdeVida(){
 	int cantVidasPosterior;
 	cantVidasPrevias = personaje->cantVidas;
 	personaje->cantVidas = personaje->cantVidas - 1;
+
 	cantVidasPosterior = personaje->cantVidas;
 	log_info(logger, "El personaje %s tiene una vida menos. Tenia %d y ahora tiene %d", personaje->nombre, cantVidasPrevias, cantVidasPosterior); //, personaje->cantVidas);
+
+	if(!meQuedanVidas())
+		tratamientoDeMuerte(MUERTE_POR_QUEDAR_SIN_VIDAS, -1);
+
 }
 
 
