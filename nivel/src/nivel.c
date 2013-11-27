@@ -512,11 +512,11 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				}
 
-				if (list_size(listaPersonajesRecursos)==0){
+				/*if (list_size(listaPersonajesRecursos)==0){
 					eliminarEstructuras();
 
 
-				}
+				}*/
 
 
 				break;
