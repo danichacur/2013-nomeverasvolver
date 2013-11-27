@@ -877,9 +877,6 @@ void personaje_pidio_recurso(t_pers_por_nivel * personaje,
 	pthread_mutex_unlock(&mutex_bloqueados);
 	imprimir_lista(LISTA_BLOQUEADOS, str_nivel);
 
-	int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
-		return nuevo->recurso == recurso;
-	}
 	char * pers = string_from_format("%c", personaje->personaje);
 	string_append(&pers, ",");
 	string_append(&pers, recurso_pedido);

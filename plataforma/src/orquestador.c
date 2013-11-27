@@ -126,6 +126,30 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 
 				per->estoy_bloqueado = false;
 				rec->cantidad--;
+
+				int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
+					return nuevo->recurso == rec->recurso;
+				}
+
+				if (list_is_empty(per->recursos_obtenidos)) {
+
+					t_recursos_obtenidos *recu = malloc(
+							sizeof(t_recursos_obtenidos));
+					recu->recurso = rec->recurso;
+					recu->cantidad = 1;
+					list_add(per->recursos_obtenidos, recu);
+				} else {
+					t_recursos_obtenidos *recu = list_find(
+							per->recursos_obtenidos, (void*) _esta_recurso);
+					if (recu == NULL ) {
+						recu = malloc(sizeof(t_recursos_obtenidos));
+						recu->recurso = rec->recurso;
+						recu->cantidad = 1;
+						list_add(per->recursos_obtenidos, recu);
+					} else
+						recu->cantidad++;
+				}
+
 				pthread_mutex_lock(&mutex_log);
 				log_info(logger_pla,
 						"Nivel %s: Envio al personaje %c que obtuvo su recurso %c",
@@ -218,7 +242,6 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		t_monitoreo *elemento_monitoreo = NULL;
 		int32_t *anormal = NULL;
 
-
 		if (elemento_personaje != NULL ) {
 
 			int32_t _esta_enSistema2(t_monitoreo *valor) {
@@ -226,16 +249,18 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 			}
 
 			pthread_mutex_lock(&mutex_personajes_sistema);
-			elemento_monitoreo = list_remove_by_condition(personajes_del_sistema,
-					(void*) _esta_enSistema2);
+			elemento_monitoreo = list_remove_by_condition(
+					personajes_del_sistema, (void*) _esta_enSistema2);
 			pthread_mutex_unlock(&mutex_personajes_sistema);
 
-			if(elemento_monitoreo != NULL){
-			log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-					elemento_personaje->personaje, str_nivel);
-			plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-			close(elemento_personaje->fd);
-			elemento_monitoreo = NULL;
+			if (elemento_monitoreo != NULL ) {
+				log_info(logger,
+						"Le aviso al personaje %c que el nivel %s se cayo",
+						elemento_personaje->personaje, str_nivel);
+				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+						PLA_nivelCaido_PER, str_nivel);
+				close(elemento_personaje->fd);
+				elemento_monitoreo = NULL;
 			}
 
 		}
@@ -244,11 +269,13 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		while (!list_is_empty(l_listos) && (l_listos != NULL )) {
 			elemento_personaje = list_remove(l_listos, 0);
 			if (elemento_personaje != NULL ) {
-					log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-							elemento_personaje->personaje, str_nivel);
-					plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-					close(elemento_personaje->fd);
-				}
+				log_info(logger,
+						"Le aviso al personaje %c que el nivel %s se cayo",
+						elemento_personaje->personaje, str_nivel);
+				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+						PLA_nivelCaido_PER, str_nivel);
+				close(elemento_personaje->fd);
+			}
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_listos);
@@ -258,11 +285,13 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		while (!list_is_empty(l_bloqueados) && (l_bloqueados != NULL )) {
 			elemento_personaje = list_remove(l_bloqueados, 0);
 			if (elemento_personaje != NULL ) {
-					log_info(logger, "Le aviso al personaje %c que el nivel %s se cayo",
-							elemento_personaje->personaje, str_nivel);
-					plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
-					close(elemento_personaje->fd);
-				}
+				log_info(logger,
+						"Le aviso al personaje %c que el nivel %s se cayo",
+						elemento_personaje->personaje, str_nivel);
+				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+						PLA_nivelCaido_PER, str_nivel);
+				close(elemento_personaje->fd);
+			}
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_bloqueados);
@@ -283,7 +312,8 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 				log_info(logger,
 						"Le aviso al personaje %c que el nivel %s se cayo",
 						elemento_personaje->personaje, str_nivel);
-				plan_enviarMensaje(str_nivel,elemento_personaje->fd, PLA_nivelCaido_PER, str_nivel);
+				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+						PLA_nivelCaido_PER, str_nivel);
 				close(elemento_personaje->fd);
 			}
 			free(elemento_monitoreo);
@@ -293,7 +323,7 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 
 		log_info(logger, "Se cancela el hilo planificador del nivel %s",
 				str_nivel);
-		pthread_cancel(aux3->pla);//, SIGTERM);
+		pthread_cancel(aux3->pla);	//, SIGTERM);
 		free(aux3);
 
 	} else {
@@ -349,13 +379,14 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 						str_nivel, aux2->personaje, aux2->fd);
 				pthread_mutex_unlock(&mutex_log);
 
-				pthread_mutex_lock(&mutex_log); log_info(logger_pla,
-							"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-							str_nivel, aux2->personaje);
-					pthread_mutex_unlock(&mutex_log);
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger_pla,
+						"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
+						str_nivel, aux2->personaje);
+				pthread_mutex_unlock(&mutex_log);
 
-					char* muerto = string_from_format("%c",aux2->personaje);
-					enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
+				char* muerto = string_from_format("%c", aux2->personaje);
+				enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
 
 				if (!list_is_empty(aux2->recursos_obtenidos)) {
 					proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd,
@@ -416,18 +447,18 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 			}
 
 			/*if (p_bloqueados != NULL ) {
-				pthread_mutex_lock(&mutex_bloqueados);
-				aux2 = list_remove_by_condition(p_bloqueados,
-						(void*) _esta_enListas);
-				pthread_mutex_unlock(&mutex_bloqueados);
-			}
+			 pthread_mutex_lock(&mutex_bloqueados);
+			 aux2 = list_remove_by_condition(p_bloqueados,
+			 (void*) _esta_enListas);
+			 pthread_mutex_unlock(&mutex_bloqueados);
+			 }
 
-			if (p_listos != NULL ) {
-				pthread_mutex_lock(&mutex_listos);
-				aux2 = list_remove_by_condition(p_listos,
-						(void*) _esta_enListas);
-				pthread_mutex_unlock(&mutex_listos);
-			}*/
+			 if (p_listos != NULL ) {
+			 pthread_mutex_lock(&mutex_listos);
+			 aux2 = list_remove_by_condition(p_listos,
+			 (void*) _esta_enListas);
+			 pthread_mutex_unlock(&mutex_listos);
+			 }*/
 
 			pthread_mutex_lock(&mutex_log);
 			log_info(logger_pla,
@@ -436,13 +467,13 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 			pthread_mutex_unlock(&mutex_log);
 
 			/*pthread_mutex_lock(&mutex_log); log_info(logger_pla,
-						"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-						str_nivel, aux2->personaje);
-				pthread_mutex_unlock(&mutex_log);
+			 "Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
+			 str_nivel, aux2->personaje);
+			 pthread_mutex_unlock(&mutex_log);
 
-				char* muerto = string_from_format("%c",aux2->personaje);
-				enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
-*/
+			 char* muerto = string_from_format("%c",aux2->personaje);
+			 enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
+			 */
 			if (!list_is_empty(personaje->recursos_obtenidos)) {
 				proceso_desbloqueo(personaje->recursos_obtenidos, nivel_es->fd,
 						str_nivel);
@@ -741,12 +772,12 @@ void orquestador_analizar_mensaje(int32_t sockett,
 			pthread_mutex_lock(&mutex_anormales);
 
 			int32_t _esta_fd(int32_t *nuevo) {
-					return *nuevo != sockett;
+				return *nuevo != sockett;
 			}
 			//me saca los que sean distintos
-			t_list* caso_ejemplo = list_filter(p_anormales, (void*)_esta_fd);
+			t_list* caso_ejemplo = list_filter(p_anormales, (void*) _esta_fd);
 			list_clean(p_anormales);
-			list_add_all(p_anormales,caso_ejemplo);
+			list_add_all(p_anormales, caso_ejemplo);
 			pthread_mutex_unlock(&mutex_anormales);
 
 			t_monitoreo *item = per_monitor_crear(true, 'M', nivel, sockett);
