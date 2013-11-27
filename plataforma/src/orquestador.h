@@ -68,7 +68,7 @@ int32_t nivel;
 int32_t fd;
 } t_monitoreo;
 
-void suprimir_de_estructuras (int32_t socket);
+void suprimir_de_estructuras (int32_t socket, t_pers_por_nivel* personaje);
 t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel, int32_t nivel_fd);
 void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel);
 void destruir_personaje(t_pers_por_nivel *personaje);

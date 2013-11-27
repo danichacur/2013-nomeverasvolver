@@ -154,7 +154,7 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		//Reinicio parametros de ese nivel
 		reiniciarListasDeNivelARecomenzar(ordNivel);
 
-
+		sleep(3);//dani asi me das tiempo a borrarte de las estructuras =p
 		conectarAlNivel((int*) ordNivel);
 	}else{
 		char* respuesta = malloc(sizeof(char));
