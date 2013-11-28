@@ -47,7 +47,7 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 	uint32_t i;
 
-	printf("grasa_open|path:%s\n",path);
+	//printf("grasa_open|path:%s\n",path);
 
 	i = obtenerNodo(path,0);
 
@@ -71,7 +71,7 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
 
         i = obtenerNodo(path,0);
 
-        printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
+        //printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
 
         if (i == 1024)
                 return -ENOENT;
@@ -146,7 +146,7 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 	uint32_t i,j=1024,k;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_mkdir|path:%s\n",path);
+	//printf("grasa_mkdir|path:%s\n",path);
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -198,7 +198,7 @@ static uint32_t grasa_rmdir(const char *path){
 	uint32_t i,j;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_rmdir|path:%s\n",path);
+	//printf("grasa_rmdir|path:%s\n",path);
 
 	j = obtenerNodo(path,0);
 
@@ -233,7 +233,7 @@ static uint32_t grasa_unlink(const char *path){
 	size_t fsize;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_unlink|path:%s\n",path);
+	//printf("grasa_unlink|path:%s\n",path);
 
 	k = obtenerNodo(path,0);
 
@@ -282,7 +282,7 @@ static uint32_t grasa_truncate(const char *path, off_t newsize){
 	ptrGBloque i;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_truncate|path:%s\n",path);
+	//printf("grasa_truncate|path:%s\n",path);
 
 	i = obtenerNodo(path,0);
 
@@ -305,7 +305,7 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 	uint32_t i,j=1024,k;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_create|path:%s\n",path);
+	//printf("grasa_create|path:%s\n",path);
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -365,7 +365,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	ptrGBloque *bloqueDatosIndirecto;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
+	//printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
 
 	i = obtenerNodo(path,0);
 
@@ -384,7 +384,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 
 		NroBloque = obtenerNroBloque(i,off);
 
-		printf("Nb:%d,Off:%d,ind:%d,ent:%d,cantbloqd:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,NroBloque.indirecto,NroBloque.entero,(int)cantBloquesDatos);
+		//printf("Nb:%d,Off:%d,ind:%d,ent:%d,cantbloqd:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,NroBloque.indirecto,NroBloque.entero,(int)cantBloquesDatos);
 
 		if(NroBloque.BloqueDatos == 0){
 			if (NroBloque.indirecto == 0 && NroBloque.entero == 0){
@@ -396,7 +396,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 								bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
 								*(bloqueDatosIndirecto + j) = 0;
 							}
-						printf("indirecto:%d,\n",(int)GTNodo[i].blk_indirect[NroBloque.indirecto]);
+						//printf("indirecto:%d,\n",(int)GTNodo[i].blk_indirect[NroBloque.indirecto]);
 						break;
 					}
 				}
@@ -408,13 +408,13 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 					bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
 					*(bloqueDatosIndirecto + NroBloque.entero) = j;
 					NroBloque.BloqueDatos = j;
-					printf("blqdatos:%d,\n",(int)*(bloqueDatosIndirecto + NroBloque.entero));
+					//printf("blqdatos:%d,\n",(int)*(bloqueDatosIndirecto + NroBloque.entero));
 					break;
 				}
 			}
 		}
 
-		printf("Nb:%d,Off:%d,agrabar:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,aGrabar,aCopiar);
+		//printf("Nb:%d,Off:%d,agrabar:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,aGrabar,aCopiar);
 
 		if (aGrabar >= BLOCK_SIZE){
 			aCopiar = BLOCK_SIZE - NroBloque.offsetDatos;
@@ -425,7 +425,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 
 		memcpy(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),buf,aCopiar);
 
-		printf("sizebuf:%d,buf:%s,sizedat:%d,bufdat:%s\n",strlen(buf),buf,strlen(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos)),obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos));
+		//printf("sizebuf:%d,buf:%s,sizedat:%d,bufdat:%s\n",strlen(buf),buf,strlen(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos)),obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos));
 
 		buf += aCopiar;
 		aGrabar-=aCopiar;
@@ -653,7 +653,7 @@ int main(int argc, char *argv[]) {
 	char *path;
 	//char pathf[71];
 
-	path = "/home/utnso/Escritorio/tmp/disk.bin";
+	path = "./Disco/disk.bin";
 
     printf("File: %s\n",path);
 
@@ -661,16 +661,19 @@ int main(int argc, char *argv[]) {
 
     if (fd < 0){
      printf("Open Failed!\n");
+     return -ENOENT;
     }
 
     if (stat(path, &sbuf) == -1) {
     	printf("stat Failed!\n");
+    	return -ENOENT;
     }
 
     mapeo = mmap(0,sbuf.st_size,PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
     if (mapeo == MAP_FAILED){
      printf("map Failed!\n");
+     return -ENOENT;
     }
 
     GAdmin = (GAdm*) mapeo;
