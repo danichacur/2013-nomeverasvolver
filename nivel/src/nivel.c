@@ -310,7 +310,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				break;
 			}
-			case PLA_personajeMuerto_NIV:{ //RECIBE "@"
+			case PLA_personajeMuerto_NIV:{ //RECIBE "@" MUERTE POR ENEMIGOS
 				char id=elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
@@ -318,14 +318,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
+				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				//BorrarItem(items,id);
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %c ha muerto ",id);
-				if(graficar){
-					nivel_gui_dibujar(items,nombre);
 
-				}
 
 
 
@@ -459,7 +457,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			case PLA_personajesDesbloqueados_NIV:{//"5,@,#,....." recorro lista personaje recursos y actualizo recBloqueante a vacio
 				char ** mens = string_split(elMensaje,",");
 				int i;
-				log_info(logger, "Personajes %s desbloqueados",elMensaje);
+
 				int cantPersonajes=atoi(mens[0]);
 				for(i=1;i<=cantPersonajes;i++){
 					char * unPersDesbloqueado=mens[i];
@@ -469,6 +467,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					pthread_mutex_lock(&mutex_listas);
 					unPers->recursoBloqueante=string_new();
 					pthread_mutex_unlock(&mutex_listas);
+					log_info(logger, "Personajes %s desbloqueados",mens[i]);
 
 				}
 
@@ -534,6 +533,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales);
 				BorrarItem(items,id);
+				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
 
 				log_info(logger, "El personaje %c ha muerto por interbloqueo ",id);

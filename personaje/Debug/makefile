@@ -26,7 +26,7 @@ endif
 all: personaje
 
 dependents:
-	-cd /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug && $(MAKE) all
+	-cd /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug && $(MAKE) clean all
 
 # Tool invocations
 personaje: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug/libcommons.so
