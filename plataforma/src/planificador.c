@@ -280,12 +280,12 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 		///voy sacando aca los personajes anormales
 
 		t_list *p_anormales = dictionary_get(anormales, str_nivel);
-		int j = 0;
-		while (j < list_size(p_anormales)) {
+		//int j = 0;
+		while (!list_is_empty(p_anormales)) {
 			pthread_mutex_lock(&mutex_anormales);
-			int32_t *muerto = list_remove(p_anormales, j);
+			int32_t *muerto = list_remove(p_anormales, 0);
 			pthread_mutex_unlock(&mutex_anormales);
-			j++;
+			//j++;
 
 			close(*muerto); // ¡Hasta luego!
 			FD_CLR(*muerto, &master); // eliminar del conjunto maestro
@@ -342,12 +342,13 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 								"Nivel %s: Se procede a eliminarlo de las estructuras y avisarle al nivel",
 								str_nivel);
 						pthread_mutex_unlock(&mutex_log);
-						suprimir_personaje_de_estructuras(personaje);
 						char* muerto = string_from_format("%c",
 								personaje->personaje);
+						suprimir_personaje_de_estructuras(personaje);
 						enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV,
 								muerto);
-
+						
+					fd_personaje_actual = 0;
 					} else {
 						pthread_mutex_lock(&mutex_log);
 						log_info(logger_pla,
@@ -362,6 +363,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					close(i); // ¡Hasta luego!
 					FD_CLR(i, &master); // eliminar del conjunto maestro
 					break;
+
 
 					if (i == fd_personaje_actual)
 						break;
