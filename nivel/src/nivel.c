@@ -36,7 +36,7 @@ pthread_mutex_t mutex_mensajes;
 
 
 
-pthread_mutex_t mx_lista_personajes;
+
 pthread_mutex_t mx_lista_items;
 
 bool listaRecursosVacia;
@@ -63,7 +63,7 @@ int main (){
 
 
 	pthread_mutex_init(&mutex_mensajes,NULL);
-	pthread_mutex_init(&mx_lista_personajes,NULL);
+
 	pthread_mutex_init(&mx_lista_items,NULL);
 
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
@@ -280,31 +280,67 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char idPers = mens[0][0];
 
 
-				if (true){
+				if(huboCambios==true){
+					log_info(logger,"envio los cambios de configuracion");
 
-				if(existePersonajeEnListaItems(idPers)){
-					pthread_mutex_lock(&mutex_listas);
-					MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
-					pthread_mutex_unlock(&mutex_listas);
-
-					log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
-					if(graficar)
-						nivel_gui_dibujar(items,nombre);
-
-
-
-				}
-				pthread_mutex_lock(&mutex_mensajes);
-
-
-				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
-				pthread_mutex_unlock(&mutex_mensajes);
-
-				} else {
 					pthread_mutex_lock(&mutex_mensajes);
-					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
+					enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
 					pthread_mutex_unlock(&mutex_mensajes);
-					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);//"1" SI ES INVALIDO
+
+					huboCambios=false;
+
+
+					char* elMensaje=NULL;
+
+					log_info(logger,"me preparo para recibir el ok");
+
+					pthread_mutex_lock(&mutex_mensajes);
+					recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+					pthread_mutex_unlock(&mutex_mensajes);
+
+
+					log_info(logger,"deberia haber recibido el OK1");
+
+
+					if(unMensaje==OK1){
+
+
+						if(existePersonajeEnListaItems(idPers)){
+
+							pthread_mutex_lock(&mutex_listas);
+							MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
+							pthread_mutex_unlock(&mutex_listas);
+
+							log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
+							if(graficar)
+								nivel_gui_dibujar(items,nombre);
+							}
+
+						pthread_mutex_lock(&mutex_mensajes);
+						enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+						pthread_mutex_unlock(&mutex_mensajes);
+
+
+						} else {
+						log_info(logger,"no recibi OK1,recibi cualquiera");
+
+					}
+				} else {
+
+					if(existePersonajeEnListaItems(idPers)){
+
+						pthread_mutex_lock(&mutex_listas);
+						MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
+						pthread_mutex_unlock(&mutex_listas);
+
+						log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
+						if(graficar)
+							nivel_gui_dibujar(items,nombre);
+					}
+
+					pthread_mutex_lock(&mutex_mensajes);
+					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+					pthread_mutex_unlock(&mutex_mensajes);
 
 				}
 
@@ -362,7 +398,6 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 			}
 			case PLA_posCaja_NIV:{ // RECIBE "F" SI ESTA SOLICITANDO UNA FLOR, POR EJEMPLO
 
-
 				char * pos = string_new();
 				ITEM_NIVEL * caja = buscarRecursoEnLista(items, elMensaje);
 
@@ -370,51 +405,15 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, ",");
 				string_append(&pos, string_from_format("%d",caja->posy));
 
+				log_info(logger,"enviare la posicion de la caja");
+
 				pthread_mutex_lock(&mutex_mensajes);
-
-
-				if(huboCambios==true){
-					log_info(logger,"envio los cambios de configuracion");
-					enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
-					huboCambios=false;
-
-					char* elMensaje=NULL;
-
-					log_info(logger,"me preparo para recibir el ok");
-
-					recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-
-					log_info(logger,"recibi el ok");
-
-
-					if(unMensaje==OK1){
-
-						log_info(logger,"enviare la posicion de la caja");
-						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
-
-						log_info(logger,"envie la posicion de la caja");
-					} else {
-						log_info(logger,"recibi cualquiera");
-
-					}
-				} else {
-
-						log_info(logger,"enviare la posicion de la caja");
-						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
-						log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
-
-					}
-
-
-
-
-
+				enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 				pthread_mutex_unlock(&mutex_mensajes);
 
+				log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
 
 				free(pos);
-
-
 				break;
 
 			}
