@@ -11,32 +11,37 @@
 
 extern t_dictionary *bloqueados;
 extern t_dictionary *listos;
-extern t_dictionary *anormales;
-extern t_dictionary *monitoreo;
+//extern t_dictionary *anormales;
+//extern t_dictionary *monitoreo;
 
 extern pthread_mutex_t mutex_listos;
 extern pthread_mutex_t mutex_bloqueados;
-extern pthread_mutex_t mutex_monitoreo;
-extern pthread_mutex_t mutex_anormales;
+//extern pthread_mutex_t mutex_monitoreo;
+//extern pthread_mutex_t mutex_anormales;
 extern pthread_mutex_t mutex_log;
 
 t_config *config;
 t_log* logger_pla;
+extern t_list *niveles_del_sistema;
 
 void planificador_analizar_mensaje(int32_t socket,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel);
 void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
-		int32_t *quantum);
+		int32_t *fd_personaje_actual, int32_t *quantum);
 t_pers_por_nivel *planificar(t_niveles_sistema * str_nivel);
 void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
-		char *str_nivel, int32_t nivel_fd);
+		char *str_nivel, t_niveles_sistema *nivel);
 void tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 		t_niveles_sistema *nivel, int32_t *quantum);
-void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
-		char* mensaje, char* str_nivel);
+void tratamiento_asesinato(t_niveles_sistema *nivel,
+		t_pers_por_nivel* personaje, char* mensaje, char* str_nivel);
 void rta_movimiento(t_pers_por_nivel* personaje, char* str_nivel,
 		t_niveles_sistema * nivel_fd, char* coordenadas, int32_t *quantum);
+bool el_personaje_mando_fruta(t_pers_por_nivel *personaje,
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
+		int32_t *fd_personaje_actual);
+void tratamiento_muerte_natural(t_pers_por_nivel *personaje, int32_t nivel_fd);
 
 int32_t sumar_valores(char *mensaje) {
 
@@ -45,35 +50,34 @@ int32_t sumar_valores(char *mensaje) {
 
 	return valor;
 }
+/*
+ void agregar_anormales(char* str_nivel, int32_t fd) {
 
-void agregar_anormales(char* str_nivel, int32_t fd) {
+ t_list *p_muertos = dictionary_get(anormales, str_nivel);
+ int32_t _esta_muerto(t_pers_por_nivel *valor) {
+ return valor->fd == fd;
+ }
 
-	t_list *p_muertos = dictionary_get(anormales, str_nivel);
-	int32_t _esta_muerto(t_pers_por_nivel *valor) {
-		return valor->fd == fd;
-	}
+ pthread_mutex_lock(&mutex_anormales);
+ t_pers_por_nivel* auxiliar = list_find(p_muertos, (void*) _esta_muerto);
+ pthread_mutex_unlock(&mutex_anormales);
 
-	pthread_mutex_lock(&mutex_anormales);
-	t_pers_por_nivel* auxiliar = list_find(p_muertos, (void*) _esta_muerto);
-	pthread_mutex_unlock(&mutex_anormales);
+ if (auxiliar == NULL ) {
+ int32_t * valor = malloc(sizeof(int));
+ *valor = fd;
+ list_add(p_muertos, valor);
+ }
 
-	if (auxiliar == NULL ) {
-		int32_t * valor = malloc(sizeof(int));
-		*valor = fd;
-		list_add(p_muertos, valor);
-	}
+ }
+ */bool recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
+		char* mensaje, t_niveles_sistema *nivel) {
 
-}
+	bool salio_bien = true;
 
-void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
-		char* mensaje, t_niveles_sistema *nivel, int32_t *quantum) {
-
-	char* str_nivel = string_from_format("%d", nivel->nivel);
+	char* str_nivel = nivel->str_nivel;
 	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s .", str_nivel,
 			obtenerNombreEnum(tipoMensaje));
-	pthread_mutex_unlock(&mutex_log);
-	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla, "Nivel %s: Llego este mensaje: %s .", str_nivel,
 			mensaje);
 	pthread_mutex_unlock(&mutex_log);
@@ -82,7 +86,7 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 
 	case NIV_posCaja_PLA: {
 
-		bool resultado = plan_enviarMensaje(str_nivel, personaje->fd,
+		bool resultado = plan_enviarMensaje(nivel, personaje->fd,
 				PLA_posCajaRecurso_PER, mensaje);
 		if (resultado) {
 			personaje->pos_recurso = sumar_valores(mensaje);
@@ -92,20 +96,16 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 					str_nivel, personaje->personaje, mensaje);
 			pthread_mutex_unlock(&mutex_log);
 		} else {
-			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla,
-					"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-					str_nivel, personaje->personaje, mensaje);
-			pthread_mutex_unlock(&mutex_log);
-			char* muerto = string_from_format("%c", personaje->personaje);
-			enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
-
-			suprimir_personaje_de_estructuras(personaje);
-			free(mensaje);
+			tratamiento_muerte_natural(personaje, nivel->fd);
+			salio_bien = false;
 		}
+		free(mensaje);
 		break;
 	}
 	case NIV_enemigosAsesinaron_PLA: {
+
+		salio_bien = false; // como me mataron no tengo que seguir el curso normal
+
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s", str_nivel,
 				mensaje);
@@ -123,45 +123,50 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 
 			i++;
 		}
+		free(mensaje);
 
 		if (noSoyYo) {
 			//o sea no mataron el que yo esperaba la respuesta, entonces vuelvo a escuchar
-			free(mensaje);
+
 			tipoMensaje = ORQ_handshake_PER;
 			recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
+
 			if (tipoMensaje == ORQ_handshake_PER) {
 				suprimir_de_estructuras(nivel->fd, personaje);
+				free(mensaje);
 				break;
 			}
-			recibir_caja(personaje, tipoMensaje, mensaje, nivel, quantum);
+			recibir_caja(personaje, tipoMensaje, mensaje, nivel);
 		} else {
 			//aca tambien vuelvo a escuchar porque el nivel me respondio! aunque no me importa la rta
-			*quantum = nivel->quantum;
+
 			tipoMensaje = ORQ_handshake_PER;
-			char* O_mensaje = NULL;
-			recibirMensaje(nivel->fd, &tipoMensaje, &O_mensaje);
+			recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
+
 			if (tipoMensaje == ORQ_handshake_PER) {
 				suprimir_de_estructuras(nivel->fd, personaje);
+				free(mensaje);
 				break;
-			}
+			} else {
 
-			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s.",
-					str_nivel, obtenerNombreEnum(tipoMensaje));
-			pthread_mutex_unlock(&mutex_log);
-			if (tipoMensaje == NIV_posCaja_PLA) {
 				pthread_mutex_lock(&mutex_log);
-				log_info(logger_pla,
-						"Nivel %s: Todo bien, llego el mensaje que esperaba.",
-						str_nivel);
+				log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s.",
+						str_nivel, obtenerNombreEnum(tipoMensaje));
 				pthread_mutex_unlock(&mutex_log);
-			}
-			free(O_mensaje);
-			elMuerto = personaje;
 
+				if (tipoMensaje == NIV_posCaja_PLA) {
+					pthread_mutex_lock(&mutex_log);
+					log_info(logger_pla,
+							"Nivel %s: Todo bien, llego el mensaje que esperaba.",
+							str_nivel);
+					pthread_mutex_unlock(&mutex_log);
+				}
+
+			}
+			elMuerto = personaje;
+			free(mensaje);
 		}
-		tratamiento_asesinato(nivel->fd, elMuerto, mensaje, str_nivel);
-		free(mensaje);
+		tratamiento_asesinato(nivel, elMuerto, mensaje, str_nivel);
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
@@ -173,39 +178,36 @@ void recibir_caja(t_pers_por_nivel *personaje, enum tipo_paquete tipoMensaje,
 		nivel->retardo = atoi(n_mensaje[2]);
 		enviarMensaje(nivel->fd, OK1, "0");
 
-		tipoMensaje = ORQ_handshake_PER;
 		free(mensaje);
+		tipoMensaje = ORQ_handshake_PER;
 		recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
+
 		if (tipoMensaje == ORQ_handshake_PER) {
-			*quantum = nivel->quantum;
+
+			salio_bien = false;
 			suprimir_de_estructuras(nivel->fd, personaje);
+			free(mensaje);
 			break;
 		}
 
-		recibir_caja(personaje, tipoMensaje, mensaje, nivel, quantum);
-		free(mensaje);
+		recibir_caja(personaje, tipoMensaje, mensaje, nivel);
 
 		break;
 	}
 	default: {
-		pthread_mutex_lock(&mutex_log);
-		log_info(logger_pla,
-				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-				str_nivel, personaje->personaje, mensaje);
-		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
-		suprimir_personaje_de_estructuras(personaje);
+		tratamiento_muerte_natural(personaje, nivel->fd);
+		salio_bien = false;
 		free(mensaje);
 	}
 	}
+	return salio_bien;
 }
 
 void *hilo_planificador(t_niveles_sistema *nivel) {
 
 	int32_t miNivel = nivel->nivel;
 	int32_t miFd = nivel->fd;
-	char *str_nivel = string_from_format("%d", miNivel);
+	char *str_nivel = nivel->str_nivel;
 
 	logger_pla = log_create(PATH_LOG_PLA, "PLANIFICADOR", true, LOG_LEVEL_INFO);
 
@@ -230,24 +232,15 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	FD_ZERO(&read_fds);
 	struct timeval tv;
 	//el select espera 10 segundos // ver si no es mucho 10 seg
-	//tv.tv_sec = 10; //nivel->retardo/1000; //segundos
-	tv.tv_usec = nivel->retardo * 1000; //microsegundos
+	tv.tv_sec = nivel->retardo / 1000; //segundos
+	tv.tv_usec = 0; //nivel->retardo * 1000; //microsegundos
 	//voy metiendo aca los personajes para monitorear
 
-	t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
+	//t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
-	int32_t _esta_nivel(t_monitoreo *valor) {
-		return valor->es_personaje == false;
-	}
-
-	pthread_mutex_lock(&mutex_monitoreo);
-	t_monitoreo *aux = list_remove_by_condition(p_monitoreo,
-			(void*) _esta_nivel); //el elemento nivel
-	pthread_mutex_unlock(&mutex_monitoreo);
-	FD_SET(aux->fd, &master);
-	fdmax = aux->fd;
-	free(aux);
+	FD_SET(nivel->fd, &master);
+	fdmax = nivel->fd;
 	//voy metiendo aca los personajes para monitorear
 
 	int32_t fd_personaje_actual = 0;
@@ -258,58 +251,51 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 	for (;;) {
 
-		//voy metiendo aca los personajes para monitorear
-		//int j = 0;
-		while (!list_is_empty(p_monitoreo)) {
-			pthread_mutex_lock(&mutex_monitoreo);
-			aux = list_remove(p_monitoreo, 0);
-			pthread_mutex_unlock(&mutex_monitoreo);
-			//j++;
-			FD_SET(aux->fd, &master); // añadir al conjunto maestro
-			if (aux->fd > fdmax) { // actualizar el máximo
-				fdmax = aux->fd;
-			}
-			if (aux->es_personaje) {
-				char valor[1];
-				valor[0] = aux->simbolo;
-				enviarMensaje(nivel->fd, PLA_nuevoPersonaje_NIV, valor); // fixme el nivel se rompe antes !!
-			}
+		//me bloqueo si no hay personajes que planificar
+		if (nivel->cant_pers == 0) {
+			pthread_mutex_lock(&(nivel->mutex_inicial));
 		}
-		//voy metiendo aca los personajes para monitorear
+		//me bloqueo si no hay personajes que planificar
 
 		///voy sacando aca los personajes anormales
+		while (!list_is_empty(nivel->pers_desconectados)) {
 
-		t_list *p_anormales = dictionary_get(anormales, str_nivel);
-		//int j = 0;
-		while (!list_is_empty(p_anormales)) {
-			pthread_mutex_lock(&mutex_anormales);
-			int32_t *muerto = list_remove(p_anormales, 0);
-			pthread_mutex_unlock(&mutex_anormales);
-			//j++;
+			t_monitoreo *muerto = list_remove(nivel->pers_desconectados, 0);
 
-			close(*muerto); // ¡Hasta luego!
-			FD_CLR(*muerto, &master); // eliminar del conjunto maestro
-
-			FD_SET(nivel->fd, &master); // añadir al conjunto maestro
-			if (nivel->fd > fdmax) { // actualizar el máximo
-				fdmax = nivel->fd;
-			}
+			close(muerto->fd); // ¡Hasta luego!
+			FD_CLR(muerto->fd, &master); // eliminar del conjunto maestro
 
 		}
 		//voy sacando aca los personajes anormales
 
+		//voy metiendo aca los personajes para monitorear
+		int a;
+		for (a = 0; a < list_size(nivel->pers_conectados); a++) {
+
+			t_monitoreo * p = list_get(nivel->pers_conectados, a);
+
+			if (!p->monitoreado) { //pregunto si no estaba ya
+				FD_SET(p->fd, &master); // añadir al conjunto maestro
+				if (p->fd > fdmax) { // actualizar el máximo
+					fdmax = p->fd;
+				}
+				p->monitoreado = true;
+				//le aviso al nivel sobre el personaje nuevo
+				char *valor = string_from_format("%c", p->simbolo);
+				enviarMensaje(nivel->fd, PLA_nuevoPersonaje_NIV, valor);
+				free(valor);
+			}
+		}
+		//voy metiendo aca los personajes para monitorear
+
 		//planificar a un personaje
 		if (!list_is_empty(p_listos) && (fd_personaje_actual == 0)) {
-			//hacer el if en base a los algoritmos para calcular el quantum e ir actualizandolo
 			personaje = planificar(nivel);
-			bool resultado = plan_enviarMensaje(str_nivel, personaje->fd,
+			bool resultado = plan_enviarMensaje(nivel, personaje->fd,
 					PLA_turnoConcedido_PER, "0");
 			if (resultado)
 				fd_personaje_actual = personaje->fd;
-		}/* else
-		 log_info(logger_pla,
-		 "Nivel %d: No hay personajes para planificar en este nivel",
-		 miNivel);*/
+		}
 		//planificar a un personaje
 
 		read_fds = master;
@@ -332,23 +318,10 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					if (i == fd_personaje_actual) {
 						//si lo estaba planificando tengo que liberar los recursos que tenía igual y asignarlos.
 
-						pthread_mutex_lock(&mutex_log);
-						log_info(logger_pla,
-								"Nivel %s: EL personaje %c que se estaba planificando ha muerto",
-								str_nivel, personaje->personaje);
-						pthread_mutex_unlock(&mutex_log);
-						pthread_mutex_lock(&mutex_log);
-						log_info(logger_pla,
-								"Nivel %s: Se procede a eliminarlo de las estructuras y avisarle al nivel",
-								str_nivel);
-						pthread_mutex_unlock(&mutex_log);
-						char* muerto = string_from_format("%c",
-								personaje->personaje);
-						suprimir_personaje_de_estructuras(personaje);
-						enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV,
-								muerto);
-						
-					fd_personaje_actual = 0;
+						tratamiento_muerte_natural(personaje, nivel->fd);
+						fd_personaje_actual = 0;
+						quantum = nivel->quantum;
+
 					} else {
 						pthread_mutex_lock(&mutex_log);
 						log_info(logger_pla,
@@ -356,6 +329,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 								str_nivel, i);
 						pthread_mutex_unlock(&mutex_log);
 
+						personaje = NULL;
 						suprimir_de_estructuras(i, personaje);
 					}
 					//eliminarlo de las estructuras
@@ -363,122 +337,66 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					close(i); // ¡Hasta luego!
 					FD_CLR(i, &master); // eliminar del conjunto maestro
 					break;
-
-
-					if (i == fd_personaje_actual)
-						break;
-
+					/*
+					 if (i == fd_personaje_actual)
+					 break;
+					 */
 				} else {
 					// tenemos datos del cliente del socket i!
 					pthread_mutex_lock(&mutex_log);
 					log_info(logger_pla,
 							"Nivel %s: Llego el tipo de paquete: %s .",
 							str_nivel, obtenerNombreEnum(tipoMensaje));
-					pthread_mutex_unlock(&mutex_log);
-					pthread_mutex_lock(&mutex_log);
 					log_info(logger_pla, "Nivel %s: Llego este mensaje: %s .",
 							str_nivel, mensaje);
-					pthread_mutex_unlock(&mutex_log);
-					pthread_mutex_lock(&mutex_log);
 					log_info(logger_pla,
 							"Nivel %s: se esperaba la respuesta de %d .",
 							str_nivel, fd_personaje_actual);
-					pthread_mutex_unlock(&mutex_log);
-					pthread_mutex_lock(&mutex_log);
 					log_info(logger_pla,
 							"Nivel %s: se recibió el mensaje de %d .",
 							str_nivel, i);
 					pthread_mutex_unlock(&mutex_log);
 
 					if (i == fd_personaje_actual) {
-						if (tipoMensaje == NIV_cambiosConfiguracion_PLA) {
 
-							//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
-							char** n_mensaje = string_split(mensaje, ",");
-							nivel->algol = n_mensaje[0];
-							nivel->quantum = atoi(n_mensaje[1]);
-							nivel->retardo = atoi(n_mensaje[2]);
+						bool entrar = el_personaje_mando_fruta(personaje,
+								tipoMensaje, mensaje, nivel,
+								&fd_personaje_actual);
+						if (entrar) {
 
 							tipoMensaje = ORQ_handshake_PER;
-							recibirMensaje(i, &tipoMensaje, &mensaje);
+							recibirMensaje(personaje->fd, &tipoMensaje,
+									&mensaje);
 
 							if (tipoMensaje == ORQ_handshake_PER) {
 								fd_personaje_actual = 0;
-								suprimir_de_estructuras(nivel->fd, personaje);
+								entrar = false;
+								suprimir_personaje_de_estructuras(personaje);
 								break;
-							}
-							pthread_mutex_lock(&mutex_log);
-							log_info(logger_pla,
-									"Nivel %s: Llego el tipo de paquete: %s .",
-									str_nivel, obtenerNombreEnum(tipoMensaje));
-							pthread_mutex_unlock(&mutex_log);
-							pthread_mutex_lock(&mutex_log);
-							log_info(logger_pla,
-									"Nivel %s: Llego este mensaje: %s .",
-									str_nivel, mensaje);
-							pthread_mutex_unlock(&mutex_log);
 
-						} else {
-							if (tipoMensaje == PER_posCajaRecurso_PLA) { //no consume quantum
-								//pasamanos al nivel, sin procesar nada
-								pthread_mutex_lock(&mutex_log);
-								log_info(logger_pla,
-										"Nivel %s: Envio al nivel solicitud posicion caja %s",
-										str_nivel, mensaje);
-								pthread_mutex_unlock(&mutex_log);
-								enviarMensaje(nivel->fd, PLA_posCaja_NIV,
-										mensaje);
-								free(mensaje);
-								tipoMensaje = ORQ_handshake_PER;
-								recibirMensaje(nivel->fd, &tipoMensaje,
-										&mensaje);
-								if (tipoMensaje == ORQ_handshake_PER) {
-									fd_personaje_actual = 0;
-									suprimir_personaje_de_estructuras(
-											personaje);
-									break;
-								}
-								if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
-									int i = 0;
+							} else {
 
-									while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
-
-										if (mensaje[i]
-												== personaje->personaje) {
-											fd_personaje_actual = 0;
-											break;
-										}
-
-										i++;
-									}
-
-								}
-								recibir_caja(personaje, tipoMensaje, mensaje,
-										nivel, &quantum);
-								tipoMensaje = ORQ_handshake_PER;
-								recibirMensaje(i, &tipoMensaje, &mensaje);
-								if (tipoMensaje == ORQ_handshake_PER) {
-									fd_personaje_actual = 0;
-									suprimir_personaje_de_estructuras(
-											personaje);
-									break;
-								}
 								pthread_mutex_lock(&mutex_log);
 								log_info(logger_pla,
 										"Nivel %s: Llego el tipo de paquete: %s .",
-										str_nivel,
+										nivel->str_nivel,
 										obtenerNombreEnum(tipoMensaje));
-								pthread_mutex_unlock(&mutex_log);
-								pthread_mutex_lock(&mutex_log);
 								log_info(logger_pla,
 										"Nivel %s: Llego este mensaje: %s .",
-										str_nivel, mensaje);
+										nivel->str_nivel, mensaje);
 								pthread_mutex_unlock(&mutex_log);
-							}
 
+							analizar_mensaje_rta(personaje, tipoMensaje,
+									mensaje, nivel, &fd_personaje_actual,
+									&quantum);
+							}
+						} else{
+							analizar_mensaje_rta(personaje, tipoMensaje,
+																mensaje, nivel, &fd_personaje_actual,
+																&quantum);
 						}
-						analizar_mensaje_rta(personaje, tipoMensaje, mensaje,
-								nivel, &quantum);
+
+
 						fd_personaje_actual = 0;
 					} else {
 
@@ -489,28 +407,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 									str_nivel, mensaje);
 							pthread_mutex_unlock(&mutex_log);
 
-							//int i = 0;
-							//bool noSoyYo = true;
 							t_pers_por_nivel * elMuerto = NULL;
-							/*while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
-
-							 if (mensaje[i] == personaje->personaje) {
-							 noSoyYo = false;
-							 break;
-							 }
-
-							 i++;
-							 }
-
-							 if (noSoyYo) {
-							 //o sea no mataron el que yo esperaba la respuesta, entonces vuelvo a escuchar
-							 planificador_analizar_mensaje(i, tipoMensaje,mensaje, nivel);
-
-							 } else {
-							 //aca tambien vuelvo a escuchar porque el nivel me respondio! aunque no me importa la rta
-							 elMuerto = personaje;
-							 }*/
-							tratamiento_asesinato(nivel->fd, elMuerto, mensaje,
+							tratamiento_asesinato(nivel, elMuerto, mensaje,
 									str_nivel);
 							free(mensaje);
 
@@ -531,7 +429,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 }
 
 t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
-	char *str_nivel = string_from_format("%d", nivel->nivel);
+	char *str_nivel = nivel->str_nivel;
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 	t_pers_por_nivel *aux;
 
@@ -567,6 +465,78 @@ t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
 	return aux;
 }
 
+bool el_personaje_mando_fruta(t_pers_por_nivel *personaje,
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
+		int32_t *fd_personaje_actual) {
+
+	int entrar = true;
+	switch (tipoMensaje) {
+
+	case PER_posCajaRecurso_PLA: { //no consume quantum
+		//pasamanos al nivel, sin procesar nada
+		pthread_mutex_lock(&mutex_log);
+		log_info(logger_pla,
+				"Nivel %s: Envio al nivel solicitud posicion caja %s",
+				nivel->str_nivel, mensaje);
+		pthread_mutex_unlock(&mutex_log);
+
+		enviarMensaje(nivel->fd, PLA_posCaja_NIV, mensaje);
+		free(mensaje);
+		tipoMensaje = ORQ_handshake_PER;
+		recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
+
+		if (tipoMensaje == ORQ_handshake_PER) {
+			*fd_personaje_actual = 0;
+			suprimir_personaje_de_estructuras(personaje);
+			entrar = false;
+			break;
+		}
+		if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
+			int i = 0;
+			while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
+				if (mensaje[i] == personaje->personaje) { //si me mato a mi
+					*fd_personaje_actual = 0;
+					entrar = false;
+					break;
+				}
+				i++;
+			}
+
+		}
+		entrar = recibir_caja(personaje, tipoMensaje, mensaje, nivel);
+
+		break;
+	}
+	default: {
+
+		//tratamiento_muerte_natural(personaje, nivel->fd);
+		entrar = false;
+		break;
+	}
+	}
+	return entrar;
+}
+
+void tratamiento_muerte_natural(t_pers_por_nivel *personaje, int32_t nivel_fd) {
+
+	int32_t _esta_nivel(t_niveles_sistema *nuevo) {
+		return nuevo->fd == nivel_fd;
+	}
+
+	t_niveles_sistema *niv = list_find(niveles_del_sistema,
+			(void*) _esta_nivel);
+
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger_pla,
+			"Nivel %d: Le aviso al nivel que el personaje %c murio por causas externas",
+			niv->nivel, personaje->personaje);
+	pthread_mutex_unlock(&mutex_log);
+	char* muerto = string_from_format("%c", personaje->personaje);
+	enviarMensaje(nivel_fd, PLA_perMuereNaturalmente_NIV, muerto);
+	suprimir_personaje_de_estructuras(personaje);
+	free(muerto);
+}
+
 void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 		char* str_nivel) {
 
@@ -575,7 +545,7 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 			"Nivel %s: El personaje del socket %d murio, se lo saca de este nivel",
 			str_nivel, socket_l);
 	pthread_mutex_unlock(&mutex_log);
-	//agregar_anormales(str_nivel, socket_l);
+//agregar_anormales(str_nivel, socket_l);
 	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla,
 			"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
@@ -589,17 +559,18 @@ void tratamiento_muerte(int32_t socket_l, int32_t nivel_fd, char* mensaje,
 }
 
 void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
-		t_niveles_sistema *nivel, int32_t *quantum) {
-	char *str_nivel = string_from_format("%d", nivel->nivel);
+		t_niveles_sistema *nivel, int32_t *quantum,
+		int32_t *fd_personaje_actual) {
+	char *str_nivel = nivel->str_nivel;
+
 	enum tipo_paquete tipoMensaje = ORQ_handshake_PER;
 	char* mensaje = NULL;
+
 	recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
 
 	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s .", str_nivel,
 			obtenerNombreEnum(tipoMensaje));
-	pthread_mutex_unlock(&mutex_log);
-	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla, "Nivel %s: Llego este mensaje: %s .", str_nivel,
 			mensaje);
 	pthread_mutex_unlock(&mutex_log);
@@ -618,7 +589,7 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 				nivel->nivel, mensaje);
 		pthread_mutex_unlock(&mutex_log);
 
-		//tratamiento_asesinato(nivel->fd, personaje, mensaje, str_nivel);
+		//tratamiento_asesinato(nivel, personaje, mensaje, str_nivel);
 
 		int i = 0;
 		bool noSoyYo = true;
@@ -636,7 +607,8 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		if (noSoyYo) {
 			//o sea no mataron el que yo esperaba la respuesta, entonces vuelvo a escuchar
 			free(mensaje);
-			posibles_respuestas_del_nivel(personaje, nivel, quantum);
+			posibles_respuestas_del_nivel(personaje, nivel, quantum,
+					fd_personaje_actual);
 		} else {
 			//aca tambien vuelvo a escuchar porque el nivel me respondio! aunque no me importa la rta
 			*quantum = nivel->quantum;
@@ -666,7 +638,7 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 			elMuerto = personaje;
 
 		}
-		tratamiento_asesinato(nivel->fd, elMuerto, mensaje, str_nivel);
+		tratamiento_asesinato(nivel, elMuerto, mensaje, str_nivel);
 		free(mensaje);
 
 		/*recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);		//matyx
@@ -686,7 +658,8 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		nivel->retardo = atoi(n_mensaje[2]);
 
 		free(mensaje);
-		posibles_respuestas_del_nivel(personaje, nivel, quantum);
+		posibles_respuestas_del_nivel(personaje, nivel, quantum,
+				fd_personaje_actual);
 		break;
 	}
 	case NIV_perMuereInterbloqueo_PLA: {
@@ -720,12 +693,13 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 				str_nivel, mensaje);
 		pthread_mutex_unlock(&mutex_log);
 		suprimir_personaje_de_estructuras(aux);
-		plan_enviarMensaje(str_nivel, fd_prueba, PLA_rtaRecurso_PER, "1");
+		plan_enviarMensaje(nivel, fd_prueba, PLA_rtaRecurso_PER, "1");
 		//le aviso al personaje que murio
 
 		//vuelvo a escuchar porque a mi no me afecta, si murio alguien era porque estaba en listos
 		free(mensaje);
-		posibles_respuestas_del_nivel(personaje, nivel, quantum);
+		posibles_respuestas_del_nivel(personaje, nivel, quantum,
+				fd_personaje_actual);
 
 		break;
 	}
@@ -763,21 +737,14 @@ void rta_movimiento(t_pers_por_nivel* personaje, char* str_nivel,
 				"Nivel %s: Mando al personaje %c la respuesta al movimiento: %s ",
 				str_nivel, personaje->personaje, coordenadas);
 		pthread_mutex_unlock(&mutex_log);
-		bool resultado = plan_enviarMensaje(str_nivel, personaje->fd,
+		bool resultado = plan_enviarMensaje(nivel, personaje->fd,
 				PLA_movimiento_PER, coordenadas);
 
 		if (resultado) {
 			tratamiento_recurso(personaje, str_nivel, nivel, quantum);
 
 		} else {
-			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla,
-					"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-					str_nivel, personaje->personaje, coordenadas);
-			pthread_mutex_unlock(&mutex_log);
-			char* muerto = string_from_format("%c", personaje->personaje);
-			enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
-			suprimir_personaje_de_estructuras(personaje);
+			tratamiento_muerte_natural(personaje, nivel->fd);
 
 		}
 	}
@@ -786,8 +753,8 @@ void rta_movimiento(t_pers_por_nivel* personaje, char* str_nivel,
 
 void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
-		int32_t *quantum) {
-	char *str_nivel = string_from_format("%d", nivel->nivel);
+		int32_t *fd_personaje_actual, int32_t *quantum) {
+	//char *str_nivel = nivel->str_nivel;
 
 	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
 		return nuevo->fd == personaje->fd;
@@ -804,9 +771,7 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		prueba[0] = personaje->personaje;
 		prueba[1] = ',';
 		string_append(&prueba, mensaje);
-		// log_info(logger_pla, "el mensaje que mando es: %s ", prueba);
-		// log_info(logger_pla, "la longitud del mensaje que mando es: %d ",
-		//               strlen(prueba));
+
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %d: Mando al nivel la solicitud de movimiento: %s ",
@@ -815,7 +780,8 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		enviarMensaje(nivel->fd, PLA_movimiento_NIV, prueba);
 		free(prueba);
 
-		posibles_respuestas_del_nivel(personaje, nivel, quantum);
+		posibles_respuestas_del_nivel(personaje, nivel, quantum,
+				fd_personaje_actual);
 
 		break;
 	}
@@ -831,36 +797,21 @@ void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 				nivel->nivel, personaje->personaje);
 		pthread_mutex_unlock(&mutex_log);
 		enviarMensaje(nivel->fd, PLA_nivelFinalizado_NIV, mensaje);
+
+		personaje->borrame = false;
 		suprimir_personaje_de_estructuras(personaje);
 
-		break;
-	}
-	case NIV_cambiosConfiguracion_PLA: {
-		//mensaje = algoritmo,quantum,retardo = "RR,4,1000"
-		char** n_mensaje = string_split(mensaje, ",");
-		nivel->algol = n_mensaje[0];
-		nivel->quantum = atoi(n_mensaje[1]);
-		nivel->retardo = atoi(n_mensaje[2]);
 		break;
 	}
 
 	default: {
-		pthread_mutex_lock(&mutex_log);
-		log_info(logger_pla,
-				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-				str_nivel, personaje->personaje);
-		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
-		suprimir_personaje_de_estructuras(personaje);
+		tratamiento_muerte_natural(personaje, nivel->fd);
 		break;
 	}
 	}
 	free(mensaje);
 
 }
-void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
-		char *str_nivel, int32_t nivel_fd);
 
 void personaje_pidio_recurso(t_pers_por_nivel * personaje,
 		t_niveles_sistema * nivel, char *recurso_pedido) {
@@ -898,7 +849,7 @@ void personaje_pidio_recurso(t_pers_por_nivel * personaje,
 
 void nivel_otorga_recurso_o_no(t_pers_por_nivel *personaje,
 		t_niveles_sistema *nivel) {
-	char *str_nivel = string_from_format("%d", nivel->nivel);
+	char *str_nivel = nivel->str_nivel;
 	enum tipo_paquete tipoMensaje = ORQ_handshake_PER;
 	char* mensaje = NULL;
 	recibirMensaje(nivel->fd, &tipoMensaje, &mensaje);
@@ -914,7 +865,7 @@ void nivel_otorga_recurso_o_no(t_pers_por_nivel *personaje,
 			pthread_mutex_unlock(&mutex_log);
 
 			recurso_concedido(personaje, personaje->recurso_bloqueo, str_nivel,
-					nivel->fd);
+					nivel);
 
 			personaje->estoy_bloqueado = false;
 		} else {
@@ -952,7 +903,7 @@ void nivel_otorga_recurso_o_no(t_pers_por_nivel *personaje,
 
 void tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 		t_niveles_sistema *nivel, int32_t *quantum) {
-	//pasamanos al nivel, lo paso de listos a bloqueados
+//pasamanos al nivel, lo paso de listos a bloqueados
 
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
@@ -1034,19 +985,12 @@ void tratamiento_recurso(t_pers_por_nivel * personaje, char* str_nivel,
 			}
 		}
 	} else {
-		pthread_mutex_lock(&mutex_log);
-		log_info(logger_pla,
-				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-				str_nivel, personaje->personaje);
-		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->personaje);
-		enviarMensaje(nivel->fd, PLA_perMuereNaturalmente_NIV, muerto);
-		suprimir_personaje_de_estructuras(personaje);
+		tratamiento_muerte_natural(personaje, nivel->fd);
 	}
 
 }
 void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
-		char *str_nivel, int32_t nivel_fd) {
+		char *str_nivel, t_niveles_sistema *nivel) {
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 	t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
 
@@ -1056,7 +1000,7 @@ void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
 	int32_t _esta_recurso(t_recursos_obtenidos *nuevo) {
 		return nuevo->recurso == recurso;
 	}
-	//
+//
 	pthread_mutex_lock(&mutex_bloqueados);
 	t_pers_por_nivel *aux = list_remove_by_condition(p_bloqueados,
 			(void*) _esta_personaje);
@@ -1097,18 +1041,10 @@ void recurso_concedido(t_pers_por_nivel * personaje, char recurso,
 	pthread_mutex_unlock(&mutex_log);
 	imprimir_lista(LISTA_LISTOS, str_nivel);
 
-	bool resultado = plan_enviarMensaje(str_nivel, aux->fd, PLA_rtaRecurso_PER,
+	bool resultado = plan_enviarMensaje(nivel, aux->fd, PLA_rtaRecurso_PER,
 			"0");
 	if (!resultado) {
-		pthread_mutex_lock(&mutex_log);
-		log_info(logger_pla,
-				"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-				str_nivel, personaje->personaje);
-		pthread_mutex_unlock(&mutex_log);
-		char* muerto = string_from_format("%c", personaje->personaje);
-
-		enviarMensaje(nivel_fd, PLA_perMuereNaturalmente_NIV, muerto);
-		suprimir_personaje_de_estructuras(personaje);
+		tratamiento_muerte_natural(personaje, nivel->fd);
 	} else {
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
@@ -1141,7 +1077,7 @@ char * transformarListaCadena(t_list *recursosDisponibles) {
 
 	string_append(&cantidad, recursosNuevos);
 
-	// log_info(logger_pla, "cadena final %s", cantidad);
+// log_info(logger_pla, "cadena final %s", cantidad);
 	return cantidad;
 }
 
@@ -1182,7 +1118,7 @@ char * transformarListaCadena_interbloq(t_list *personajesDisponibles) {
 		// log_info(logger_pla, "cadena en proceso %s", personajesInterb);
 		i++;
 	}
-	//log_info(logger_pla, "cadena final %s", personajesInterb);
+//log_info(logger_pla, "cadena final %s", personajesInterb);
 	return personajesInterb;
 }
 
@@ -1209,8 +1145,8 @@ void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel) {
 	list_destroy(recursosDisponibles);
 }
 
-void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
-		char* mensaje, char* str_nivel) {
+void tratamiento_asesinato(t_niveles_sistema *nivel,
+		t_pers_por_nivel* personaje, char* mensaje, char* str_nivel) {
 
 	t_list *p_listos = dictionary_get(listos, str_nivel);
 
@@ -1270,7 +1206,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 					"Nivel %s: Aviso al nivel que los enemigos asesinaron a %c",
 					str_nivel, aux->personaje);
 			char* per = string_from_format("%c", personaje->personaje);
-			enviarMensaje(nivel_fd, PLA_personajeMuerto_NIV, per);
+			enviarMensaje(nivel->fd, PLA_personajeMuerto_NIV, per);
 
 			int32_t fd_prueba = aux->fd;
 
@@ -1279,7 +1215,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 					"Nivel %s: Aviso al personaje %c que los enemigos lo asesinaron",
 					str_nivel, aux->personaje);
 			pthread_mutex_unlock(&mutex_log);
-			plan_enviarMensaje(str_nivel, fd_prueba, PLA_teMatamos_PER, "0");
+			plan_enviarMensaje(nivel, fd_prueba, PLA_teMatamos_PER, "0");
 
 			suprimir_personaje_de_estructuras(aux);
 			aux = NULL;
@@ -1292,7 +1228,7 @@ void tratamiento_asesinato(int32_t nivel_fd, t_pers_por_nivel* personaje,
 
 void planificador_analizar_mensaje(int32_t socket_r,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel) {
-	char *str_nivel = string_from_format("%d", nivel->nivel);
+	char *str_nivel = nivel->str_nivel;
 
 	switch (tipoMensaje) {
 
@@ -1349,7 +1285,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				mensaje);
 		pthread_mutex_unlock(&mutex_log);
 		t_pers_por_nivel* personaje = NULL;
-		tratamiento_asesinato(nivel->fd, personaje, mensaje, str_nivel);
+		tratamiento_asesinato(nivel, personaje, mensaje, str_nivel);
 		break;
 	}
 	case NIV_perMuereInterbloqueo_PLA: {
@@ -1382,7 +1318,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				str_nivel, mensaje);
 		pthread_mutex_unlock(&mutex_log);
 		suprimir_personaje_de_estructuras(aux);
-		plan_enviarMensaje(str_nivel, fd_prueba, PLA_rtaRecurso_PER, "1");
+		plan_enviarMensaje(nivel, fd_prueba, PLA_rtaRecurso_PER, "1");
 
 		break;
 	}
@@ -1424,17 +1360,16 @@ void planificador_analizar_mensaje(int32_t socket_r,
 
 	free(mensaje);
 }
+//todo corregir esto
+bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd,
+		enum tipo_paquete paquete, char* mensaje) {
 
-bool plan_enviarMensaje(char* str_nivel, int32_t fd, enum tipo_paquete paquete,
-		char* mensaje) {
-
-	int32_t *fd_muerto = NULL;
-	int32_t _esta_personaje(t_pers_por_nivel *nuevo) {
+	t_monitoreo *fd_muerto = NULL;
+	int32_t _esta_muerto(t_monitoreo *nuevo) {
 		return nuevo->fd == fd;
 	}
 
-	t_list *p_muertos = dictionary_get(anormales, str_nivel);
-	fd_muerto = list_find(p_muertos, (void*) _esta_personaje);
+	fd_muerto = list_find(nivel->pers_desconectados, (void*) _esta_muerto);
 
 	if (fd_muerto == NULL ) {
 		if (enviarMensaje(fd, paquete, mensaje) != EXIT_SUCCESS)
@@ -1445,7 +1380,7 @@ bool plan_enviarMensaje(char* str_nivel, int32_t fd, enum tipo_paquete paquete,
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla,
 				"Nivel %s: Personaje desconectado, no se puede enviar el mensaje",
-				str_nivel);
+				nivel->str_nivel);
 		pthread_mutex_unlock(&mutex_log);
 		return false;
 	}

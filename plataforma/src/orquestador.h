@@ -54,6 +54,7 @@ int32_t pos_recurso;
 char recurso_bloqueo;
 bool estoy_bloqueado;
 t_list *recursos_obtenidos;
+bool borrame;
 } t_pers_por_nivel;
 
 typedef struct{
@@ -62,10 +63,10 @@ typedef struct{
 }t_recursos_obtenidos;
 
 typedef struct{
-bool es_personaje;
 char simbolo;
-int32_t nivel;
 int32_t fd;
+bool monitoreado;
+int32_t nivel;
 } t_monitoreo;
 
 void suprimir_de_estructuras (int32_t socket, t_pers_por_nivel* personaje);

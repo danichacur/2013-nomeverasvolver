@@ -14,17 +14,17 @@
 
 t_dictionary *listos;
 t_dictionary *bloqueados;
-t_dictionary *anormales;
-t_dictionary *monitoreo;
+//t_dictionary *anormales;
+//t_dictionary *monitoreo;
 
 pthread_mutex_t mutex_listos;
 pthread_mutex_t mutex_bloqueados;
-pthread_mutex_t mutex_monitoreo;
-pthread_mutex_t mutex_anormales;
+//pthread_mutex_t mutex_monitoreo;
+//pthread_mutex_t mutex_anormales;
 pthread_mutex_t mutex_personajes_para_koopa;
 pthread_mutex_t mutex_log;
 pthread_mutex_t mutex_personajes_sistema;
-pthread_mutex_t mutex_niveles_sistema;
+//pthread_mutex_t mutex_niveles_sistema;
 
 int32_t puerto;
 t_config *config;
@@ -37,6 +37,9 @@ t_list *niveles_del_sistema;
 char *ruta_koopa;
 char *ruta_script;
 char *ruta_disco;
+
+extern void tratamiento_muerte_natural(t_pers_por_nivel *personaje,
+		int32_t nivel_fd);
 
 t_pers_koopa *per_koopa_crear(char personaje) {
 	t_pers_koopa *nuevo = malloc(sizeof(t_pers_koopa));
@@ -51,7 +54,7 @@ t_pers_por_nivel *crear_personaje(char personaje, int32_t fd) {
 	nuevo->fd = fd;
 	nuevo->pos_inicial = 0;
 	nuevo->pos_recurso = 0;
-	//comienzo++;
+	nuevo->borrame = true;
 	nuevo->estoy_bloqueado = false;
 	nuevo->recursos_obtenidos = list_create();
 	return nuevo;
@@ -71,13 +74,12 @@ void destruir_personaje(t_pers_por_nivel *personaje) {
 
 }
 
-t_monitoreo *per_monitor_crear(bool es_personaje, char personaje, int32_t nivel,
-		int32_t socket) {
+t_monitoreo *per_monitor_crear(char personaje, int32_t nivel, int32_t socket) {
 	t_monitoreo *nuevo = malloc(sizeof(t_monitoreo));
 	nuevo->simbolo = personaje;
 	nuevo->fd = socket;
 	nuevo->nivel = nivel;
-	nuevo->es_personaje = es_personaje;
+	nuevo->monitoreado = false;
 	return nuevo;
 }
 
@@ -201,6 +203,23 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 	return recursos_libres;
 }
 
+void destruir_nivel(t_niveles_sistema * nivel) {
+
+	t_monitoreo * sacado = NULL;
+	while (!list_is_empty(nivel->pers_conectados)) {
+		sacado = list_remove(nivel->pers_conectados, 0);
+		free(sacado);
+	}
+	while (!list_is_empty(nivel->pers_desconectados)) {
+		sacado = list_remove(nivel->pers_desconectados, 0);
+		free(sacado);
+	}
+
+	log_info(logger, "Se cancela el hilo planificador del nivel %s",
+			nivel->str_nivel);
+	pthread_cancel(nivel->pla);	//, SIGTERM);
+	free(nivel);
+}
 void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 	//si se desconecta un nivel, automaticamente se caen los personajes que estaban conectados
 	//si se cae un personaje, el mensaje le llega al planificador directamente
@@ -208,41 +227,39 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 	int32_t _esta_enSistema(t_monitoreo *valor) {
 		return valor->fd == sockett;
 	}
-	int32_t _esta_enListas(t_pers_por_nivel *valor) {
-		return valor->fd == sockett;
-	}
-
 	int32_t _esta_enNiveles(t_niveles_sistema *valor) {
 		return valor->fd == sockett;
 	}
 	pthread_mutex_lock(&mutex_personajes_sistema);
-	t_monitoreo *aux = list_remove_by_condition(personajes_del_sistema,
+	t_monitoreo *p_sistema = list_remove_by_condition(personajes_del_sistema,
 			(void*) _esta_enSistema);
 	pthread_mutex_unlock(&mutex_personajes_sistema);
-	t_niveles_sistema * aux3 = list_remove_by_condition(niveles_del_sistema,
-			(void*) _esta_enNiveles);
 
-	if ((aux == NULL )&& (aux3 == NULL))return;
+	//pthread_mutex_lock(&mutex_niveles_sistema);
+	t_niveles_sistema * n_sistema = list_remove_by_condition(
+			niveles_del_sistema, (void*) _esta_enNiveles);
+	//pthread_mutex_unlock(&mutex_niveles_sistema);
 
-	char *str_nivel;
+	if ((p_sistema == NULL )&& (n_sistema == NULL))return;
 
-	if (aux == NULL ) {
+	char *str_nivel = NULL;
+
+	if (p_sistema == NULL ) {
 
 		//se cayo un nivel
-		str_nivel = string_from_format("%d", aux3->nivel);
-
+		str_nivel = n_sistema->str_nivel;
 		log_info(logger, "Se cayo el nivel %s.", str_nivel);
 
 		t_list *l_listos = dictionary_remove(listos, str_nivel);
 		t_list *l_bloqueados = dictionary_remove(bloqueados, str_nivel);
-		t_list *l_anormales = dictionary_remove(anormales, str_nivel);
-		t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
+		//t_list *l_anormales = dictionary_remove(anormales, str_nivel);
+		//t_list *l_monitoreo = dictionary_remove(monitoreo, str_nivel);
 
 		t_pers_por_nivel *elemento_personaje = personaje;
 		t_monitoreo *elemento_monitoreo = NULL;
-		int32_t *anormal = NULL;
+		//	int32_t *anormal = NULL;
 
-		if (elemento_personaje != NULL ) {
+		if (elemento_personaje != NULL ) {//se estaba planificando o pululaba por ahi
 
 			int32_t _esta_enSistema2(t_monitoreo *valor) {
 				return valor->fd == personaje->fd;
@@ -257,7 +274,7 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 				log_info(logger,
 						"Le aviso al personaje %c que el nivel %s se cayo",
 						elemento_personaje->personaje, str_nivel);
-				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+				plan_enviarMensaje(n_sistema, elemento_personaje->fd,
 						PLA_nivelCaido_PER, str_nivel);
 				close(elemento_personaje->fd);
 				elemento_monitoreo = NULL;
@@ -268,14 +285,14 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		pthread_mutex_lock(&mutex_listos);
 		while (!list_is_empty(l_listos) && (l_listos != NULL )) {
 			elemento_personaje = list_remove(l_listos, 0);
-			if (elemento_personaje != NULL ) {
-				log_info(logger,
-						"Le aviso al personaje %c que el nivel %s se cayo",
-						elemento_personaje->personaje, str_nivel);
-				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
-						PLA_nivelCaido_PER, str_nivel);
-				close(elemento_personaje->fd);
-			}
+			/*if (elemento_personaje != NULL ) {
+			 log_info(logger,
+			 "Le aviso al personaje %c que el nivel %s se cayo",
+			 elemento_personaje->personaje, str_nivel);
+			 plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+			 PLA_nivelCaido_PER, str_nivel);
+			 close(elemento_personaje->fd);
+			 }*/ // no le vuelvo a avisar porque le avise mas arriba
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_listos);
@@ -284,121 +301,115 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 		pthread_mutex_lock(&mutex_bloqueados);
 		while (!list_is_empty(l_bloqueados) && (l_bloqueados != NULL )) {
 			elemento_personaje = list_remove(l_bloqueados, 0);
-			if (elemento_personaje != NULL ) {
-				log_info(logger,
-						"Le aviso al personaje %c que el nivel %s se cayo",
-						elemento_personaje->personaje, str_nivel);
-				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
-						PLA_nivelCaido_PER, str_nivel);
-				close(elemento_personaje->fd);
-			}
+			/*if (elemento_personaje != NULL ) {
+			 log_info(logger,
+			 "Le aviso al personaje %c que el nivel %s se cayo",
+			 elemento_personaje->personaje, str_nivel);
+			 plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+			 PLA_nivelCaido_PER, str_nivel);
+			 close(elemento_personaje->fd);
+			 }*/ // no le vuelvo a avisar porque le avise mas arriba
 			destruir_personaje(elemento_personaje);
 		}
 		list_destroy(l_bloqueados);
 		pthread_mutex_unlock(&mutex_bloqueados);
 
-		pthread_mutex_lock(&mutex_anormales);
-		while (!list_is_empty(l_anormales) && (l_anormales != NULL )) {
-			anormal = list_remove(l_anormales, 0);
-			free(anormal);
-		}
-		list_destroy(l_anormales);
-		pthread_mutex_unlock(&mutex_anormales);
+		/*pthread_mutex_lock(&mutex_anormales);
+		 while (!list_is_empty(l_anormales) && (l_anormales != NULL )) {
+		 anormal = list_remove(l_anormales, 0);
+		 free(anormal);
+		 }
+		 list_destroy(l_anormales);
+		 pthread_mutex_unlock(&mutex_anormales);
 
-		pthread_mutex_lock(&mutex_monitoreo);
-		while (!list_is_empty(l_monitoreo) && (l_monitoreo != NULL )) {
-			elemento_monitoreo = list_remove(l_monitoreo, 0);
-			if (elemento_monitoreo->es_personaje) {
-				log_info(logger,
-						"Le aviso al personaje %c que el nivel %s se cayo",
-						elemento_personaje->personaje, str_nivel);
-				plan_enviarMensaje(str_nivel, elemento_personaje->fd,
-						PLA_nivelCaido_PER, str_nivel);
-				close(elemento_personaje->fd);
-			}
-			free(elemento_monitoreo);
-		}
-		list_destroy(l_monitoreo);
-		pthread_mutex_unlock(&mutex_monitoreo);
+		 pthread_mutex_lock(&mutex_monitoreo);
+		 while (!list_is_empty(l_monitoreo) && (l_monitoreo != NULL )) {
+		 elemento_monitoreo = list_remove(l_monitoreo, 0);
+		 if (elemento_monitoreo->es_personaje) {
+		 log_info(logger,
+		 "Le aviso al personaje %c que el nivel %s se cayo",
+		 elemento_personaje->personaje, str_nivel);
+		 plan_enviarMensaje(str_nivel, elemento_personaje->fd,
+		 PLA_nivelCaido_PER, str_nivel);
+		 close(elemento_personaje->fd);
+		 }
+		 free(elemento_monitoreo);
+		 }
+		 list_destroy(l_monitoreo);
+		 pthread_mutex_unlock(&mutex_monitoreo);
+		 */
 
-		log_info(logger, "Se cancela el hilo planificador del nivel %s",
-				str_nivel);
-		pthread_cancel(aux3->pla);	//, SIGTERM);
-		free(aux3);
+		destruir_nivel(n_sistema);
 
 	} else {
 		//era un personaje lo que se desconecto
 
-		if (aux->nivel != 0) {
+		if (p_sistema->nivel != 0) {
 
-			int32_t _buscar_nivel(t_niveles_sistema *valor) {
-				return valor->nivel == aux->nivel;
+			int32_t _esta_enListas(t_pers_por_nivel *valor) {
+				return valor->fd == sockett;
 			}
 
-			t_niveles_sistema * nivel_es = list_find(niveles_del_sistema,
+			int32_t _buscar_nivel(t_niveles_sistema *valor) {
+				return valor->nivel == p_sistema->nivel;
+			}
+
+			t_niveles_sistema * nivel = list_find(niveles_del_sistema,
 					(void *) _buscar_nivel);
 
-			str_nivel = string_from_format("%d", aux->nivel);
+			str_nivel = nivel->str_nivel;
 
 			t_list *p_listos = dictionary_get(listos, str_nivel);
 			t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
-			t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
+			//t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
 
+			t_pers_por_nivel * p_listas = NULL;
+
+			//lo saco de normales y lo pongo en muertos
+			//pthread_mutex_lock(&mutex_niveles_sistema);
 			t_monitoreo *aux1 = NULL;
-			t_pers_por_nivel * aux2 = NULL;
-
-			if (p_monitoreo != NULL ) {
-				pthread_mutex_lock(&mutex_monitoreo);
-				aux1 = list_remove_by_condition(p_monitoreo,
-						(void*) _esta_enSistema);
-				pthread_mutex_unlock(&mutex_monitoreo);
-				free(aux1);
-
+			aux1 = list_remove_by_condition(nivel->pers_conectados,
+					(void*) _esta_enSistema);
+			if (aux1 != NULL ) {
+				list_add(nivel->pers_desconectados, aux1);
+				nivel->cant_pers--;
+				/*if (nivel->cant_pers == 0) {
+					pthread_mutex_unlock(&(nivel->mutex_inicial));
+					pthread_mutex_lock(&(nivel->mutex_inicial));
+				}*/
 			}
+			//pthread_mutex_unlock(&mutex_niveles_sistema);
+			//lo saco de normales y lo pongo en muertos
 
 			if (p_bloqueados != NULL ) {
 				pthread_mutex_lock(&mutex_bloqueados);
-				aux2 = list_remove_by_condition(p_bloqueados,
+				p_listas = list_remove_by_condition(p_bloqueados,
 						(void*) _esta_enListas);
 				pthread_mutex_unlock(&mutex_bloqueados);
 			}
 
-			if (aux2 == NULL ) {
+			if (p_listas == NULL ) {
 				if (p_listos != NULL ) {
 					pthread_mutex_lock(&mutex_listos);
-					aux2 = list_remove_by_condition(p_listos,
+					p_listas = list_remove_by_condition(p_listos,
 							(void*) _esta_enListas);
 					pthread_mutex_unlock(&mutex_listos);
 				}
 			}
 
-			if (aux2 != NULL ) {
+			if (p_listas != NULL ) {
 				pthread_mutex_lock(&mutex_log);
 				log_info(logger_pla,
 						"Nivel %s: El personaje %c del soket %d se desconecto ",
-						str_nivel, aux2->personaje, aux2->fd);
+						str_nivel, p_listas->personaje, p_listas->fd);
 				pthread_mutex_unlock(&mutex_log);
 
-				pthread_mutex_lock(&mutex_log);
-				log_info(logger_pla,
-						"Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-						str_nivel, aux2->personaje);
-				pthread_mutex_unlock(&mutex_log);
-
-				char* muerto = string_from_format("%c", aux2->personaje);
-				enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
-
-				if (!list_is_empty(aux2->recursos_obtenidos)) {
-					proceso_desbloqueo(aux2->recursos_obtenidos, nivel_es->fd,
-							str_nivel);
-				}
-				close(aux2->fd);
-				destruir_personaje(aux2);
+				tratamiento_muerte_natural(p_listas, nivel->fd);
 			}
-			agregar_anormales(str_nivel, sockett);
+			//agregar_anormales(str_nivel, sockett);
 		}
 	}
-	free(aux);
+	free(p_sistema);
 }
 
 void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
@@ -426,39 +437,25 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 			int32_t _buscar_nivel(t_niveles_sistema *valor) {
 				return valor->nivel == aux->nivel;
 			}
-			t_niveles_sistema * nivel_es = list_find(niveles_del_sistema,
+			t_niveles_sistema * nivel = list_find(niveles_del_sistema,
 					(void *) _buscar_nivel);
 
-			str_nivel = string_from_format("%d", aux->nivel);
-			t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
-			//t_list *p_listos = dictionary_get(listos, str_nivel);
-			//t_list *p_bloqueados = dictionary_get(bloqueados, str_nivel);
+			str_nivel = nivel->str_nivel;
 
-			t_monitoreo *aux1;
-			//t_pers_por_nivel * aux2 = NULL;
-
-			if (p_monitoreo != NULL ) {
-				pthread_mutex_lock(&mutex_monitoreo);
-				aux1 = list_remove_by_condition(p_monitoreo,
-						(void*) _esta_enSistema);
-				pthread_mutex_unlock(&mutex_monitoreo);
-				free(aux1);
-
+			//lo saco de normales y lo pongo en muertos
+			//pthread_mutex_lock(&mutex_niveles_sistema);
+			t_monitoreo *aux1 = NULL;
+			aux1 = list_remove_by_condition(nivel->pers_conectados,
+					(void*) _esta_enSistema);
+			if (aux1 != NULL ) {
+				list_add(nivel->pers_desconectados, aux1);
+				nivel->cant_pers--;
+				if (nivel->cant_pers == 0) {
+					pthread_mutex_lock(&(nivel->mutex_inicial));
+				}
 			}
-
-			/*if (p_bloqueados != NULL ) {
-			 pthread_mutex_lock(&mutex_bloqueados);
-			 aux2 = list_remove_by_condition(p_bloqueados,
-			 (void*) _esta_enListas);
-			 pthread_mutex_unlock(&mutex_bloqueados);
-			 }
-
-			 if (p_listos != NULL ) {
-			 pthread_mutex_lock(&mutex_listos);
-			 aux2 = list_remove_by_condition(p_listos,
-			 (void*) _esta_enListas);
-			 pthread_mutex_unlock(&mutex_listos);
-			 }*/
+			//pthread_mutex_unlock(&mutex_niveles_sistema);
+			//lo saco de normales y lo pongo en muertos
 
 			pthread_mutex_lock(&mutex_log);
 			log_info(logger_pla,
@@ -466,22 +463,14 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 					str_nivel, personaje->personaje, personaje->fd);
 			pthread_mutex_unlock(&mutex_log);
 
-			/*pthread_mutex_lock(&mutex_log); log_info(logger_pla,
-			 "Nivel %s: Le aviso al nivel que el personaje %c murio por causas externas",
-			 str_nivel, aux2->personaje);
-			 pthread_mutex_unlock(&mutex_log);
-
-			 char* muerto = string_from_format("%c",aux2->personaje);
-			 enviarMensaje(nivel_es->fd, PLA_personajeMuerto_NIV, muerto);
-			 */
 			if (!list_is_empty(personaje->recursos_obtenidos)) {
-				proceso_desbloqueo(personaje->recursos_obtenidos, nivel_es->fd,
+				proceso_desbloqueo(personaje->recursos_obtenidos, nivel->fd,
 						str_nivel);
 			}
-			agregar_anormales(str_nivel, personaje->fd);
+			//agregar_anormales(str_nivel, personaje->fd);
 			close(personaje->fd);
 			destruir_personaje(personaje);
-			//free(aux2);
+
 		}
 	}
 	free(aux);
@@ -586,16 +575,16 @@ int main() {
 	personajes_para_koopa = list_create();
 	listos = dictionary_create();
 	bloqueados = dictionary_create();
-	anormales = dictionary_create();
-	monitoreo = dictionary_create();
+	//anormales = dictionary_create();
+	//monitoreo = dictionary_create();
 	pthread_mutex_init(&mutex_listos, NULL );
 	pthread_mutex_init(&mutex_bloqueados, NULL );
-	pthread_mutex_init(&mutex_monitoreo, NULL );
+	//pthread_mutex_init(&mutex_monitoreo, NULL );
 	pthread_mutex_init(&mutex_log, NULL );
-	pthread_mutex_init(&mutex_anormales, NULL );
+	//pthread_mutex_init(&mutex_anormales, NULL );
 	pthread_mutex_init(&mutex_personajes_para_koopa, NULL );
 	pthread_mutex_init(&mutex_personajes_sistema, NULL );
-	pthread_mutex_init(&mutex_niveles_sistema, NULL );
+	//pthread_mutex_init(&mutex_niveles_sistema, NULL );
 	//inicialización
 
 	fd_set master; // conjunto maestro de descriptores de fichero
@@ -668,9 +657,8 @@ int main() {
 						if (tipoMensaje == PER_conexionNivel_ORQ) {
 //								|| (tipoMensaje == NIV_handshake_ORQ))
 
-							t_list *p_monitor = dictionary_get(monitoreo,
-									mensaje);
-							if (p_monitor != NULL ) {
+							t_list *p_listos = dictionary_get(listos, mensaje);
+							if (p_listos != NULL ) {
 								FD_CLR(i, &master); // eliminar del conjunto maestro
 							}
 
@@ -704,39 +692,49 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
 		t_list *p_listos = list_create();
 		t_list *p_bloqueados = list_create();
-		t_list *p_muertos = list_create();
-		t_list *p_monitor = list_create();
+		//t_list *p_muertos = list_create();
+		//t_list *p_monitor = list_create();
 
 		dictionary_put(listos, n_mensaje[0], p_listos);
 		dictionary_put(bloqueados, n_mensaje[0], p_bloqueados);
-		dictionary_put(anormales, n_mensaje[0], p_muertos);
-		dictionary_put(monitoreo, n_mensaje[0], p_monitor);
+		//dictionary_put(anormales, n_mensaje[0], p_muertos);
+		//dictionary_put(monitoreo, n_mensaje[0], p_monitor);
 
 		t_niveles_sistema *nuevo = malloc(sizeof(t_niveles_sistema));
 		nuevo->nivel = nivel;
+		nuevo->str_nivel = string_new();
+		string_append(&(nuevo->str_nivel), n_mensaje[0]);
 		nuevo->fd = sockett;
 		nuevo->algol = n_mensaje[1];
 		nuevo->quantum = atoi(n_mensaje[2]);
 		nuevo->retardo = atoi(n_mensaje[3]);
 		nuevo->remain_distance = atoi(n_mensaje[4]);
-		//nuevo->remain_distance = 4;
+		nuevo->pers_conectados = list_create();
+		nuevo->cant_pers = 0;
+		nuevo->pers_desconectados = list_create();
+		pthread_mutex_init(&(nuevo->mutex_inicial), NULL );
 
+		//lo bloqueo porque todavia no hay nadie
+		pthread_mutex_lock(&(nuevo->mutex_inicial));
+
+		//pthread_mutex_lock(&mutex_niveles_sistema);
 		list_add(niveles_del_sistema, nuevo);
+		//pthread_mutex_unlock(&mutex_niveles_sistema);
 
-		//DELEGAR TMB EL SOCKET AL PLANIFICADOR:
-		// delegar la conexión al hilo del nivel correspondiente
-		t_list *pe_monitor = dictionary_get(monitoreo, n_mensaje[0]);
-		t_monitoreo *item = per_monitor_crear(false, 'M', atoi(n_mensaje[0]),
-				sockett);
-		pthread_mutex_lock(&mutex_monitoreo);
-		list_add(pe_monitor, item);
-		pthread_mutex_unlock(&mutex_monitoreo);
-		// delegar la conexión al hilo del nivel correspondiente
-
+		/*		//DELEGAR TMB EL SOCKET AL PLANIFICADOR:
+		 // delegar la conexión al hilo del nivel correspondiente
+		 t_list *pe_monitor = dictionary_get(monitoreo, n_mensaje[0]);
+		 t_monitoreo *item = per_monitor_crear(false, 'M', atoi(n_mensaje[0]),
+		 sockett);
+		 pthread_mutex_lock(&mutex_monitoreo);
+		 list_add(pe_monitor, item);
+		 pthread_mutex_unlock(&mutex_monitoreo);
+		 // delegar la conexión al hilo del nivel correspondiente
+		 */
 		log_info(logger,
 				"Se crea el hilo planificador para el nivel (%d) recien conectado con fd= %d ",
 				nivel, sockett);
-		//pthread_t pla;
+
 		pthread_create(&nuevo->pla, NULL, (void *) hilo_planificador, nuevo);
 
 		log_info(logger, "Envío respuesta handshake al nivel (%d).", nivel);
@@ -752,14 +750,15 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		}
 
 		pthread_mutex_lock(&mutex_personajes_sistema);
+
 		t_monitoreo *aux = list_find(personajes_del_sistema,
 				(void*) _esta_personaje);
 		// delegar la conexión al hilo del nivel correspondiente
 		log_info(logger, "Nivel solicitado por el personaje %c: %d ",
 				aux->simbolo, nivel);
 
-		t_list *p_monitor = dictionary_get(monitoreo, mensaje);
-		if (p_monitor == NULL ) {
+		t_list *p_listos = dictionary_get(listos, mensaje);
+		if (p_listos == NULL ) {
 			log_info(logger,
 					"El nivel solicitado: %d aun no se encuentra disponible en el sistema, por favor intente mas tarde.",
 					nivel);
@@ -768,41 +767,53 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		} else {
 
 			aux->nivel = nivel; //actualiza el nivel a donde se conecta el personaje
-			t_list *p_anormales = dictionary_get(anormales, mensaje);
-			pthread_mutex_lock(&mutex_anormales);
+			/*t_list *p_anormales = dictionary_get(anormales, mensaje);
+			 pthread_mutex_lock(&mutex_anormales);
 
-			int32_t _esta_fd(int32_t *nuevo) {
-				return *nuevo != sockett;
-			}
-			//me saca los que sean distintos
-			t_list* caso_ejemplo = list_filter(p_anormales, (void*) _esta_fd);
-			list_clean(p_anormales);
-			list_add_all(p_anormales, caso_ejemplo);
-			pthread_mutex_unlock(&mutex_anormales);
+			 int32_t _esta_fd(int32_t *nuevo) {
+			 return *nuevo != sockett;
+			 }
+			 //me saca los que sean distintos
+			 t_list* caso_ejemplo = list_filter(p_anormales, (void*) _esta_fd);
+			 list_clean(p_anormales);
+			 list_add_all(p_anormales, caso_ejemplo);
+			 pthread_mutex_unlock(&mutex_anormales);
+			 */
 
-			t_monitoreo *item = per_monitor_crear(true, 'M', nivel, sockett);
+			t_monitoreo *item = per_monitor_crear(aux->simbolo, nivel, sockett);
 			memcpy(item, aux, sizeof(t_monitoreo));
-			pthread_mutex_lock(&mutex_monitoreo);
-			list_add(p_monitor, item);
-			pthread_mutex_unlock(&mutex_monitoreo);
+
+			// delegar la conexión al hilo del nivel correspondiente
+			int32_t _esta_nivel(t_niveles_sistema *nuevo) {
+				return nuevo->nivel == nivel;
+			}
+
+			t_niveles_sistema *niv = list_find(niveles_del_sistema,
+					(void*) _esta_nivel);
+			//pthread_mutex_lock(&mutex_niveles_sistema);
+			list_add(niv->pers_conectados, item);
+			niv->cant_pers++;
+			//pthread_mutex_unlock(&mutex_niveles_sistema);
+
 			// delegar la conexión al hilo del nivel correspondiente
 
 			//agregar a la lista de listos del nivel
 			t_list *p_listos = dictionary_get(listos, mensaje);
 			t_pers_por_nivel *item2 = crear_personaje(aux->simbolo, aux->fd);
 
-			int32_t _esta_nivel(t_niveles_sistema *nuevo) {
-				return nuevo->nivel == nivel;
-			}
-			t_niveles_sistema* caso = list_find(niveles_del_sistema,
-					(void*) _esta_nivel);
-
-			item2->pos_recurso = caso->remain_distance;
+			item2->pos_recurso = niv->remain_distance;
 			pthread_mutex_lock(&mutex_listos);
 			list_add(p_listos, item2);
 			pthread_mutex_unlock(&mutex_listos);
 			//agregar a la lista de listos del nivel
 			enviarMensaje(sockett, ORQ_conexionNivel_PER, "0");
+
+			//desbloquea al nivel para que planifique todo: probar bien esto
+			if (niv->cant_pers == 1) {
+				//si es 1 es por el que recién agregue
+				pthread_mutex_unlock(&(niv->mutex_inicial));
+			}
+
 		}
 		pthread_mutex_unlock(&mutex_personajes_sistema);
 		break;
@@ -832,7 +843,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		//estructura: personajes_para_koopa
 
 		//estructura: personajes_del_sistema
-		t_monitoreo *item = per_monitor_crear(true, personaje, 0, sockett);
+		t_monitoreo *item = per_monitor_crear(personaje, 0, sockett);
 		pthread_mutex_lock(&mutex_personajes_sistema);
 		list_add(personajes_del_sistema, item);
 		pthread_mutex_unlock(&mutex_personajes_sistema);
@@ -847,7 +858,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 
 		char personaje = mensaje[0];
 		//estructura: personajes_del_sistema
-		t_monitoreo *item = per_monitor_crear(true, personaje, 0, sockett);
+		t_monitoreo *item = per_monitor_crear(personaje, 0, sockett);
 		pthread_mutex_lock(&mutex_personajes_sistema);
 		list_add(personajes_del_sistema, item);
 		pthread_mutex_unlock(&mutex_personajes_sistema);

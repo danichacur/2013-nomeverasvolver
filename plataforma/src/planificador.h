@@ -20,11 +20,16 @@ pthread_t pla;
 int32_t quantum;
 int32_t retardo;
 int32_t remain_distance;
+t_list *pers_conectados;
+t_list *pers_desconectados;
+int cant_pers;
+pthread_mutex_t mutex_inicial;
+char* str_nivel;
 } t_niveles_sistema;
 
 void *hilo_planificador(t_niveles_sistema *nivel);
 char * transformarListaCadena(t_list *recursosDisponibles);
-bool plan_enviarMensaje(char* str_nivel, int32_t fd, enum tipo_paquete paquete, char* mensaje);
+bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd, enum tipo_paquete paquete, char* mensaje);
 void agregar_anormales(char* str_nivel, int32_t fd);
 
 #endif /* PLANIFICADOR_H_ */
