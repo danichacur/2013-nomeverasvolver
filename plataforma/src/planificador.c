@@ -25,7 +25,7 @@ t_log* logger_pla;
 extern t_list *niveles_del_sistema;
 
 void planificador_analizar_mensaje(int32_t socket,
-		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel);
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel, t_pers_por_nivel *personaje);
 void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
 		int32_t *fd_personaje_actual, int32_t *quantum);
@@ -123,6 +123,10 @@ int32_t sumar_valores(char *mensaje) {
 
 			i++;
 		}
+		
+		 char * p_atacados = calloc(strlen(mensaje)+1,sizeof(char));
+		strcpy(p_atacados,mensaje);
+		
 		free(mensaje);
 
 		if (noSoyYo) {
@@ -166,7 +170,7 @@ int32_t sumar_valores(char *mensaje) {
 			elMuerto = personaje;
 			free(mensaje);
 		}
-		tratamiento_asesinato(nivel, elMuerto, mensaje, str_nivel);
+		tratamiento_asesinato(nivel, elMuerto, p_atacados, str_nivel);
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
@@ -404,6 +408,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 
 						fd_personaje_actual = 0;
+						personaje = NULL;
 					} else {
 
 						if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
@@ -421,7 +426,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 						} else
 
 							planificador_analizar_mensaje(i, tipoMensaje,
-									mensaje, nivel);
+									mensaje, nivel, personaje);
 //                                                fd_personaje_actual = 0;
 //                                                destruir_personaje(personaje);
 					}
@@ -1237,7 +1242,8 @@ void tratamiento_asesinato(t_niveles_sistema *nivel,
 }
 
 void planificador_analizar_mensaje(int32_t socket_r,
-		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel) {
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel, 
+		t_pers_por_nivel *personaje) {
 	char *str_nivel = nivel->str_nivel;
 
 	switch (tipoMensaje) {
@@ -1294,7 +1300,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s", str_nivel,
 				mensaje);
 		pthread_mutex_unlock(&mutex_log);
-		t_pers_por_nivel* personaje = NULL;
+		//t_pers_por_nivel* personaje = NULL;
 		tratamiento_asesinato(nivel, personaje, mensaje, str_nivel);
 		break;
 	}
