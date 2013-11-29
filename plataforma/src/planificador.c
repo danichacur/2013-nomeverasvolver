@@ -264,6 +264,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 			close(muerto->fd); // ¡Hasta luego!
 			FD_CLR(muerto->fd, &master); // eliminar del conjunto maestro
+			free(muerto);
 
 		}
 		//voy sacando aca los personajes anormales
@@ -282,6 +283,11 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 				p->monitoreado = true;
 				//le aviso al nivel sobre el personaje nuevo
 				char *valor = string_from_format("%c", p->simbolo);
+				pthread_mutex_lock(&mutex_log);
+										log_info(logger_pla,
+												"Nivel %s: Aviso al nivel sobre el nuevo personaje en el sistema %c",
+												str_nivel, p->simbolo);
+										pthread_mutex_unlock(&mutex_log);
 				enviarMensaje(nivel->fd, PLA_nuevoPersonaje_NIV, valor);
 				free(valor);
 			}
@@ -1360,7 +1366,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 
 	free(mensaje);
 }
-//todo corregir esto
+
 bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd,
 		enum tipo_paquete paquete, char* mensaje) {
 
