@@ -14,7 +14,7 @@ make all
 cd ../../no-eclipse-gui-library/
 make && make install
 
-cd ../../nivel/Debug/
+cd ../nivel/Debug/
 make clean
 make all
 
