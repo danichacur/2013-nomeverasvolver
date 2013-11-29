@@ -21,16 +21,18 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 	int res=0;
 	uint32_t i;
 
-	//printf("grasa_getattr|path:%s\n",path);
+	printf("grasa_getattr|path:%s\n",path);
 
 	memset(stbuf, 0, sizeof(struct stat));
 
 	i = obtenerNodo(path,0);
 
-	if (i == 1024)
+	//printf("grasa_getattr|path:%s,nodo:%d\n",path,i);
+
+	if (i == 1024 && strcmp(path, "/") != 0)
 		return -ENOENT;
 
-	if (GTNodo[i].state == 2) {
+	if (GTNodo[i].state == 2 || strcmp(path, "/") == 0) {
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
 	} else if (GTNodo[i].state == 1) {
@@ -47,7 +49,7 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 	uint32_t i;
 
-	//printf("grasa_open|path:%s\n",path);
+	printf("grasa_open|path:%s\n",path);
 
 	i = obtenerNodo(path,0);
 
@@ -71,7 +73,7 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
 
         i = obtenerNodo(path,0);
 
-        //printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
+        printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
 
         if (i == 1024)
                 return -ENOENT;
@@ -95,6 +97,8 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
         			aCopiar = aLeer;
         		}
 
+        		//printf("grasa_read,NRoblqdatos:%d,offsetdatos:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,(int)aCopiar);
+
         		memcpy(buf,obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),aCopiar);
 
         		buf += aCopiar;
@@ -115,7 +119,7 @@ static uint32_t grasa_readdir(const char *path, void *buf, fuse_fill_dir_t fille
 	(void) fi;
 	uint32_t i=0,j=0,k=0,l=0;
 
-	//printf("grasa_readdir|path:%s\n",path);
+	printf("grasa_readdir|path:%s\n",path);
 
 	// "." y ".." son entradas validas, la primera es una referencia al directorio donde estamos parados
 	// y la segunda indica el directorio padre
@@ -146,7 +150,7 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 	uint32_t i,j=1024,k;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_mkdir|path:%s\n",path);
+	printf("grasa_mkdir|path:%s\n",path);
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -174,7 +178,7 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 				GTNodo[j].parent_dir_block = k+1;
 			}
 
-			printf("dirblk:%d,\n",(int)GTNodo[j].parent_dir_block);
+			//printf("dirblk:%d,\n",(int)GTNodo[j].parent_dir_block);
 
 			strcpy(GTNodo[j].fname,basename(strdup(path)));
 			GTNodo[j].file_size = 0;
@@ -182,7 +186,7 @@ static uint32_t grasa_mkdir(const char *path, mode_t mode){
 			GTNodo[j].c_date = (uint64_t)time(NULL);
 			GTNodo[j].m_date = (uint64_t)time(NULL);
 
-			bitarray_set_bit(GBitmap,j);
+			//bitarray_set_bit(GBitmap,j);
 		pthread_mutex_unlock( &mutex1 );
 
 		return 0;
@@ -198,7 +202,7 @@ static uint32_t grasa_rmdir(const char *path){
 	uint32_t i,j;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_rmdir|path:%s\n",path);
+	printf("grasa_rmdir|path:%s\n",path);
 
 	j = obtenerNodo(path,0);
 
@@ -209,7 +213,7 @@ static uint32_t grasa_rmdir(const char *path){
 		return -ENOTDIR;
 
 	for(i=0;i < 1024;i++){
-		if(GTNodo[i].parent_dir_block == j)
+		if(GTNodo[i].parent_dir_block == j+1)
 			return -ENOTEMPTY;
 	}
 
@@ -233,7 +237,7 @@ static uint32_t grasa_unlink(const char *path){
 	size_t fsize;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_unlink|path:%s\n",path);
+	printf("grasa_unlink|path:%s\n",path);
 
 	k = obtenerNodo(path,0);
 
@@ -282,7 +286,7 @@ static uint32_t grasa_truncate(const char *path, off_t newsize){
 	ptrGBloque i;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_truncate|path:%s\n",path);
+	printf("grasa_truncate|path:%s\n",path);
 
 	i = obtenerNodo(path,0);
 
@@ -305,7 +309,7 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 	uint32_t i,j=1024,k;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_create|path:%s\n",path);
+	printf("grasa_create|path:%s\n",path);
 
 	if(strlen(path) > 71)
 		return -ENAMETOOLONG;
@@ -339,6 +343,8 @@ static uint32_t grasa_create(const char *path, mode_t mode, struct fuse_file_inf
 			GTNodo[j].c_date = (uint64_t)time(NULL);
 			GTNodo[j].m_date = (uint64_t)time(NULL);
 
+			//printf("grasa_create|path:%s,nomnodo:%s\n",path,GTNodo[j].fname);
+
 		pthread_mutex_unlock( &mutex1 );
 
 		return 0;
@@ -365,7 +371,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	ptrGBloque *bloqueDatosIndirecto;
 	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	//printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
+	printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
 
 	i = obtenerNodo(path,0);
 
@@ -452,7 +458,7 @@ ptrGBloque obtenerNodo( const char *path, ptrGBloque j){
 	ptrGBloque i;
 	char *Filename,*dir1,*dir2,*dir3;
 
-	//printf("obtenerNodo:%s\n",path);
+	printf("obtenerNodo:%s\n",path);
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -548,7 +554,7 @@ ptrGBloque obtenerNodoRelacionado( const char *path, ptrGBloque j, ptrGBloque k)
 	ptrGBloque i;
 	char *Filename,*dir1,*dir2,*dir3;
 
-	//printf("obtenerNodo:%s\n",path);
+	printf("obtenerNodoRelacionado:%s\n",path);
 
 	Filename = basename(strdup(path));
 	dir1 = strdup(path);
@@ -606,7 +612,7 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 	admNroBloque.BloqueDatos = 0;
     admNroBloque.indirecto = indirecto;
     admNroBloque.entero= entero;
-    printf("obtNroBlqfsize:%d\n",(int)GTNodo[NroNodo].file_size);
+    //printf("obtNroBlqfsize:%d\n",(int)GTNodo[NroNodo].file_size);
 
     if(GTNodo[NroNodo].file_size != 0){
     	blqindatos = (ptrGBloque*)(mapeo + GTNodo[NroNodo].blk_indirect[indirecto]*BLOCK_SIZE);
