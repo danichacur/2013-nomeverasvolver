@@ -123,6 +123,8 @@ int32_t sumar_valores(char *mensaje) {
 
 			i++;
 		}
+		char * p_atacados = calloc(strlen(mensaje)+1,sizeof(char));
+		strcpy(p_atacados,mensaje);
 		free(mensaje);
 
 		if (noSoyYo) {
@@ -166,7 +168,7 @@ int32_t sumar_valores(char *mensaje) {
 			elMuerto = personaje;
 			free(mensaje);
 		}
-		tratamiento_asesinato(nivel, elMuerto, mensaje, str_nivel);
+		tratamiento_asesinato(nivel, elMuerto, p_atacados, str_nivel);
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
