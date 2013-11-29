@@ -1179,6 +1179,10 @@ void tratamiento_asesinato(t_niveles_sistema *nivel,
 						str_nivel, aux->personaje);
 				pthread_mutex_unlock(&mutex_log);
 				imprimir_lista(LISTA_LISTOS, str_nivel);
+			}else{
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger_pla,"Nivel %s: No se encontró este personaje (%c) en la lista de listos, entonces no lo pude remover",str_nivel, mensaje[i]); // (matyx) Dani fijate como resolver esto
+				pthread_mutex_unlock(&mutex_log);
 			}
 		} else {
 			//pregunto si uno de los muertos es el planificado, si no lo es, que lo saque de listos

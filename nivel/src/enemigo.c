@@ -187,7 +187,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 
 	if(orientacion == horizontal){
 		if(enemigo->posicion->posX > personaje->posicion->posX){
-			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY)){
+			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY) || (enemigo->posicion->posX - 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -198,7 +198,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 
 			}
 		}else{
-			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY)){
+			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY) || (enemigo->posicion->posX + 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -211,7 +211,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 		}
 	}else if(orientacion == vertical){
 		if(enemigo->posicion->posY > personaje->posicion->posY)
-			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1)){
+			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY - 1 == 0)){
 				orientacion = horizontal;
 				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -221,7 +221,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
 			}
-		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
+		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY + 1 == 0)){
 			orientacion = horizontal;
 			enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
