@@ -43,8 +43,12 @@ bool CON_CONEXION;
 t_list * listaDeNumeroCajaPorNivel;
 bool finalizoCorrectamente;
 
+int32_t pidProcesoMadre;
+
 //PROCESO PERSONAJE
 int main(){
+
+	pidProcesoMadre = getpid();
 
 	//TODO borrar esto, es para las pruebas.
 	listaDeNumeroCajaPorNivel = list_create();
@@ -672,7 +676,7 @@ void interrumpirUnNivel(int nivel){
 
 void finalizarTodoElProcesoPersonaje(){
 	log_info(logger, "Personaje %s (%s) finaliza totalmente.", personaje->nombre, personaje->simbolo);
-	kill(getpid(), SIGKILL);
+	kill(pidProcesoMadre, SIGKILL);
 }
 
 char * obtenerNombreNivelDesdeOrden(int ordNivel){
@@ -779,6 +783,9 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 			}else
 				string_append(mensajeRecibido, mensaje);
 		}
+	}else{
+		log_info(logger, "Personaje %s (%s) (nivel: %s) recibió una desconexion abrupta. Cierra todo", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
+		finalizarTodoElProcesoPersonaje();
 	}
 }
 
