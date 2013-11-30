@@ -42,7 +42,6 @@ bool el_personaje_mando_fruta(t_pers_por_nivel *personaje,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
 		int32_t *fd_personaje_actual);
 void tratamiento_muerte_natural(t_pers_por_nivel *personaje, int32_t nivel_fd);
-void capaz_me_mataron(char *mensaje, t_pers_por_nivel*personaje, t_niveles_sistema*nivel, int32_t *fd_personaje_actual);
 
 int32_t sumar_valores(char *mensaje) {
 
@@ -125,7 +124,7 @@ int32_t sumar_valores(char *mensaje) {
 			i++;
 		}
 
-		char * p_atacados = calloc(strlen(mensaje)+1,sizeof(char));
+		 char * p_atacados = calloc(strlen(mensaje)+1,sizeof(char));
 		strcpy(p_atacados,mensaje);
 
 		free(mensaje);
@@ -221,6 +220,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	log_info(logger_pla,
 			"Hola, soy el planificador del nivel %d , mi fd es %d ", miNivel,
 			miFd);
+	pthread_mutex_unlock(&mutex_log);
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger_pla,
 			"Nivel %d, comienzo con tipo de planificación %s, quantum %d, retardo %d y distancia default para SRTF: %d",
 			miNivel, nivel->algol, nivel->quantum, nivel->retardo,
@@ -254,6 +255,12 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 	for (;;) {
 
+		//me bloqueo si no hay personajes que planificar
+		if (nivel->cant_pers == 0) {
+			pthread_mutex_lock(&(nivel->mutex_inicial));
+		}
+		//me bloqueo si no hay personajes que planificar
+
 		///voy sacando aca los personajes anormales
 		while (!list_is_empty(nivel->pers_desconectados)) {
 
@@ -266,13 +273,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 		}
 		//voy sacando aca los personajes anormales
 
-		//me bloqueo si no hay personajes que planificar
-		if (nivel->cant_pers == 0) {
-			pthread_mutex_lock(&(nivel->mutex_inicial));
-		}
-		//me bloqueo si no hay personajes que planificar
-
-
 		//voy metiendo aca los personajes para monitorear
 		int a;
 		for (a = 0; a < list_size(nivel->pers_conectados); a++) {
@@ -280,7 +280,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 			t_monitoreo * p = list_get(nivel->pers_conectados, a);
 
 			if (!p->monitoreado) { //pregunto si no estaba ya
-
 				FD_SET(p->fd, &master); // añadir al conjunto maestro
 				if (p->fd > fdmax) { // actualizar el máximo
 					fdmax = p->fd;
@@ -345,8 +344,8 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					}
 					//eliminarlo de las estructuras
 
-					//close(i); // ¡Hasta luego!
-					//FD_CLR(i, &master); // eliminar del conjunto maestro
+					close(i); // ¡Hasta luego!
+					FD_CLR(i, &master); // eliminar del conjunto maestro
 					break;
 					/*
 					 if (i == fd_personaje_actual)
@@ -413,9 +412,19 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					} else {
 
 						if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
-						 capaz_me_mataron(mensaje, personaje,nivel, &fd_personaje_actual);
+							pthread_mutex_lock(&mutex_log);
+							log_info(logger_pla,
+									"Nivel %s: Recibo el asesinato de: %s",
+									str_nivel, mensaje);
+							pthread_mutex_unlock(&mutex_log);
+
+							t_pers_por_nivel * elMuerto = NULL;
+							tratamiento_asesinato(nivel, elMuerto, mensaje,
+									str_nivel);
+							free(mensaje);
 
 						} else
+
 							planificador_analizar_mensaje(i, tipoMensaje,
 									mensaje, nivel, personaje);
 //                                                fd_personaje_actual = 0;
@@ -427,65 +436,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	} // fin bucle for principal
 
 	pthread_exit(NULL );
-
-}
-
-void capaz_me_mataron(char *mensaje, t_pers_por_nivel*personaje,
-		t_niveles_sistema*nivel, int32_t *fd_personaje_actual) {
-
-	pthread_mutex_lock(&mutex_log);
-	log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s",
-			nivel->str_nivel, mensaje);
-	pthread_mutex_unlock(&mutex_log);
-
-	if ((*fd_personaje_actual == 0)
-			|| (personaje->fd != *fd_personaje_actual)) {
-		//no llego a planificar a nadie
-		tratamiento_asesinato(nivel, personaje, mensaje, nivel->str_nivel);
-		free(mensaje);
-	} else {
-		int i = 0;
-		bool noSoyYo = true;
-		t_pers_por_nivel * elMuerto = NULL;
-		while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
-
-			if (mensaje[i] == personaje->personaje) {
-				noSoyYo = false;
-				break;
-			}
-
-			i++;
-		}
-
-		if (!noSoyYo) {
-			//o sea mataron el que yo esperaba la respuesta, entonces vuelvo a escuchar
-			*fd_personaje_actual = 0;
-			enum tipo_paquete t_tipoMensaje = ORQ_handshake_PER;
-			char* m_mensaje = NULL;
-			recibirMensaje(personaje->fd, &t_tipoMensaje, &m_mensaje);
-
-			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s.",
-					nivel->str_nivel, obtenerNombreEnum(t_tipoMensaje));
-			pthread_mutex_unlock(&mutex_log);
-
-			if (t_tipoMensaje == PER_movimiento_PLA) {
-				pthread_mutex_lock(&mutex_log);
-				log_info(logger_pla,
-						"Nivel %s: Todo bien, llego el mensaje que esperaba.",
-						nivel->str_nivel);
-				pthread_mutex_unlock(&mutex_log);
-			}
-
-			free(m_mensaje);
-
-			tratamiento_asesinato(nivel, personaje, mensaje, nivel->str_nivel);
-			free(mensaje);
-		} else {
-			tratamiento_asesinato(nivel, elMuerto, mensaje, nivel->str_nivel);
-			free(mensaje);
-		}
-	}
 
 }
 
@@ -503,7 +453,7 @@ t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
 			int segundo = abs(
 					menos_cerca->pos_recurso - menos_cerca->pos_inicial);
 
-			return primero < segundo;
+			return primero <= segundo;
 		}
 
 		list_sort(p_listos, (void*) _menor_distancia);
@@ -719,6 +669,8 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		nivel->retardo = atoi(n_mensaje[2]);
 
 		free(mensaje);
+		enviarMensaje(nivel->fd, OK1, "0");
+
 		posibles_respuestas_del_nivel(personaje, nivel, quantum,
 				fd_personaje_actual);
 		break;
@@ -1342,6 +1294,9 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
 
+		enviarMensaje(nivel->fd, OK1, "0");
+
+
 		break;
 	}
 	case NIV_enemigosAsesinaron_PLA: {
@@ -1351,26 +1306,6 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				mensaje);
 		pthread_mutex_unlock(&mutex_log);
 		//t_pers_por_nivel* personaje = NULL;
-
-		enum tipo_paquete t_tipoMensaje = ORQ_handshake_PER;
-		char* m_mensaje = NULL;
-		recibirMensaje(personaje->fd, &t_tipoMensaje, &m_mensaje);
-
-		pthread_mutex_lock(&mutex_log);
-		log_info(logger_pla, "Nivel %s: Llego el tipo de paquete: %s.",
-				str_nivel, obtenerNombreEnum(t_tipoMensaje));
-		pthread_mutex_unlock(&mutex_log);
-
-		if (t_tipoMensaje == PER_movimiento_PLA) {
-			pthread_mutex_lock(&mutex_log);
-			log_info(logger_pla,
-					"Nivel %s: Todo bien, llego el mensaje que esperaba.",
-					str_nivel);
-			pthread_mutex_unlock(&mutex_log);
-		}
-
-		free(m_mensaje);
-
 		tratamiento_asesinato(nivel, personaje, mensaje, str_nivel);
 		break;
 	}
@@ -1469,6 +1404,5 @@ bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd,
 				nivel->str_nivel);
 		pthread_mutex_unlock(&mutex_log);
 		return false;
-
 	}
 }

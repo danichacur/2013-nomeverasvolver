@@ -762,6 +762,9 @@ void crearHiloInotify(pthread_t hiloNotify){
 				 sprintf(buffer1,"%s,%d,%d",algoritmoAux,quantumAux,retardoAux); // ejemplo "RR,5,5000"
 
 				 huboCambios=true;
+				 log_info(logger,"huboCambios en true");
+
+
 
 				 pthread_mutex_unlock(&mutex_mensajes);
 
