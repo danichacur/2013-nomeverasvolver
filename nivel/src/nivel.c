@@ -63,7 +63,6 @@ int main (){
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
 	pthread_mutex_init(&mutex_log, NULL );
-	pthread_mutex_init(&mutex_mensajes,NULL);
 	pthread_mutex_init(&mx_lista_items,NULL);
 
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
@@ -318,7 +317,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	log_info(logger,"Voy a esperar recibir un mensaje de %d", socketEscucha);
 	pthread_mutex_unlock(&mutex_log);
 
+	pthread_mutex_lock(&mutex_mensajes); //(matyx)
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+	pthread_mutex_unlock(&mutex_mensajes);
 
 	sleep(1);
 

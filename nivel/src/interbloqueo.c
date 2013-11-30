@@ -10,6 +10,7 @@
 int sleepInterbloqueo;
 extern t_list * listaPersonajesRecursos;
 extern pthread_mutex_t mutex_mensajes;
+extern pthread_mutex_t mx_lista_items;
 extern long tiempoDeadlock;
 extern int recovery;
 extern int32_t socketDeEscucha;
@@ -169,8 +170,12 @@ t_personaje_niv1 *seleccionarVictima(t_list *listaInterbloqueados) {
 void informarVictimaAPlanificador(t_personaje_niv1 * personaje){
 	pthread_mutex_lock(&mutex_mensajes);
 	enviarMensaje(socketDeEscucha,NIV_perMuereInterbloqueo_PLA, personaje->simbolo);
-	BorrarItem(items,personaje->simbolo[0]);
 	pthread_mutex_unlock(&mutex_mensajes);
+
+	pthread_mutex_lock(&mx_lista_items);
+	BorrarItem(items,personaje->simbolo[0]);
+	pthread_mutex_unlock(&mx_lista_items);
+
 }
 
 t_list * obtenerListaDePersonajesBloqueados(){

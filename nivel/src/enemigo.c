@@ -198,22 +198,31 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY) || (enemigo->posicion->posX - 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
+
 			}else{
 
 				enemigo->posicion->posX = enemigo->posicion->posX - 1;
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
 
 			}
 		}else{
 			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY) || (enemigo->posicion->posX + 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
 
 			}else{
 				enemigo->posicion->posX = enemigo->posicion->posX + 1;
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
 
 			}
 		}
@@ -222,21 +231,30 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY - 1 == 0)){
 				orientacion = horizontal;
 				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
 
 			}else{
 				enemigo->posicion->posY = enemigo->posicion->posY - 1;
+				pthread_mutex_lock(&mx_lista_items);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+				pthread_mutex_unlock(&mx_lista_items);
 
 			}
 		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY + 1 == 0)){
 			orientacion = horizontal;
 			enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
 
 		}else
 			enemigo->posicion->posY = enemigo->posicion->posY + 1;
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
+
 	}
 
 
@@ -266,22 +284,30 @@ void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orien
 		if(hayCajaOExcedeLimite(enemigo->posicion->posX + orientacion2, enemigo->posicion->posY)){
 			enemigo->cantTurnosEnL = -1;
 			enemigo->posicion->posX = enemigo->posicion->posX + (orientacion2 * -1);
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
 
 		}else{
 			enemigo->posicion->posX = enemigo->posicion->posX + orientacion2;
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
 
 		}
 	}else if(orientacion1 == vertical){
 		if(hayCajaOExcedeLimite(enemigo->posicion->posX, enemigo->posicion->posY + orientacion2)){
 			enemigo->cantTurnosEnL = -1;
 			enemigo->posicion->posY = enemigo->posicion->posY + (orientacion2 * -1);
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
 
 		}else{
 			enemigo->posicion->posY = enemigo->posicion->posY + orientacion2;
+			pthread_mutex_lock(&mx_lista_items);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
+			pthread_mutex_unlock(&mx_lista_items);
 
 		}
 	}
