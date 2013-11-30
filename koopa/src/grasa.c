@@ -49,7 +49,7 @@ static uint32_t grasa_getattr(const char *path, struct stat *stbuf)
 static uint32_t grasa_open(const char *path, struct fuse_file_info *fi) {
 	uint32_t i;
 
-	printf("grasa_open|path:%s\n",path);
+	//printf("grasa_open|path:%s\n",path);
 
 	i = obtenerNodo(path,0);
 
@@ -73,7 +73,7 @@ static uint32_t grasa_read(const char *path, char *buf, size_t size, off_t offse
 
         i = obtenerNodo(path,0);
 
-        printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
+        //printf("grasa_read,size_fuse:%d,offset_fuse:%d,fsize_grasa:%d\n",(int)size,(int)offset,GTNodo[i].file_size);
 
         if (i == 1024)
                 return -ENOENT;
@@ -369,9 +369,9 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	size_t aCopiar=0,aGrabar=0,off=0;
 	tObNroBloque NroBloque;
 	ptrGBloque *bloqueDatosIndirecto;
-	//pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-	printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
+	//printf("grasa_write|path:%s,size:%d,off:%d\n",path,(int)size,(int)offset);
 
 	i = obtenerNodo(path,0);
 
@@ -384,13 +384,13 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	aGrabar = size;
 	off = offset;
 
-//	pthread_mutex_lock( &mutex1 );
+	pthread_mutex_lock( &mutex1 );
 
 	while(off < offset + size){
 
 		NroBloque = obtenerNroBloque(i,off);
 
-		printf("Nb:%d,Off:%d,ind:%d,ent:%d,cantbloqd:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,NroBloque.indirecto,NroBloque.entero,(int)cantBloquesDatos);
+		//printf("Nb:%d,Off:%d,ind:%d,ent:%d,cantbloqd:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,NroBloque.indirecto,NroBloque.entero,(int)cantBloquesDatos);
 
 		if(GTNodo[i].blk_indirect[NroBloque.indirecto] == 0){
  			//if (NroBloque.indirecto == 0 && NroBloque.entero == 0){
@@ -402,7 +402,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 							bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
 							*(bloqueDatosIndirecto + j) = 0;
 					}
-					printf("indirecto:%d,\n",(int)GTNodo[i].blk_indirect[NroBloque.indirecto]);
+					//printf("indirecto:%d,\n",(int)GTNodo[i].blk_indirect[NroBloque.indirecto]);
 					break;
 				}
 			}
@@ -415,7 +415,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 					bloqueDatosIndirecto = (ptrGBloque*)(mapeo + GTNodo[i].blk_indirect[NroBloque.indirecto]*BLOCK_SIZE);
 					*(bloqueDatosIndirecto + NroBloque.entero) = j;
 					NroBloque.BloqueDatos = j;
-					printf("blqdatos:%d,\n",(int)*(bloqueDatosIndirecto + NroBloque.entero));
+					//printf("blqdatos:%d,\n",(int)*(bloqueDatosIndirecto + NroBloque.entero));
 					break;
 				}
 			}
@@ -432,7 +432,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 			aCopiar = aGrabar;
 		}
 
-		printf("Nb:%d,Off:%d,agrabar:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,aGrabar,aCopiar);
+		//printf("Nb:%d,Off:%d,agrabar:%d,acopiar:%d\n",(int)NroBloque.BloqueDatos,(int)NroBloque.offsetDatos,aGrabar,aCopiar);
 
 		memcpy(obtenerDatos(NroBloque.BloqueDatos,NroBloque.offsetDatos),buf,aCopiar);
 
@@ -446,7 +446,7 @@ static uint32_t grasa_write(const char *path, const char *buf, size_t size, off_
 	GTNodo[i].m_date = (uint64_t)time(NULL);
 	buf -=size;// + offset;
 
-	//pthread_mutex_unlock( &mutex1 );
+	pthread_mutex_unlock( &mutex1 );
 
 	return size;
 }
@@ -607,7 +607,7 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 	ptrGBloque entero,indirecto,*blqindatos;
     tObNroBloque admNroBloque;
 
-    printf("obtenerNroBloque\n");
+    //printf("obtenerNroBloque\n");
 
     entero = offsetArchivo / BLOCK_SIZE;
     indirecto = entero / GFILEBYTABLE;
@@ -618,8 +618,8 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 	admNroBloque.BloqueDatos = 0;
     admNroBloque.indirecto = indirecto;
     admNroBloque.entero= entero;
-    printf("ent:%d,ind:%d,nronodo:%d\n",entero,indirecto,NroNodo);
-    printf("obtblkind:%d\n",(int)GTNodo[NroNodo].blk_indirect[indirecto]);
+    //printf("ent:%d,ind:%d,nronodo:%d\n",entero,indirecto,NroNodo);
+    //printf("obtblkind:%d\n",(int)GTNodo[NroNodo].blk_indirect[indirecto]);
 
     if(GTNodo[NroNodo].blk_indirect[indirecto] != 0){
     	blqindatos = (ptrGBloque*)(mapeo + GTNodo[NroNodo].blk_indirect[indirecto]*BLOCK_SIZE);
@@ -636,11 +636,11 @@ tObNroBloque obtenerNroBloque(ptrGBloque NroNodo, off_t offsetArchivo){
 
 char * obtenerDatos(ptrGBloque NroBloqueDatos, off_t offsetbloque){
 
-	printf("obtenerDatos\n");
+	//printf("obtenerDatos\n");
 
 	char * datos = (mapeo + NroBloqueDatos*BLOCK_SIZE + offsetbloque);
 
-	printf("Datos:%p\n",datos);
+	//printf("Datos:%p\n",datos);
 
 	return datos;
 
@@ -686,7 +686,7 @@ int main(int argc, char *argv[]) {
 
     mapeo = mmap(0,sbuf.st_size,PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-    printf("sbuf.size: %d,mapeo:%p,maxmap:%p\n",(long)sbuf.st_size,mapeo,mapeo+cantBloquesDatos*8);
+    //printf("sbuf.size: %d,mapeo:%p,maxmap:%p\n",(long)sbuf.st_size,mapeo,mapeo+cantBloquesDatos*8);
 
     if (mapeo == MAP_FAILED){
      printf("map Failed!\n");
