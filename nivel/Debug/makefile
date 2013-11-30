@@ -26,13 +26,13 @@ endif
 all: nivel
 
 dependents:
-	-cd ../../commons/Debug && $(MAKE) all
+	-cd /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug && $(MAKE) all
 
 # Tool invocations
-nivel: $(OBJS) $(USER_OBJS) ../../commons/Debug/libcommons.so
+nivel: $(OBJS) $(USER_OBJS) /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug/libcommons.so
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L"../../commons/Debug" -o "nivel" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L"/home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug" -o "nivel" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -43,6 +43,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-../../commons/Debug/libcommons.so:
+/home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug/libcommons.so:
 
 -include ../makefile.targets

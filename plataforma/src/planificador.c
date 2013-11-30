@@ -503,7 +503,7 @@ t_pers_por_nivel *planificar(t_niveles_sistema* nivel) {
 			int segundo = abs(
 					menos_cerca->pos_recurso - menos_cerca->pos_inicial);
 
-			return primero <= segundo;
+			return primero < segundo;
 		}
 
 		list_sort(p_listos, (void*) _menor_distancia);
@@ -1469,6 +1469,6 @@ bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd,
 				nivel->str_nivel);
 		pthread_mutex_unlock(&mutex_log);
 		return false;
-		//log_info
+
 	}
 }
