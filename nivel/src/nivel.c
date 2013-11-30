@@ -419,7 +419,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
-				//BorrarItem(items,id);
+
 				pthread_mutex_unlock(&mutex_listas);
 
 				pthread_mutex_lock(&mutex_log);
@@ -895,7 +895,7 @@ void rnd(int *x, int max){
 }
 
 int dibujar (void) {
-	int rows, cols;
+
 
 		if(graficar){
 			nivel_gui_inicializar();
