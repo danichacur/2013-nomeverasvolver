@@ -1,6 +1,6 @@
 # Completar con sus paths
-COMMONS_DIR_HEADERS=/home/utnso/git/tp-2013-2c-nomeverasvolver/commons
-COMMONS_DIR_BIN=/home/utnso/git/tp-2013-2c-nomeverasvolver/commons/Debug
+COMMONS_DIR_HEADERS=../../commons
+COMMONS_DIR_BIN=../../commons/Debug
 COMMONS_NAME=commons
 
 NIVEL_SO=libnivel-gui.so

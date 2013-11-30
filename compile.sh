@@ -11,12 +11,14 @@ cd ../../personaje/Debug/
 make clean
 make all
 
-cd ../../nivel/Debug/
+cd ../../no-eclipse-gui-library/
+make && make install
+
+cd ../nivel/Debug/
 make clean
 make all
 
 cd ../../koopa/Debug/
 make clean
 make all
-
 

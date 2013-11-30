@@ -25,7 +25,7 @@ t_log* logger_pla;
 extern t_list *niveles_del_sistema;
 
 void planificador_analizar_mensaje(int32_t socket,
-		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel);
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel, t_pers_por_nivel *personaje);
 void analizar_mensaje_rta(t_pers_por_nivel *personaje,
 		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel,
 		int32_t *fd_personaje_actual, int32_t *quantum);
@@ -123,6 +123,10 @@ int32_t sumar_valores(char *mensaje) {
 
 			i++;
 		}
+
+		 char * p_atacados = calloc(strlen(mensaje)+1,sizeof(char));
+		strcpy(p_atacados,mensaje);
+
 		free(mensaje);
 
 		if (noSoyYo) {
@@ -166,7 +170,7 @@ int32_t sumar_valores(char *mensaje) {
 			elMuerto = personaje;
 			free(mensaje);
 		}
-		tratamiento_asesinato(nivel, elMuerto, mensaje, str_nivel);
+		tratamiento_asesinato(nivel, elMuerto, p_atacados, str_nivel);
 		break;
 	}
 	case NIV_cambiosConfiguracion_PLA: {
@@ -176,6 +180,8 @@ int32_t sumar_valores(char *mensaje) {
 		nivel->algol = n_mensaje[0];
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
+
 		enviarMensaje(nivel->fd, OK1, "0");
 
 		free(mensaje);
@@ -340,13 +346,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					}
 					//eliminarlo de las estructuras
 
-					close(i); // ¡Hasta luego!
-					FD_CLR(i, &master); // eliminar del conjunto maestro
-					break;
-					/*
-					 if (i == fd_personaje_actual)
-					 break;
-					 */
 				} else {
 					// tenemos datos del cliente del socket i!
 					pthread_mutex_lock(&mutex_log);
@@ -404,6 +403,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 
 						fd_personaje_actual = 0;
+						personaje = NULL;
 					} else {
 
 						if (tipoMensaje == NIV_enemigosAsesinaron_PLA) {
@@ -413,16 +413,25 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 									str_nivel, mensaje);
 							pthread_mutex_unlock(&mutex_log);
 
-							t_pers_por_nivel * elMuerto = NULL;
-							tratamiento_asesinato(nivel, elMuerto, mensaje,
+//							t_pers_por_nivel * elMuerto = NULL;
+							int i = 0;
+							while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
+								if (mensaje[i] == personaje->personaje) {
+									fd_personaje_actual = 0;
+									break;
+								}
+								i++;
+							}
+
+							tratamiento_asesinato(nivel, personaje, mensaje,
 									str_nivel);
 							free(mensaje);
 
 						} else
 
 							planificador_analizar_mensaje(i, tipoMensaje,
-									mensaje, nivel);
-//                                                fd_personaje_actual = 0;
+									mensaje, nivel, personaje);
+                                     fd_personaje_actual = 0;
 //                                                destruir_personaje(personaje);
 					}
 				} // fin seccion recibir OK los datos
@@ -590,6 +599,7 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 	}
 
 	case NIV_enemigosAsesinaron_PLA: {
+		*fd_personaje_actual = 0;
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla, "Nivel %d: Recibo el asesinato de: %s",
 				nivel->nivel, mensaje);
@@ -663,7 +673,11 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
 
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
+
 		free(mensaje);
+		enviarMensaje(nivel->fd, OK1, "0");
+
 		posibles_respuestas_del_nivel(personaje, nivel, quantum,
 				fd_personaje_actual);
 		break;
@@ -1179,6 +1193,10 @@ void tratamiento_asesinato(t_niveles_sistema *nivel,
 						str_nivel, aux->personaje);
 				pthread_mutex_unlock(&mutex_log);
 				imprimir_lista(LISTA_LISTOS, str_nivel);
+			}else{
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger_pla,"Nivel %s: No se encontró este personaje (%c) en la lista de listos, entonces no lo pude remover",str_nivel, mensaje[i]); // (matyx) Dani fijate como resolver esto
+				pthread_mutex_unlock(&mutex_log);
 			}
 		} else {
 			//pregunto si uno de los muertos es el planificado, si no lo es, que lo saque de listos
@@ -1233,7 +1251,8 @@ void tratamiento_asesinato(t_niveles_sistema *nivel,
 }
 
 void planificador_analizar_mensaje(int32_t socket_r,
-		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel) {
+		enum tipo_paquete tipoMensaje, char* mensaje, t_niveles_sistema *nivel, 
+		t_pers_por_nivel *personaje) {
 	char *str_nivel = nivel->str_nivel;
 
 	switch (tipoMensaje) {
@@ -1281,16 +1300,22 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		nivel->algol = n_mensaje[0];
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
+
+
+		enviarMensaje(nivel->fd, OK1, "0");
+
 
 		break;
 	}
 	case NIV_enemigosAsesinaron_PLA: {
 
+		//*fd_personaje_actual = 0;
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s", str_nivel,
 				mensaje);
 		pthread_mutex_unlock(&mutex_log);
-		t_pers_por_nivel* personaje = NULL;
+		//t_pers_por_nivel* personaje = NULL;
 		tratamiento_asesinato(nivel, personaje, mensaje, str_nivel);
 		break;
 	}

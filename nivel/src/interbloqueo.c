@@ -14,6 +14,9 @@ extern long tiempoDeadlock;
 extern int recovery;
 extern int32_t socketDeEscucha;
 extern t_list * items;
+extern pthread_mutex_t mutex_log;
+extern t_log * logger;
+
 
 t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuales, char * recBloqueante){
 	t_personaje_niv1 * new = malloc(sizeof(t_personaje_niv1));
@@ -26,34 +29,40 @@ t_personaje_niv1 * personaje_recursos_create(char * simbolo, t_list * recActuale
 
 void* rutinaInterbloqueo(){ // funcion rutinaInterbloqueo
 
-        t_list * listaInterbloqueados ;
+	t_list * listaInterbloqueados ;
 
-        int chequeo_interbloqueo = tiempoDeadlock/1000;
+	int chequeo_interbloqueo = tiempoDeadlock/1000;
 
-        while(1){
-                sleep(chequeo_interbloqueo);
-                //log_info(logger, "Checkeo de interbloqueo activado");
-                //printf("%s", "Checkeo de interbloqueo activado \n");
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger, "Checkeo de interbloqueo activado");
+	pthread_mutex_unlock(&mutex_log);
 
-                listaInterbloqueados = obtenerPersonajesInterbloqueados();
-                if(hayInterbloqueo(listaInterbloqueados)){
-                        //log_info(logger, "Se detectó un Interbloqueo. Los personajes involucrados son %s", obtenerIdsPersonajes(listaInterbloqueados));
+	//printf("%s", "Checkeo de interbloqueo activado \n");
 
-                        if(recovery == 1){
-                                t_personaje_niv1 * personaje = seleccionarVictima(listaInterbloqueados);
-                                informarVictimaAPlanificador(personaje);
-                                list_clean(listaInterbloqueados);
-                                list_destroy(listaInterbloqueados);
-                        }else{
-                                //printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
+	while(1){
+		sleep(chequeo_interbloqueo);
 
-                        }
-                }//else
-                        //log_info(logger, "No se detectaron interbloqueos.");
-                //        printf("%s", "No se detectaron interbloqueos \n");
+		listaInterbloqueados = obtenerPersonajesInterbloqueados();
+		if(hayInterbloqueo(listaInterbloqueados)){
+			pthread_mutex_lock(&mutex_log);
+			log_info(logger, "Se detectó un Interbloqueo. Los personajes involucrados son %s", obtenerIdsPersonajes(listaInterbloqueados));
+			pthread_mutex_unlock(&mutex_log);
 
-        }
-        pthread_exit(NULL);
+			if(recovery == 1){
+					t_personaje_niv1 * personaje = seleccionarVictima(listaInterbloqueados);
+					informarVictimaAPlanificador(personaje);
+					list_clean(listaInterbloqueados);
+					list_destroy(listaInterbloqueados);
+			}else{
+					//printf("Se detectó un Interbloqueo. Los personajes involucrados son %s \n", obtenerIdsPersonajes(listaInterbloqueados));
+
+			}
+		}//else
+				//log_info(logger, "No se detectaron interbloqueos.");
+		//        printf("%s", "No se detectaron interbloqueos \n");
+
+	}
+	pthread_exit(NULL);
 }
 t_list * obtenerPersonajesInterbloqueados(){
 

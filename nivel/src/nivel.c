@@ -33,10 +33,11 @@ int32_t socketDeEscucha;
 pthread_t hiloInotify;
 pthread_mutex_t mutex_listas;
 pthread_mutex_t mutex_mensajes;
+pthread_mutex_t mutex_log;
 
 
 
-pthread_mutex_t mx_lista_personajes;
+
 pthread_mutex_t mx_lista_items;
 
 bool listaRecursosVacia;
@@ -58,12 +59,11 @@ int main (){
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
+
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
-
-
+	pthread_mutex_init(&mutex_log, NULL );
 	pthread_mutex_init(&mutex_mensajes,NULL);
-	pthread_mutex_init(&mx_lista_personajes,NULL);
 	pthread_mutex_init(&mx_lista_items,NULL);
 
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
@@ -79,7 +79,11 @@ int main (){
 
 
 	if (crearLosEnemigos){
+
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"Se levantaron los enemigos");
+		pthread_mutex_unlock(&mutex_log);
+
 		crearHilosEnemigos();
 	}
 	if(activarInterbloqueo){
@@ -91,7 +95,10 @@ int main (){
 			mensajesConPlataforma(socketDeEscucha); //ACA ESCUCHO TODOS LOS MENSAJES EXCEPTO HANDSHAKE
 
 		}else{
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger, "Hubo un error al leer el socket y el programa finalizara su ejecucion");
+			pthread_mutex_unlock(&mutex_log);
+
 			eliminarEstructuras();
 			break;
 		}
@@ -114,48 +121,81 @@ int leerArchivoConfiguracion(){
 	if(graficar){
 
 		logger = log_create(PATH_LOG, "NIVEL", false, LOG_LEVEL_INFO);
+
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "La config de graficado para el  %s es %d",nombre,graficar);
+		pthread_mutex_unlock(&mutex_log);
 
 	}else{
 
 
 		logger = log_create(PATH_LOG, "NIVEL", true, LOG_LEVEL_INFO);
+
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "La config de graficado para el  %s es %d",nombre,graficar);
+		pthread_mutex_unlock(&mutex_log);
 	}
-
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Voy a leer mi archivo de configuracion");
-
 	log_info(logger, "Encontramos los atributos de %s",nombre);
+	pthread_mutex_unlock(&mutex_log);
 
 	quantum = config_get_int_value(config, "quantum");
+
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El quantum para %s es de %d ut",nombre,quantum);
+	pthread_mutex_unlock(&mutex_log);
 
 	recovery = config_get_int_value(config, "Recovery");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El recovery para %s es de %d ut",nombre,recovery);
+	pthread_mutex_unlock(&mutex_log);
+
 
 	enemigos = config_get_int_value(config, "Enemigos");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "La cantidad de enemigos de %s es %d",nombre,enemigos);
+	pthread_mutex_unlock(&mutex_log);
 
 	tiempoDeadlock = config_get_long_value(config, "TiempoChequeoDeadlock");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El tiempo de espera para ejecucion del hilo de deadlock para %s es de %d ut",nombre,tiempoDeadlock);
+	pthread_mutex_unlock(&mutex_log);
 
 	sleepEnemigos = config_get_long_value(config, "Sleep_Enemigos");
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El tiempo de espera para mover los enemigos para %s es de %d ut",nombre,sleepEnemigos);
+	pthread_mutex_unlock(&mutex_log);
 
 	algoritmo=config_get_string_value(config,"algoritmo");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El %s se planificara con algoritmo %s",nombre,algoritmo);
+	pthread_mutex_unlock(&mutex_log);
 
 	direccionIPyPuerto = config_get_string_value(config, "Plataforma");
-	log_info(logger, "El %s tiene la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
 
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger, "El %s tiene la platforma cuya direccion es %s",nombre,direccionIPyPuerto);
+	pthread_mutex_unlock(&mutex_log);
 
 
 
 	retardo = config_get_int_value(config, "retardo");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El retardo para el  %s es de %d milisegundos",nombre,retardo);
+	pthread_mutex_unlock(&mutex_log);
 
 	distancia = config_get_int_value(config, "distancia");
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El remaining distance para el %s es de %d",nombre,distancia);
+	pthread_mutex_unlock(&mutex_log);
 
 	crearLosEnemigos = config_get_int_value(config, "crearLosEnemigos");
 	activarInterbloqueo = config_get_int_value(config, "activarInterbloqueo");
@@ -174,7 +214,11 @@ int leerArchivoConfiguracion(){
 		char **caja = config_get_array_value(config, litCaja);
 		crearCaja(caja);
 		litCaja[4]++;
+
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "El %s tiene %s cuyo simbolo es %s tiene %s instancias y su posicion x e y son %s %s",nombre,caja[0], caja[1],caja[2],caja[3],caja[4]);
+		pthread_mutex_unlock(&mutex_log);
+
 		ret = config_has_property(config, litCaja);
 	}
 
@@ -188,15 +232,18 @@ void crearCaja(char ** caja){ //CREA LA UNIDAD CAJA Y LA ENGANCHA EN LA LISTA DE
 	CrearCaja(items, caja[1][0],atoi(caja[3]), atoi(caja[4]), atoi(caja[2]));
 	pthread_mutex_unlock(&mutex_listas);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Se crea la caja de %s", caja[1]);
-
+	pthread_mutex_unlock(&mutex_log);
 }
 
 int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES INICIALES
 
 
-
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El %s se conectara a la plataforma en %s ",nombre,direccionIPyPuerto);
+	pthread_mutex_unlock(&mutex_log);
+
 	char ** IPyPuerto = string_split(direccionIPyPuerto,":");
 	char ** numeroNombreNivel = string_split(nombre,"l");
 	int32_t numeroNivel=atoi(numeroNombreNivel[1]);
@@ -234,12 +281,19 @@ int32_t handshakeConPlataforma(){ //SE CONECTA A PLATAFORMA Y PASA LOS VALORES I
 	if(unMensaje==ORQ_handshake_NIV){
 
 			if(ok==0){
+
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El %s envio correctamente handshake a plataforma en %s ",nombre,direccionIPyPuerto);
+				pthread_mutex_unlock(&mutex_log);
+
 				return socketDeEscucha;
 
 			}else{
 
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El %s no pudo enviar handshake a plataforma en %s, el nivel se cierra ",nombre,direccionIPyPuerto);
+				pthread_mutex_unlock(&mutex_log);
+
 				kill(getpid(), SIGKILL);
 
 
@@ -260,16 +314,18 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	enum tipo_paquete unMensaje = PER_conexionNivel_ORQ;
 	char* elMensaje=NULL;
 
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger,"Voy a esperar recibir un mensaje de %d", socketEscucha);
+	pthread_mutex_unlock(&mutex_log);
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
 	sleep(1);
 
-		log_info(logger, "Llego el tipo de paquete: %s .",
-				obtenerNombreEnum(unMensaje));
-
-		log_info(logger, "Llego este mensaje: %s .",
-				elMensaje);
+		pthread_mutex_lock(&mutex_log);
+		log_info(logger, "Llego el tipo de paquete: %s .",obtenerNombreEnum(unMensaje));
+		log_info(logger, "Llego este mensaje: %s .",elMensaje);
+		pthread_mutex_unlock(&mutex_log);
 
 		switch (unMensaje) {
 
@@ -280,33 +336,84 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char idPers = mens[0][0];
 
 
-				if (true){
+				if(huboCambios==true){
 
-				if(existePersonajeEnListaItems(idPers)){
-					pthread_mutex_lock(&mutex_listas);
-					MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
-					pthread_mutex_unlock(&mutex_listas);
+					pthread_mutex_lock(&mutex_log);
+					log_info(logger,"envio los cambios de configuracion");
+					pthread_mutex_unlock(&mutex_log);
 
-					log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
-					if(graficar)
-						nivel_gui_dibujar(items,nombre);
-
-
-
-				}
-				pthread_mutex_lock(&mutex_mensajes);
-
-
-				enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
-				pthread_mutex_unlock(&mutex_mensajes);
-
-				} else {
 					pthread_mutex_lock(&mutex_mensajes);
-					enviarMensaje(socketEscucha,NIV_movimiento_PLA,"1");
+					enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
 					pthread_mutex_unlock(&mutex_mensajes);
-					log_info(logger, "El personaje %s no se movio, movimiento invalido",mens[0]);//"1" SI ES INVALIDO
 
-				}
+					huboCambios=false;
+
+					pthread_mutex_lock(&mutex_log);
+					log_info(logger,"me preparo para recibir el ok");
+					pthread_mutex_unlock(&mutex_log);
+
+					pthread_mutex_lock(&mutex_mensajes);
+					recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
+					pthread_mutex_unlock(&mutex_mensajes);
+
+					pthread_mutex_lock(&mutex_log);
+					log_info(logger,"deberia haber recibido el OK1");
+					pthread_mutex_unlock(&mutex_log);
+
+					if(unMensaje==OK1){
+						pthread_mutex_lock(&mutex_log);
+						log_info(logger,"ya envie el cambio de configuracion, y me dieron el ok");
+						pthread_mutex_unlock(&mutex_log);
+
+						if(existePersonajeEnListaItems(idPers)){
+
+							pthread_mutex_lock(&mutex_listas);
+							MoverPersonaje(items, idPers,atoi(mens[1]), atoi(mens[2]));
+							pthread_mutex_unlock(&mutex_listas);
+
+							pthread_mutex_lock(&mutex_log);
+							log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
+							pthread_mutex_unlock(&mutex_log);
+
+							if(graficar)
+								nivel_gui_dibujar(items,nombre);
+							}
+
+						pthread_mutex_lock(&mutex_mensajes);
+						enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+						pthread_mutex_unlock(&mutex_mensajes);
+
+
+						} else {
+							pthread_mutex_lock(&mutex_log);
+							log_info(logger,"no recibi OK1,recibi cualquiera");
+							pthread_mutex_unlock(&mutex_log);
+						}
+					} else {
+
+						if(existePersonajeEnListaItems(idPers)){
+
+							pthread_mutex_lock(&mutex_listas);
+							MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
+							pthread_mutex_unlock(&mutex_listas);
+
+							pthread_mutex_lock(&mutex_log);
+							log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);
+							pthread_mutex_unlock(&mutex_log);
+
+							if(graficar)
+								nivel_gui_dibujar(items,nombre);
+						}
+
+						pthread_mutex_lock(&mutex_log);
+						log_info(logger, "Confirmo que el personaje %s puede moverse",mens[0]);
+						pthread_mutex_unlock(&mutex_log);
+
+						pthread_mutex_lock(&mutex_mensajes);
+						enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
+						pthread_mutex_unlock(&mutex_mensajes);
+
+					}
 
 				break;
 			}
@@ -319,11 +426,12 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
-				//BorrarItem(items,id);
+
 				pthread_mutex_unlock(&mutex_listas);
 
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El personaje %c ha muerto ",id);
-
+				pthread_mutex_unlock(&mutex_log);
 
 
 
@@ -354,14 +462,15 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				if(graficar)
 					nivel_gui_dibujar(items,nombre);
-				log_info(logger, "El nuevo personaje %c se dibujo en el mapa",elMensaje[0]);
 
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger, "El nuevo personaje %c se dibujo en el mapa",elMensaje[0]);
+				pthread_mutex_unlock(&mutex_log);
 
 				break;
 
 			}
 			case PLA_posCaja_NIV:{ // RECIBE "F" SI ESTA SOLICITANDO UNA FLOR, POR EJEMPLO
-
 
 				char * pos = string_new();
 				ITEM_NIVEL * caja = buscarRecursoEnLista(items, elMensaje);
@@ -370,51 +479,19 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				string_append(&pos, ",");
 				string_append(&pos, string_from_format("%d",caja->posy));
 
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger,"enviare la posicion de la caja");
+				pthread_mutex_unlock(&mutex_log);
+
 				pthread_mutex_lock(&mutex_mensajes);
-
-
-				if(huboCambios==true){
-					log_info(logger,"envio los cambios de configuracion");
-					enviarMensaje(socketDeEscucha, NIV_cambiosConfiguracion_PLA,buffer1);
-					huboCambios=false;
-
-					char* elMensaje=NULL;
-
-					log_info(logger,"me preparo para recibir el ok");
-
-					recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
-
-					log_info(logger,"recibi el ok");
-
-
-					if(unMensaje==OK1){
-
-						log_info(logger,"enviare la posicion de la caja");
-						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
-
-						log_info(logger,"envie la posicion de la caja");
-					} else {
-						log_info(logger,"recibi cualquiera");
-
-					}
-				} else {
-
-						log_info(logger,"enviare la posicion de la caja");
-						enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
-						log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
-
-					}
-
-
-
-
-
+				enviarMensaje(socketEscucha, NIV_posCaja_PLA,pos); //"X,Y"
 				pthread_mutex_unlock(&mutex_mensajes);
 
+				pthread_mutex_lock(&mutex_log);
+				log_info(logger, "Envio posicion del recurso %s coordenadas %s ",elMensaje,pos);
+				pthread_mutex_unlock(&mutex_log);
 
 				free(pos);
-
-
 				break;
 
 			}
@@ -467,7 +544,10 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 					pthread_mutex_lock(&mutex_listas);
 					unPers->recursoBloqueante=string_new();
 					pthread_mutex_unlock(&mutex_listas);
+
+					pthread_mutex_lock(&mutex_log);
 					log_info(logger, "Personajes %s desbloqueados",mens[i]);
+					pthread_mutex_unlock(&mutex_log);
 
 				}
 
@@ -479,7 +559,10 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char ** mens = string_split(elMensaje,";");
 				int cantRecursos= atoi(mens[0]);
 				int i;
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "Recursos desbloqueados: %s",elMensaje);
+				pthread_mutex_unlock(&mutex_log);
+
 				for(i=1;i<=cantRecursos;i++){
 					char** mensajeIndividual= string_split(mens[i],",");
 					pthread_mutex_lock(&mutex_listas);
@@ -506,7 +589,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
 
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El personaje %c ha terminado el nivel ",id);
+				pthread_mutex_unlock(&mutex_log);
 
 				if(graficar){
 
@@ -514,15 +599,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 				}
 
-				/*if (list_size(listaPersonajesRecursos)==0){
-					eliminarEstructuras();
-
-
-				}*/
-
-
 				break;
 			}
+
 
 			case PLA_perMuereInterbloqueo_NIV:{
 				char id=elMensaje[0];
@@ -536,7 +615,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
 
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El personaje %c ha muerto por interbloqueo ",id);
+				pthread_mutex_unlock(&mutex_log);
 
 				if(graficar)
 					nivel_gui_dibujar(items,nombre);
@@ -548,8 +629,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				char id = elMensaje[0];
 				t_personaje_niv1 * personaje = malloc(sizeof(t_personaje_niv1));
 
-				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,
-						string_substring_until(elMensaje, 1));
+				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje, 1));
 
 				pthread_mutex_lock(&mutex_listas);
 				liberarRecursosDelPersonaje(personaje->recursosActuales);
@@ -557,7 +637,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos, elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
 
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "El personaje %c ha muerto por causas externas", id);
+				pthread_mutex_unlock(&mutex_log);
 
 				if (graficar)
 					nivel_gui_dibujar(items, nombre);
@@ -567,9 +649,13 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 			{
 				default:
-				log_info(logger, "Recibi mensaje inexistente, la ejecucion del nivel finalizara");
-				eliminarEstructuras();
-				break;
+					pthread_mutex_lock(&mutex_log);
+					log_info(logger, "Recibi mensaje inexistente, la ejecucion del nivel finalizara");
+					pthread_mutex_unlock(&mutex_log);
+
+					eliminarEstructuras();
+
+					break;
 			}
 
 
@@ -627,29 +713,7 @@ ITEM_NIVEL * buscarRecursoEnLista(t_list * lista, char * simbolo){//BUSCA SI HAY
 	return item;
 }
 
-/*
-ITEM_NIVEL * buscarPersonajeLista(t_list * lista, char * simbolo){ //BUSCA SI HAY UN PERSONAJE PEDIDO Y LO DEVUELVE
-	ITEM_NIVEL * item;
-	ITEM_NIVEL * unItem;
-	bool encontrado = false;
-	int i=0;
 
-	while(i < list_size(lista) && !encontrado){
-		unItem = list_get(lista,i);
-
-		if(unItem->item_type == PERSONAJE_ITEM_TYPE)
-
-			if (unItem->id == simbolo[0]){
-				encontrado = true;
-				item = unItem;
-			}
-		i++;
-	}
-
-	return item;
-}
-
-*/
 void  borrarPersonajeListaPersonajes(t_list * lista, char * simbolo){
 
 
@@ -693,7 +757,10 @@ void eliminarEstructuras() { //TERMINAR
 	list_destroy(listaPersonajesRecursos);
 
 	config_destroy(config);
+
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger,"el nivel ha terminado satisfactoriamente");
+	pthread_mutex_unlock(&mutex_log);
 
 	if(graficar){
 		nivel_gui_terminar();
@@ -720,18 +787,22 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 		 if (file_descriptor < 0) {
 
-			 perror("inotify_init");
-
+			 //Problema con el FD
 		 }
 
 		 int watch_descriptor= inotify_add_watch(file_descriptor, "./config.cfg", IN_MODIFY); //CREAMOS MONITOR SOBRE EL PATH DONDE ESCUCHAREMOS LAS MODIFICACIONES
 
 		 int length = read(file_descriptor, buffer, sizeof(struct inotify_event)); //CARGAMOS LAS MODIFICACIONES QUE ESCUCHAMOS EN EL BUFFER
+
+		 pthread_mutex_lock(&mutex_log);
 		 log_info(logger, "Se cargó el buffer");
+		 pthread_mutex_unlock(&mutex_log);
 
 		 if (length < 0) {
-			 log_info(logger, "Archivo invalido");
 
+			 pthread_mutex_lock(&mutex_log);
+			 log_info(logger, "Archivo invalido");
+			 pthread_mutex_unlock(&mutex_log);
 		 }
 
 		 sleep(1);
@@ -747,12 +818,15 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 			 if(retardoAux==retardo && quantumAux==quantum && strcmp(algoritmoAux,algoritmo)==0){
 
+				 pthread_mutex_lock(&mutex_log);
 				 log_info(logger,"Hubo cambios en el archivo pero no sobre las variables en consideracion ");
-
+				 pthread_mutex_unlock(&mutex_log);
 
 			 } else {
+				 pthread_mutex_lock(&mutex_log);
 				 log_info(logger, "Guardo los cambios para ser mandados en el mensaje de movimiento de personaje ");
-				 pthread_mutex_lock(&mutex_mensajes);
+				 pthread_mutex_unlock(&mutex_log);
+
 
 				 retardo=retardoAux;
 				 quantum=quantumAux;
@@ -764,32 +838,44 @@ void crearHiloInotify(pthread_t hiloNotify){
 
 				 huboCambios=true;
 
-				 pthread_mutex_unlock(&mutex_mensajes);
-
+				 pthread_mutex_lock(&mutex_log);
+				 log_info(logger,"huboCambios en true");
+				 pthread_mutex_unlock(&mutex_log);
 
 			 }
 
 
 		 } else {
 
-			log_info(logger,"SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
+			 pthread_mutex_lock(&mutex_log);
+			 log_info(logger,"SI SOLO BUSCO MODIFY NO DEBERIA HABER LLEGADO UN MASK QUE NO SEA MODIFY!\n");
+			 pthread_mutex_unlock(&mutex_log);
 
 		 }
 
 
 		 inotify_rm_watch(file_descriptor, watch_descriptor);
 		 close(file_descriptor);
+
+		 pthread_mutex_lock(&mutex_log);
 		 log_info(logger,"continuo un nuevo ciclo");
+		 pthread_mutex_unlock(&mutex_log);
+
 		 free(buffer);
 	}
 
+	 pthread_mutex_lock(&mutex_log);
 	 log_info(logger,"el nivel %s termino, finaliza el hilo de notificaciones",nombre);
+	 pthread_mutex_unlock(&mutex_log);
+
 	 return EXIT_SUCCESS;
 
  }
 
 void crearHiloInterbloqueo(){
-	 log_info(logger, "Creo el hilo deteccion de interbloqueo ");
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger, "Creo el hilo deteccion de interbloqueo ");
+	pthread_mutex_unlock(&mutex_log);
 	pthread_t id;
 	pthread_create(&id, NULL, (void*)&rutinaInterbloqueo, NULL);
 }
@@ -816,7 +902,7 @@ void rnd(int *x, int max){
 }
 
 int dibujar (void) {
-	int rows, cols;
+
 
 		if(graficar){
 			nivel_gui_inicializar();

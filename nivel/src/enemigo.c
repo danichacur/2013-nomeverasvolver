@@ -10,6 +10,8 @@ extern useconds_t sleepEnemigos;
 extern t_log * logger;
 extern bool graficar;
 extern char * nombre;
+extern int rows;
+extern int cols;
 
 char * horizontal;
 char * vertical;
@@ -22,8 +24,10 @@ char * cadenaVacia;
 ////////////SEMAFOROS
 //extern pthread_mutex_t mx_enemigos;
 extern pthread_mutex_t mutex_mensajes;
-extern pthread_mutex_t mx_lista_personajes;
+//extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
+extern pthread_mutex_t mutex_log;
+
 pthread_mutex_t mx_sarasa;
 pthread_mutex_t mx_borrar_enemigos;
 
@@ -60,12 +64,14 @@ void enemigo(int* pIdEnemigo){
 
 	t_enemigo * enemigo = crearseASiMismo(idEnemigo); //random, verifica que no se cree en el (0,0)
 
-	if(IMPRIMIR_INFO_ENEMIGO)
+	if(IMPRIMIR_INFO_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"Posicion inicial del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
-
+		pthread_mutex_unlock(&mutex_log);
+	}
 
 	while(1){ //cada x tiempo, configurado por archivo de configuracion
-		sleep(sleepEnemigos/1000);
+		usleep(sleepEnemigos*1000);
 
 		if(hayPersonajeAtacable()){
 			pthread_mutex_lock(&mx_sarasa);
@@ -134,9 +140,11 @@ bool hayPersonajeAtacable(){
 
 t_personaje_niv1 * moverseHaciaElPersonajeDeFormaAlternada(t_enemigo * enemigo){
 	t_personaje_niv1 * personaje = buscaPersonajeCercano(enemigo);
-	if(IMPRIMIR_INFO_ENEMIGO)
+	if(IMPRIMIR_INFO_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"Buscando al personaje mas cercano.. Es %s ", personaje->simbolo);
-
+		pthread_mutex_unlock(&mutex_log);
+	}
 
 	char * condicion = estoyEnLineaRectaAlPersonaje(enemigo, personaje); // 'H','V' o ''
 
@@ -187,7 +195,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 
 	if(orientacion == horizontal){
 		if(enemigo->posicion->posX > personaje->posicion->posX){
-			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY)){
+			if(hayCaja(enemigo->posicion->posX - 1, enemigo->posicion->posY) || (enemigo->posicion->posX - 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -198,7 +206,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 
 			}
 		}else{
-			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY)){
+			if(hayCaja(enemigo->posicion->posX + 1, enemigo->posicion->posY) || (enemigo->posicion->posX + 1 == 0 && enemigo->posicion->posY == 0)){
 				orientacion = vertical;
 				enemigo->posicion->posY = enemigo->posicion->posY + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -211,7 +219,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 		}
 	}else if(orientacion == vertical){
 		if(enemigo->posicion->posY > personaje->posicion->posY)
-			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1)){
+			if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY - 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY - 1 == 0)){
 				orientacion = horizontal;
 				enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -221,7 +229,7 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 				MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
 
 			}
-		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1)){
+		else if(hayCaja(enemigo->posicion->posX, enemigo->posicion->posY + 1) || (enemigo->posicion->posX == 0 && enemigo->posicion->posY + 1 == 0)){
 			orientacion = horizontal;
 			enemigo->posicion->posX = enemigo->posicion->posX + obtenerDireccionCercaniaEn(orientacion,enemigo,personaje);
 			MoverEnemigo(items, enemigo->id, enemigo->posicion->posX,enemigo->posicion->posY);
@@ -235,9 +243,11 @@ void moverEnemigoEn(t_enemigo * enemigo, t_personaje_niv1 * personaje, char * or
 	if(graficar)
 		nivel_gui_dibujar(items,nombre);
 
-	if(IMPRIMIR_INFO_ENEMIGO)
+	if(IMPRIMIR_INFO_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
-
+		pthread_mutex_unlock(&mutex_log);
+	}
 
 	//TODO alcanza con esto o tengo q usar una funcion list_replace?
 	enemigo->ultimoMovimiento = orientacion;
@@ -281,7 +291,9 @@ void moverEnemigoEnDireccion(t_enemigo * enemigo, char * orientacion1, int orien
 
 
 	if(IMPRIMIR_INFO_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"Posicion del enemigo. PosX: %d, PosY: %d ", enemigo->posicion->posX, enemigo->posicion->posY);
+		pthread_mutex_unlock(&mutex_log);
 	}
 
 }
@@ -294,6 +306,11 @@ bool hayCajaOExcedeLimite(int x, int y){
 	if (excedeLimite(x,y)){
 		return true;
 	}
+
+	if ((x == 0) && (y == 0)){
+		return true;
+	}
+
 	return false;
 }
 
@@ -316,7 +333,13 @@ bool hayCaja(int x, int y){
 }
 
 bool excedeLimite(int x, int y){
-	return (x<0 || y<0);
+
+	if(((x<0) || (y<0))){ //si se va para los negativos
+		return true;
+	}else if((x>cols) || (y>rows)){ // si excede los margenes de la pantalla
+		return true;
+	}else
+		return false;
 }
 
 int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv1 * personaje){
@@ -495,9 +518,11 @@ void avisarAlNivel(t_enemigo * enemigo){
 
 
 
-		if(IMPRIMIR_INFO_ENEMIGO)
+		if(IMPRIMIR_INFO_ENEMIGO){
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger,"El enemigo atacó a los personajes: %s ", simbolosPersonajesAtacados);
-
+			pthread_mutex_unlock(&mutex_log);
+		}
 
 		//if (PRUEBA_CON_CONEXION)
 		if(true){
@@ -532,9 +557,11 @@ t_list * obtenerListaDePersonajesAbajoDeEnemigo(t_enemigo * enemigo){
 }
 
 void movermeEnL(t_enemigo * enemigo){
-	if(IMPRIMIR_INFO_ENEMIGO)
+	if(IMPRIMIR_INFO_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger,"No hay personajes para atacar. Moviendo en L ");
-
+		pthread_mutex_unlock(&mutex_log);
+	}
 
 	char * orientacion;
 	int orientacion2;
