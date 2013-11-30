@@ -1,5 +1,5 @@
-src/planificador.d: ../src/planificador.c ../src/orquestador.h \
- ../src/planificador.h \
+src/planificador.d: ../src/planificador.c ../src/planificador.h \
+ ../src/orquestador.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/commons/log.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/commons/config.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/commons/../collections/dictionary.h \
@@ -11,9 +11,9 @@ src/planificador.d: ../src/planificador.c ../src/orquestador.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/sockets/mensajes.h \
  /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/sockets/mensajes.h
 
-../src/orquestador.h:
-
 ../src/planificador.h:
+
+../src/orquestador.h:
 
 /home/utnso/git/tp-2013-2c-nomeverasvolver/commons/commons/log.h:
 

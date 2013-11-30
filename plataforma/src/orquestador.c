@@ -276,7 +276,7 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 						elemento_personaje->personaje, str_nivel);
 				plan_enviarMensaje(n_sistema, elemento_personaje->fd,
 						PLA_nivelCaido_PER, str_nivel);
-				close(elemento_personaje->fd);
+				//close(elemento_personaje->fd);
 				elemento_monitoreo = NULL;
 			}
 
@@ -368,6 +368,7 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 			//lo saco de normales y lo pongo en muertos
 			//pthread_mutex_lock(&mutex_niveles_sistema);
 			t_monitoreo *aux1 = NULL;
+			pthread_mutex_lock(&(nivel->mutex_lista));
 			aux1 = list_remove_by_condition(nivel->pers_conectados,
 					(void*) _esta_enSistema);
 			if (aux1 != NULL ) {
@@ -378,6 +379,7 @@ void suprimir_de_estructuras(int32_t sockett, t_pers_por_nivel* personaje) {
 					pthread_mutex_lock(&(nivel->mutex_inicial));
 				}*/
 			}
+			pthread_mutex_unlock(&(nivel->mutex_lista));
 			//pthread_mutex_unlock(&mutex_niveles_sistema);
 			//lo saco de normales y lo pongo en muertos
 
@@ -445,15 +447,18 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 			//lo saco de normales y lo pongo en muertos
 			//pthread_mutex_lock(&mutex_niveles_sistema);
 			t_monitoreo *aux1 = NULL;
+			pthread_mutex_lock(&(nivel->mutex_lista));
 			aux1 = list_remove_by_condition(nivel->pers_conectados,
 					(void*) _esta_enSistema);
 			if (aux1 != NULL ) {
 				list_add(nivel->pers_desconectados, aux1);
 				nivel->cant_pers--;
-				if (nivel->cant_pers == 0) {
+			/*	if (nivel->cant_pers == 0) {
 					pthread_mutex_lock(&(nivel->mutex_inicial));
 				}
+			*/
 			}
+			pthread_mutex_unlock(&(nivel->mutex_lista));
 			//pthread_mutex_unlock(&mutex_niveles_sistema);
 			//lo saco de normales y lo pongo en muertos
 
@@ -468,7 +473,7 @@ void suprimir_personaje_de_estructuras(t_pers_por_nivel* personaje) {
 						str_nivel);
 			}
 			//agregar_anormales(str_nivel, personaje->fd);
-			close(personaje->fd);
+			//close(personaje->fd);
 			destruir_personaje(personaje);
 
 		}
@@ -713,6 +718,7 @@ void orquestador_analizar_mensaje(int32_t sockett,
 		nuevo->cant_pers = 0;
 		nuevo->pers_desconectados = list_create();
 		pthread_mutex_init(&(nuevo->mutex_inicial), NULL );
+		pthread_mutex_init(&(nuevo->mutex_lista), NULL );
 
 		//lo bloqueo porque todavia no hay nadie
 		pthread_mutex_lock(&(nuevo->mutex_inicial));
@@ -788,12 +794,15 @@ void orquestador_analizar_mensaje(int32_t sockett,
 				return nuevo->nivel == nivel;
 			}
 
+
 			t_niveles_sistema *niv = list_find(niveles_del_sistema,
 					(void*) _esta_nivel);
+			pthread_mutex_lock(&(niv->mutex_lista));
 			//pthread_mutex_lock(&mutex_niveles_sistema);
 			list_add(niv->pers_conectados, item);
 			niv->cant_pers++;
 			//pthread_mutex_unlock(&mutex_niveles_sistema);
+			pthread_mutex_unlock(&(niv->mutex_lista));
 
 			// delegar la conexión al hilo del nivel correspondiente
 

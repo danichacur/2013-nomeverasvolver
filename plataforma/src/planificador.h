@@ -24,6 +24,7 @@ t_list *pers_conectados;
 t_list *pers_desconectados;
 int cant_pers;
 pthread_mutex_t mutex_inicial;
+pthread_mutex_t mutex_lista;
 char* str_nivel;
 } t_niveles_sistema;
 
