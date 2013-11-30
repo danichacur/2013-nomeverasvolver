@@ -216,8 +216,13 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 			finalizarTodoElProcesoPersonaje();
 		}
 	}
+
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger,"Este corresponde al nivel %d", ordNivel);
+	pthread_mutex_unlock(&mutex_log);
+
 	if (ordNivel != -1)
-	               //aca mato el hilo que restaba
+	               //Ace mato el hilo que restaba
 	               interrumpirUnNivel(ordNivel);
 
 }
@@ -278,6 +283,10 @@ void conectarAlOrquestador(int ordNivel){
 			pthread_mutex_unlock(&mutex_log);
 			fdOrquestador = fd;
 		}
+	}else{
+		pthread_mutex_lock(&mutex_log);
+		log_info(logger, "Personaje %s no se pudo conectar correctamente :/", personaje->nombre);
+		pthread_mutex_unlock(&mutex_log);
 	}
 
 	free(nomNivel);
@@ -719,15 +728,21 @@ void interrumpirUnNivel(int nivel){
 	log_info(logger, "cancelo el hilo");
 	pthread_mutex_unlock(&mutex_log);
 	int v = pthread_cancel(idHilo);
+
+	//pthread_mutex_lock(&mutex_log);
+	log_info(logger, "El cancel del Hilo resultó en %d", v);
+	//pthread_mutex_unlock(&mutex_log);
+
 	if (v == 0){
-		pthread_mutex_lock(&mutex_log);
+		//pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
-		pthread_mutex_unlock(&mutex_log);
+		//pthread_mutex_unlock(&mutex_log);
 	}else{
-		pthread_mutex_lock(&mutex_log);
+		//pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
-		pthread_mutex_unlock(&mutex_log);
+		//pthread_mutex_unlock(&mutex_log);
 	}
+
 
 }
 

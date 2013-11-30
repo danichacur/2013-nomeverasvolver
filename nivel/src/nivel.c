@@ -314,6 +314,9 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 	enum tipo_paquete unMensaje = PER_conexionNivel_ORQ;
 	char* elMensaje=NULL;
 
+	pthread_mutex_lock(&mutex_log);
+	log_info(logger,"Voy a esperar recibir un mensaje de %d", socketEscucha);
+	pthread_mutex_unlock(&mutex_log);
 
 	recibirMensaje(socketEscucha, &unMensaje,&elMensaje);
 
@@ -401,6 +404,10 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 							if(graficar)
 								nivel_gui_dibujar(items,nombre);
 						}
+
+						pthread_mutex_lock(&mutex_log);
+						log_info(logger, "Confirmo que el personaje %s puede moverse",mens[0]);
+						pthread_mutex_unlock(&mutex_log);
 
 						pthread_mutex_lock(&mutex_mensajes);
 						enviarMensaje(socketEscucha,NIV_movimiento_PLA,"0"); //"0" SI ES VALIDO
