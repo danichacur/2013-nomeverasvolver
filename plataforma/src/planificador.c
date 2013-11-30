@@ -599,6 +599,7 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 	}
 
 	case NIV_enemigosAsesinaron_PLA: {
+		*fd_personaje_actual = 0;
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla, "Nivel %d: Recibo el asesinato de: %s",
 				nivel->nivel, mensaje);
@@ -1309,6 +1310,7 @@ void planificador_analizar_mensaje(int32_t socket_r,
 	}
 	case NIV_enemigosAsesinaron_PLA: {
 
+		//*fd_personaje_actual = 0;
 		pthread_mutex_lock(&mutex_log);
 		log_info(logger_pla, "Nivel %s: Recibo el asesinato de: %s", str_nivel,
 				mensaje);

@@ -24,7 +24,7 @@ char * cadenaVacia;
 ////////////SEMAFOROS
 //extern pthread_mutex_t mx_enemigos;
 extern pthread_mutex_t mutex_mensajes;
-extern pthread_mutex_t mx_lista_personajes;
+//extern pthread_mutex_t mx_lista_personajes;
 extern pthread_mutex_t mx_lista_items;
 extern pthread_mutex_t mutex_log;
 
@@ -306,6 +306,11 @@ bool hayCajaOExcedeLimite(int x, int y){
 	if (excedeLimite(x,y)){
 		return true;
 	}
+
+	if ((x == 0) && (y == 0)){
+		return true;
+	}
+
 	return false;
 }
 
@@ -328,7 +333,13 @@ bool hayCaja(int x, int y){
 }
 
 bool excedeLimite(int x, int y){
-	return (x<0 || y<0 || x>cols || y>rows) ;
+
+	if(((x<0) || (y<0))){ //si se va para los negativos
+		return true;
+	}else if((x>cols) || (y>rows)){ // si excede los margenes de la pantalla
+		return true;
+	}else
+		return false;
 }
 
 int obtenerDireccionCercaniaEn(char * orientacion, t_enemigo * enemigo, t_personaje_niv1 * personaje){
