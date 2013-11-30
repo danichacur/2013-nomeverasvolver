@@ -33,6 +33,7 @@ int32_t socketDeEscucha;
 pthread_t hiloInotify;
 pthread_mutex_t mutex_listas;
 pthread_mutex_t mutex_mensajes;
+pthread_mutex_t mutex_log;
 
 
 
@@ -58,12 +59,11 @@ int main (){
 	items = list_create(); // CREO LA LISTA DE ITEMS
 	listaPersonajesRecursos = list_create(); //CREO LA LISTA DE PERSONAJES CON SUS RECURSOS
 	config = config_create(RUTA); //CREO LA RUTA PARA EL ARCHIVO DE CONFIGURACION
+
 	pthread_mutex_init(&mutex_mensajes, NULL );
 	pthread_mutex_init(&mutex_listas, NULL );
-
-
+	pthread_mutex_init(&mutex_log, NULL );
 	pthread_mutex_init(&mutex_mensajes,NULL);
-
 	pthread_mutex_init(&mx_lista_items,NULL);
 
 	leerArchivoConfiguracion(); //TAMBIEN CONFIGURA LA LISTA DE RECURSOS POR NIVEL
@@ -289,9 +289,6 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 					huboCambios=false;
 
-
-					char* elMensaje=NULL;
-
 					log_info(logger,"me preparo para recibir el ok");
 
 					pthread_mutex_lock(&mutex_mensajes);
@@ -303,12 +300,13 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 
 
 					if(unMensaje==OK1){
+						log_info(logger,"ya envie el cambio de configuracion, y me dieron el ok");
 
 
 						if(existePersonajeEnListaItems(idPers)){
 
 							pthread_mutex_lock(&mutex_listas);
-							MoverPersonaje(items, elMensaje[0],atoi(mens[1]), atoi(mens[2]));
+							MoverPersonaje(items, idPers,atoi(mens[1]), atoi(mens[2]));
 							pthread_mutex_unlock(&mutex_listas);
 
 							log_info(logger, "El personaje %s se movio a %s %s ",mens[0],mens[1],mens[2]);

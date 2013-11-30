@@ -180,6 +180,8 @@ int32_t sumar_valores(char *mensaje) {
 		nivel->algol = n_mensaje[0];
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
+
 		enviarMensaje(nivel->fd, OK1, "0");
 
 		free(mensaje);
@@ -667,6 +669,8 @@ void posibles_respuestas_del_nivel(t_pers_por_nivel *personaje,
 		nivel->algol = n_mensaje[0];
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
+
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
 
 		free(mensaje);
 		enviarMensaje(nivel->fd, OK1, "0");
@@ -1293,6 +1297,8 @@ void planificador_analizar_mensaje(int32_t socket_r,
 		nivel->algol = n_mensaje[0];
 		nivel->quantum = atoi(n_mensaje[1]);
 		nivel->retardo = atoi(n_mensaje[2]);
+		log_info(logger_pla,"Nivel %s:actualizo cambios de configuracion",str_nivel);
+
 
 		enviarMensaje(nivel->fd, OK1, "0");
 
