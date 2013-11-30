@@ -238,8 +238,14 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 	FD_ZERO(&read_fds);
 	struct timeval tv;
 	//el select espera 10 segundos // ver si no es mucho 10 seg
-	tv.tv_sec = nivel->retardo / 1000; //segundos
-	tv.tv_usec = 0; //nivel->retardo * 1000; //microsegundos
+
+	if (nivel->retardo < 1000) {
+		tv.tv_sec = 0; //segundos
+		tv.tv_usec = nivel->retardo * 1000; //microsegundos
+	} else {
+		tv.tv_sec = nivel->retardo / 1000; //segundos
+		tv.tv_usec = 0; //nivel->retardo * 1000; //microsegundos
+	}
 	//voy metiendo aca los personajes para monitorear
 
 	//t_list *p_monitoreo = dictionary_get(monitoreo, str_nivel);
@@ -1155,10 +1161,10 @@ void proceso_desbloqueo(t_list *recursos, int32_t fd, char *str_nivel) {
 		pthread_mutex_unlock(&mutex_log);
 		enviarMensaje(fd, PLA_actualizarRecursos_NIV, recursosNuevos);
 	}
-	int m;
+//	int m;
 	t_recursos_obtenidos *elem;
-	for (m = 0; !list_is_empty(recursosDisponibles); m++) {
-		elem = list_remove(recursosDisponibles, m);
+	while(!list_is_empty(recursosDisponibles)) {
+		elem = list_remove(recursosDisponibles, 0);
 		free(elem);
 	}
 
@@ -1348,8 +1354,8 @@ void planificador_analizar_mensaje(int32_t socket_r,
 				"Nivel %s: Le aviso al personaje %s que murio interbloqueado",
 				str_nivel, mensaje);
 		pthread_mutex_unlock(&mutex_log);
-		suprimir_personaje_de_estructuras(aux);
 		plan_enviarMensaje(nivel, fd_prueba, PLA_rtaRecurso_PER, "1");
+		suprimir_personaje_de_estructuras(aux);
 
 		break;
 	}

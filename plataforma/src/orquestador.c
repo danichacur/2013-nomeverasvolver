@@ -97,6 +97,7 @@ t_list * desbloquear_personajes(t_list *recursos_obtenidos, char *str_nivel,
 		log_info(logger,
 				"Nivel %s: DesbloquearPersonajes: No habia personajes que desbloquear",
 				str_nivel);
+		recursos_libres = recursos_obtenidos;
 	} else {
 
 		//poner que ademas pregunte si no hay mas personajes para desbloquear

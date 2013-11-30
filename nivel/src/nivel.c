@@ -425,7 +425,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
 				pthread_mutex_lock(&mutex_listas);
-				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
+//				liberarRecursosDelPersonaje(personaje->recursosActuales); // tambien suma sus recursos a disponible
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 
 				pthread_mutex_unlock(&mutex_listas);
@@ -585,7 +585,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
 				pthread_mutex_lock(&mutex_listas);
-				liberarRecursosDelPersonaje(personaje->recursosActuales);
+	//			liberarRecursosDelPersonaje(personaje->recursosActuales);
 				BorrarItem(items,id);
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
@@ -611,7 +611,7 @@ void mensajesConPlataforma(int32_t socketEscucha) {//ATIENDE LA RECEPCION Y POST
 				personaje = buscarPersonajeListaPersonajes(listaPersonajesRecursos,string_substring_until(elMensaje,1));
 
 				pthread_mutex_lock(&mutex_listas);
-				liberarRecursosDelPersonaje(personaje->recursosActuales);
+//				liberarRecursosDelPersonaje(personaje->recursosActuales);
 				BorrarItem(items,id);
 				borrarPersonajeListaPersonajes(listaPersonajesRecursos,elMensaje);
 				pthread_mutex_unlock(&mutex_listas);
@@ -930,5 +930,4 @@ bool existePersonajeEnListaItems(char idPers){
 	}
 	return encontrado;
 }
-
 
