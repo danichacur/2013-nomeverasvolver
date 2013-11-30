@@ -45,10 +45,13 @@ bool finalizoCorrectamente;
 
 int32_t pidProcesoMadre;
 
+pthread_mutex_t mutex_log;
+
 //PROCESO PERSONAJE
 int main(){
 
 	pidProcesoMadre = getpid();
+	pthread_mutex_init(&mutex_log, NULL );
 
 	//TODO borrar esto, es para las pruebas.
 	listaDeNumeroCajaPorNivel = list_create();
@@ -116,7 +119,9 @@ void* conectarAlNivel(int* nroNivel){
 
 		t_posicion * pos = list_get(personaje->posicionesPorNivel,ordNivel);
 		if (pos->posX >= 100 || pos->posY >= 100){
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger, "Personaje %s (%s) (nivel: %s) TUVO UN PROBLEMA Y PASO LA UBICACION 100 EN ALGUN EJE. REVEER.", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
+			pthread_mutex_unlock(&mutex_log);
 			hubo_error = true;
 			break;
 		}
@@ -141,9 +146,13 @@ void* conectarAlNivel(int* nroNivel){
 
 void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 	if(motivoMuerte == MUERTE_POR_ENEMIGO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Perdí una vida porque me alcanzó un enemigo");
+		pthread_mutex_unlock(&mutex_log);
 	}else if( motivoMuerte == MUERTE_POR_INTERBLOQUEO){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Perdí una vida porque estaba interbloqueado");
+		pthread_mutex_unlock(&mutex_log);
 	}
 
 	//log_info(logger, "envio mensaje PER_meMori_PLA con el mensaje %s", personaje->simbolo);
@@ -177,22 +186,33 @@ void tratamientoDeMuerte(enum tipoMuertes motivoMuerte,int ordNivel){
 		char* respuesta = malloc(sizeof(char));
 		finalizoCorrectamente = false;
 		interrumpirTodosPlanesDeNivelesMenosActual(ordNivel);
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Usted ha perdido todas sus vidas. Usted ya reintentó %d veces. Desea volver a comenzar? [S/N]\n", cantidadIntentosFallidos);
+		pthread_mutex_unlock(&mutex_log);
+
 
 		while(1){
 			scanf("%s",respuesta);
 			if(string_equals_ignore_case(respuesta,"S") || string_equals_ignore_case(respuesta,"N")){
 				break;
 			}else{
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger,"Dale flaco, te dije [S/N] ¬¬ \n");
+				pthread_mutex_unlock(&mutex_log);
 			}
 		}
 		if(strcmp(respuesta,"S") == 0){
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger,"Se reinicia plan de niveles");
+			pthread_mutex_unlock(&mutex_log);
+
 			personaje->cantVidas = cantVidasDelArchivoDeConfiguracion;
 			cantidadIntentosFallidos += 1;
 		}else{
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger,"bueno che, nos vimos en Disney");
+			pthread_mutex_unlock(&mutex_log);
+
 			finalizarTodoElProcesoPersonaje();
 		}
 	}
@@ -248,10 +268,14 @@ void conectarAlOrquestador(int ordNivel){
 
 	if (fd > 0){
 		if (ordNivel != -1){
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger, "Personaje %s (%s) (nivel: %s) se conectó correctamente al Orquestador", personaje->nombre, personaje->simbolo, nomNivel);
+			pthread_mutex_unlock(&mutex_log);
 			tabla_fd[ordNivel] = fd;
 		}else{
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger, "Personaje %s se conectó correctamente al Orquestador", personaje->nombre);
+			pthread_mutex_unlock(&mutex_log);
 			fdOrquestador = fd;
 		}
 	}
@@ -418,7 +442,9 @@ static t_personaje *personaje_create(char *nombre,
 
 void avisarPlanNivelesConcluido(){
 	sleep(3);
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) informa que finalizó su plan de niveles", personaje->nombre, personaje->simbolo);
+	pthread_mutex_unlock(&mutex_log);
 	if (CON_CONEXION)
 		enviarMensaje(fdOrquestador,PER_finPlanDeNiveles_ORQ,personaje->simbolo);
 }
@@ -454,7 +480,10 @@ int tengoPosicionProximaCaja(int ordNivel){
 void solicitarYRecibirPosicionProximoRecurso(int ordNivel){
 	char * proximoRecursoNecesario  = obtenerProximoRecursosNecesario(ordNivel);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) solicita la ubicacion de la caja del recurso %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), proximoRecursoNecesario);
+	pthread_mutex_unlock(&mutex_log);
+
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, proximoRecursoNecesario);
 		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_posCajaRecurso_PLA, proximoRecursoNecesario);
@@ -483,7 +512,10 @@ void solicitarYRecibirPosicionProximoRecurso(int ordNivel){
 	}
 	/////////////////////////////////////////
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) recibió la ubicacion del recurso %s, y es %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), proximoRecursoNecesario, mensaje);
+	pthread_mutex_unlock(&mutex_log);
+
 	char ** arr = string_split(mensaje,",");
 
 	t_posicion * nuevaPosicion = malloc(sizeof(t_posicion));
@@ -526,10 +558,13 @@ void realizarMovimientoHaciaCajaRecursos(int ordNivel){
 
 	posicionFinal = list_get(personaje->posicionesPorNivel,ordNivel);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) se movio de posicion %s a posicion %s. Direccion %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel),
 			posicionToString(verdaderaPosicionAnterior),
 			posicionToString(posicionFinal),
 			direccion);
+	pthread_mutex_unlock(&mutex_log);
+
 
 }
 
@@ -538,13 +573,18 @@ void enviarNuevaPosicion(int ordNivel){
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
 		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_movimiento_PLA, posicionToString(posicion));
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) envió su posicion %s al Planificador", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel), posicionToString(posicion));
+	pthread_mutex_unlock(&mutex_log);
 
 	char * mensaje;
 
 	recibirUnMensaje(obtenerFDPlanificador(ordNivel), PLA_movimiento_PER, &mensaje, ordNivel);
-	if(!strcmp(mensaje,"1"))
+	if(!strcmp(mensaje,"1")){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Personaje %s (%s) (nivel: %s) se fue del mapa. Se rompió todo", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
+		pthread_mutex_unlock(&mutex_log);
+	}
 }
 
 int estoyEnCajaRecursos(int ordNivel){
@@ -561,7 +601,9 @@ int estoyEnCajaRecursos(int ordNivel){
 
 void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando una respuesta
 	char * recursoNecesario = obtenerProximoRecursosNecesario(nivel);
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) solicita el recurso %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel), recursoNecesario);
+	pthread_mutex_unlock(&mutex_log);
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
 		enviarMensaje(obtenerFDPlanificador(nivel),PER_recurso_PLA,recursoNecesario);
@@ -583,7 +625,10 @@ void solicitarRecurso(int nivel){ // solicita el recurso y se queda esperando un
 	char * recursosActuales = obtenerRecursosActualesPorNivel(nivel);
 	char * recursosNecesarios = obtenerRecursosNecesariosPorNivel(nivel);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) obtuvo el recurso %s. Ahora tiene: %s. Necesita: %s", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel), recursoNecesario, recursosActuales, recursosNecesarios);
+	pthread_mutex_unlock(&mutex_log);
+
 
 	free(recursosActuales);
 	free(recursosNecesarios);
@@ -621,8 +666,10 @@ char* obtenerRecursosNecesariosPorNivel(int ordNivel){
 
 
 void avisarNivelConcluido(int nivel){
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) (nivel: %s) informa que finalizó dicho nivel -------------------------------",
-			personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+				personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+	pthread_mutex_unlock(&mutex_log);
 	if (CON_CONEXION)
 		//enviarMensaje(obtenerFDPlanificador(nivel),PER_nivelFinalizado_PLA,"0");
 		enviarMensaje(obtenerFDPlanificador(nivel) , PER_nivelFinalizado_PLA , personaje->simbolo);
@@ -654,28 +701,42 @@ void interrumpirUnNivel(int nivel){
 
 	reiniciarListasDeNivelARecomenzar(nivel);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Interrumpo el nivel %d", nivel);
+	pthread_mutex_unlock(&mutex_log);
 
 	pthread_t idHilo;
 	idHilo = tabla_thr[nivel];
 	int32_t fd= tabla_fd[nivel];
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "cierro el fd %d", fd);
+	pthread_mutex_unlock(&mutex_log);
+
 	close(fd);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "cancelo el hilo");
+	pthread_mutex_unlock(&mutex_log);
 	int v = pthread_cancel(idHilo);
 	if (v == 0){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Se ha matado el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
-	}else
+		pthread_mutex_unlock(&mutex_log);
+	}else{
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Error al matar el hilo Personaje %s (%s) del (nivel: %s) ", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(nivel));
+		pthread_mutex_unlock(&mutex_log);
+	}
 
 }
 
 
 
 void finalizarTodoElProcesoPersonaje(){
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Personaje %s (%s) finaliza totalmente.", personaje->nombre, personaje->simbolo);
+	pthread_mutex_unlock(&mutex_log);
 	kill(pidProcesoMadre, SIGKILL);
 }
 
@@ -700,7 +761,9 @@ void enviarHandshake(int ordNivel){
 	//string_append(&mensaje,personaje->remain);
 	if (CON_CONEXION)
 		enviarMensaje(obtenerFDPlanificador(ordNivel), PER_handshake_ORQ, mensaje);
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "P1ersonaje %s (%s) (nivel: %s) envía handshake al Orquestador con los siguientes datos: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
+	pthread_mutex_unlock(&mutex_log);
 
 	free(mensaje);
 	free(nomNivel);
@@ -717,10 +780,15 @@ void recibirHandshake(int ordNivel){
 	else
 		tipoRecibido = ORQ_handshake_PER;
 
-	if(tipoRecibido == ORQ_handshake_PER)
+	if(tipoRecibido == ORQ_handshake_PER){
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Personaje %s (%s) (nivel: %s) recibe handshake del Orquestador", personaje->nombre, personaje->simbolo, nomNivel);
-	else
+		pthread_mutex_unlock(&mutex_log);
+	}else{
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Personaje %s (%s) (nivel: %s) recibe un mensaje incorrecto del Orquestador. Recibe: ", personaje->nombre, personaje->simbolo, nomNivel, obtenerNombreEnum(tipoRecibido));
+		pthread_mutex_unlock(&mutex_log);
+	}
 	free(mensaje);
 	free(nomNivel);
 }
@@ -736,7 +804,9 @@ void enviaSolicitudConexionANivel(int ordNivel){ // TODO ver como hago para volv
 		while(1){
 			enviarMensaje(obtenerFDPlanificador(ordNivel), PER_conexionNivel_ORQ, mensaje);
 			//mensaje = NULL;
+			pthread_mutex_lock(&mutex_log);
 			log_info(logger, "Personaje %s (%s) (nivel: %s) pide al Orquestador conectarse al nivel: %s", personaje->nombre, personaje->simbolo, nomNivel, mensaje);
+			pthread_mutex_unlock(&mutex_log);
 			recibirMensaje(obtenerFDPlanificador(ordNivel), &tipoMensaje, &rta);
 			if( strcmp(rta,"0") == 0)
 				break;
@@ -771,10 +841,14 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 				//log_info(logger, "Personaje %s (%s) (nivel: %s) recibió un mensaje de muerte por enemigo",personaje->nombre, personaje->simbolo, nomNivel);
 				tratamientoDeMuerte(MUERTE_POR_ENEMIGO, ordNivel);
 			}else if (tipoMensaje == PLA_nivelCaido_PER){
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "Nivel Caido. Finalizo todo abruptamente");
+				pthread_mutex_unlock(&mutex_log);
 				finalizarTodoElProcesoPersonaje();
 			}else{
+				pthread_mutex_lock(&mutex_log);
 				log_info(logger, "Mensaje Inválido. Se esperaba %s y se recibió %s", obtenerNombreEnum(tipoEsperado), obtenerNombreEnum(tipoMensaje));
+				pthread_mutex_unlock(&mutex_log);
 			}
 		}else{
 			if (tipoMensaje == PLA_rtaRecurso_PER && strcmp(mensaje,"1") == 0){
@@ -784,7 +858,9 @@ void recibirUnMensaje(int32_t fd, enum tipo_paquete tipoEsperado, char ** mensaj
 				string_append(mensajeRecibido, mensaje);
 		}
 	}else{
+		pthread_mutex_lock(&mutex_log);
 		log_info(logger, "Personaje %s (%s) (nivel: %s) recibió una desconexion abrupta. Cierra todo", personaje->nombre, personaje->simbolo, obtenerNombreNivelDesdeOrden(ordNivel));
+		pthread_mutex_unlock(&mutex_log);
 		finalizarTodoElProcesoPersonaje();
 	}
 }
@@ -856,7 +932,9 @@ void capturarSeniales(){
 	signal(SIGUSR1, recibirSenialGanarVida);
 	signal(SIGTERM, recibirSenialPierdeVida);
 
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "Escucha de seniales levantada");
+	pthread_mutex_unlock(&mutex_log);
 }
 
 void recibirSenialGanarVida(){
@@ -865,7 +943,9 @@ void recibirSenialGanarVida(){
 	cantVidasPrevias = personaje->cantVidas;
 	personaje->cantVidas = personaje->cantVidas + 1;
 	cantVidasPosterior = personaje->cantVidas;
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El personaje %s tiene una vida mas. Tenia %d y ahora tiene %d", personaje->nombre, cantVidasPrevias, cantVidasPosterior); //, personaje->cantVidas);
+	pthread_mutex_unlock(&mutex_log);
 }
 
 void recibirSenialPierdeVida(){
@@ -875,7 +955,9 @@ void recibirSenialPierdeVida(){
 	personaje->cantVidas = personaje->cantVidas - 1;
 
 	cantVidasPosterior = personaje->cantVidas;
+	pthread_mutex_lock(&mutex_log);
 	log_info(logger, "El personaje %s tiene una vida menos. Tenia %d y ahora tiene %d", personaje->nombre, cantVidasPrevias, cantVidasPosterior); //, personaje->cantVidas);
+	pthread_mutex_unlock(&mutex_log);
 
 	if(!meQuedanVidas())
 		tratamientoDeMuerte(MUERTE_POR_QUEDAR_SIN_VIDAS, -1);
