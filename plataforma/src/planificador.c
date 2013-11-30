@@ -1469,5 +1469,6 @@ bool plan_enviarMensaje(t_niveles_sistema* nivel, int32_t fd,
 				nivel->str_nivel);
 		pthread_mutex_unlock(&mutex_log);
 		return false;
+		//log_info
 	}
 }
