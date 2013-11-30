@@ -346,13 +346,6 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 					}
 					//eliminarlo de las estructuras
 
-					close(i); // ¡Hasta luego!
-					FD_CLR(i, &master); // eliminar del conjunto maestro
-					break;
-					/*
-					 if (i == fd_personaje_actual)
-					 break;
-					 */
 				} else {
 					// tenemos datos del cliente del socket i!
 					pthread_mutex_lock(&mutex_log);
@@ -420,8 +413,17 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 									str_nivel, mensaje);
 							pthread_mutex_unlock(&mutex_log);
 
-							t_pers_por_nivel * elMuerto = NULL;
-							tratamiento_asesinato(nivel, elMuerto, mensaje,
+//							t_pers_por_nivel * elMuerto = NULL;
+							int i = 0;
+							while (mensaje[i] != '\0') { //por si mato a mas de uno a la vez
+								if (mensaje[i] == personaje->personaje) {
+									fd_personaje_actual = 0;
+									break;
+								}
+								i++;
+							}
+
+							tratamiento_asesinato(nivel, personaje, mensaje,
 									str_nivel);
 							free(mensaje);
 
@@ -429,7 +431,7 @@ void *hilo_planificador(t_niveles_sistema *nivel) {
 
 							planificador_analizar_mensaje(i, tipoMensaje,
 									mensaje, nivel, personaje);
-//                                                fd_personaje_actual = 0;
+                                     fd_personaje_actual = 0;
 //                                                destruir_personaje(personaje);
 					}
 				} // fin seccion recibir OK los datos
